@@ -1,0 +1,29 @@
+FROM node:16-alpine
+MAINTAINER "Vagner dos Santos Cardoso <vagnercardosoweb@gmail.com>"
+
+# set environments
+ENV TZ=${TZ:-America/Sao_Paulo}
+
+# update system and install tz
+RUN apk add --update --no-cache bash tzdata openssl && rm -rf /var/cache/apk/*
+
+# install dockerize
+ENV DOCKERIZE_VERSION v0.6.1
+RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
+    && tar -C /usr/local/bin -xzvf dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
+    && rm dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+
+# set non-root user
+ENV USER=node
+USER ${USER}
+
+# set workdir
+ENV WORKDIR=/home/node
+WORKDIR ${WORKDIR}
+
+# create node_modules
+RUN mkdir -p ${WORKDIR}/node_modules
+
+# expose port
+ENV PORT=${PORT:-3333}
+EXPOSE ${PORT}

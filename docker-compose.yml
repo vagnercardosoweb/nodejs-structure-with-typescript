@@ -1,0 +1,56 @@
+version: '3'
+
+networks:
+  app.network:
+    driver: bridge
+
+services:
+  server:
+    build: .
+    container_name: app.server
+    working_dir: /home/node
+    entrypoint: dockerize -wait tcp://postgres:5432 -wait tcp://redis:6379 -timeout 60s .docker/entrypoint.sh
+    tty: true
+    depends_on:
+      - redis
+      - postgres
+    volumes:
+      - .:/home/node:z
+    networks:
+      - app.network
+    ports:
+      - "3333:3333"
+      - "9229:9229"
+
+  postgres:
+    image: bitnami/postgresql:14
+    container_name: app.postgres
+    tty: true
+    volumes:
+      - app.volume.postgres:/bitnami/postgresql:z
+    networks:
+      - app.network
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRESQL_USERNAME=root
+      - POSTGRESQL_PASSWORD=root
+      - POSTGRESQL_DATABASE=development
+
+  redis:
+    image: bitnami/redis:latest
+    container_name: app.redis
+    tty: true
+    volumes:
+      - app.volume.redis:/bitnami/redis/data:z
+    networks:
+      - app.network
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_PASSWORD=redis
+      - ALLOW_EMPTY_PASSWORD=no
+
+volumes:
+  app.volume.redis:
+  app.volume.postgres:
