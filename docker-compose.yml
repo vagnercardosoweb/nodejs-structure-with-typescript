@@ -6,49 +6,54 @@ networks:
 
 services:
   server:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.local
     container_name: app.server
-    working_dir: /home/node
-    entrypoint: dockerize -wait tcp://postgres:5432 -wait tcp://redis:6379 -timeout 60s .docker/entrypoint.sh
+    working_dir: /home/node/app
+    entrypoint: dockerize -wait tcp://postgres:5432 -wait tcp://redis:6379 -timeout 60s .bin/docker-entrypoint.sh
     tty: true
     depends_on:
       - redis
       - postgres
     volumes:
-      - .:/home/node:z
+      - .:/home/node/app
+      - /home/node/app/node_modules
     networks:
       - app.network
     ports:
-      - "3333:3333"
-      - "9229:9229"
+      - "${PORT:-3333}:3333"
+      - "${PORT_DEBUG:-9229}:9229"
+    environment:
+      - NODE_ENV=${NODE_ENV:-local}
 
   postgres:
     image: bitnami/postgresql:14
     container_name: app.postgres
     tty: true
     volumes:
-      - app.volume.postgres:/bitnami/postgresql:z
+      - app.volume.postgres:/bitnami/postgresql
     networks:
       - app.network
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     environment:
-      - POSTGRESQL_USERNAME=root
-      - POSTGRESQL_PASSWORD=root
-      - POSTGRESQL_DATABASE=development
+      - POSTGRESQL_USERNAME=${DB_USERNAME:-root}
+      - POSTGRESQL_PASSWORD=${DB_PASSWORD:-root}
+      - POSTGRESQL_DATABASE=${DB_NAME:-development}
 
   redis:
     image: bitnami/redis:latest
     container_name: app.redis
     tty: true
     volumes:
-      - app.volume.redis:/bitnami/redis/data:z
+      - app.volume.redis:/bitnami/redis/data
     networks:
       - app.network
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
     environment:
-      - REDIS_PASSWORD=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis}
       - ALLOW_EMPTY_PASSWORD=no
 
 volumes:

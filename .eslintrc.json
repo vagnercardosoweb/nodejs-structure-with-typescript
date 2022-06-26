@@ -1,69 +1,78 @@
 {
-  "env": {
-    "jest": true,
-    "es2021": true,
-    "node": true
-  },
-  "extends": [
-    "airbnb-base",
-    "plugin:@typescript-eslint/eslint-recommended",
-    "plugin:@typescript-eslint/recommended",
-    "prettier",
-    "plugin:prettier/recommended"
-  ],
-  "parser": "@typescript-eslint/parser",
-  "parserOptions": {
-    "ecmaVersion": 12,
-    "sourceType": "module"
-  },
-  "plugins": ["@typescript-eslint", "prettier", "eslint-plugin-import-helpers"],
-  "rules": {
-    "prettier/prettier": "error",
-    "import/no-unresolved": "error",
-    "no-continue": "off",
-    "global-require": "off",
-    "no-unused-vars": [
-      "off",
-      {
-        "argsIgnorePattern": "^_"
-      }
-    ],
-    "import/prefer-default-export": "off",
-    "import/extensions": [
-      "error",
-      "ignorePackages",
-      {
-        "ts": "never",
-        "js": "never"
-      }
-    ],
-    "@typescript-eslint/no-unused-vars": [
-      "error",
-      {
-        "argsIgnorePattern": "^_"
-      }
-    ],
-    "import-helpers/order-imports": [
-      "warn",
-      {
-        "newlinesBetween": "always",
-        "groups": ["module", "/^@//", ["parent", "sibling", "index"]],
-        "alphabetize": {
-          "order": "asc",
-          "ignoreCase": true
-        }
-      }
-    ]
-  },
-  "settings": {
-    "import/extensions": [".ts", ".js"],
-    "import/parsers": {
-      "@typescript-eslint/parser": [".ts", ".js"]
-    },
-    "import/resolver": {
-      "typescript": {
-        "alwaysTryTypes": true
-      }
-    }
-  }
+	"env": {
+		"jest": true,
+		"es2021": true,
+		"node": true
+	},
+	"extends": [
+		"airbnb-base",
+		"plugin:@typescript-eslint/eslint-recommended",
+		"plugin:@typescript-eslint/recommended",
+		"prettier",
+		"plugin:prettier/recommended"
+	],
+	"parser": "@typescript-eslint/parser",
+	"parserOptions": {
+		"ecmaVersion": 12,
+		"sourceType": "module"
+	},
+	"plugins": ["@typescript-eslint", "prettier", "eslint-plugin-import-helpers"],
+	"rules": {
+		"prettier/prettier": "error",
+		"import/no-unresolved": "error",
+		"no-continue": "off",
+		"global-require": "off",
+		"no-shadow": "off",
+		"no-param-reassign": "off",
+		"no-use-before-define": "off",
+		"no-useless-constructor": "off",
+		"class-methods-use-this": "off",
+    "lines-between-class-members": "off",
+		"no-unused-vars": [
+			"off",
+			{
+				"argsIgnorePattern": "^_"
+			}
+		],
+		"import/prefer-default-export": "off",
+		"import/extensions": [
+			"error",
+			"ignorePackages",
+			{
+				"ts": "never",
+				"js": "never"
+			}
+		],
+		"@typescript-eslint/no-empty-function": "off",
+		"@typescript-eslint/no-namespace": "off",
+		"@typescript-eslint/no-explicit-any": "off",
+		"@typescript-eslint/no-unused-vars": [
+			"error",
+			{
+				"argsIgnorePattern": "^_"
+			}
+		],
+		"import-helpers/order-imports": [
+			"warn",
+			{
+				"newlinesBetween": "always",
+				"groups": ["module", "/^@//", ["parent", "sibling", "index"]],
+				"alphabetize": {
+					"order": "asc",
+					"ignoreCase": true
+				}
+			}
+		]
+	},
+	"settings": {
+		"import/extensions": [".ts", ".js"],
+		"import/parsers": {
+			"@typescript-eslint/parser": [".ts", ".js"]
+		},
+		"import/resolver": {
+			"typescript": {
+				"alwaysTryTypes": true
+			}
+		}
+	}
 }

@@ -1,22 +1,45 @@
+import 'reflect-metadata';
+
+import '../config/dotenv';
 import '../config/module-alias';
 
-import * as http from 'http';
+import { Database } from '@/database';
+import { errorToObject, Logger, Redis } from '@/utils';
 
-const port = parseInt(process.env.PORT || '3333', 10);
-const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'application/json');
-  res.end(
-    JSON.stringify({
-      date: new Date().toISOString(),
-      message: 'Hello World!',
-    }),
-  );
-});
+import App from './app';
 
-server.on('listening', () => {
-  // eslint-disable-next-line no-console
-  console.log(`Server is listening on port ${port}`);
-});
+const handleCloseDependencies = async () => {
+	await Redis.getInstance().close();
+	await Database.getInstance().close();
+	await App.close();
 
-server.listen(port);
+	process.exit(0);
+};
+
+(async () => {
+	process.on('SIGINT', handleCloseDependencies);
+	process.on('SIGTERM', handleCloseDependencies);
+	process.on('SIGQUIT', handleCloseDependencies);
+
+	process.on('unhandledRejection', (reason, promise) => {
+		Logger.error(`App exiting due to an unhandled promise: ${promise} and reason: ${reason}`);
+		throw reason;
+	});
+
+	process.on('uncaughtException', (error) => {
+		Logger.error(`App exiting due to an uncaught exception: ${error}`);
+		process.exit(1);
+	});
+
+	try {
+		await Redis.getInstance().connect();
+		await Database.getInstance().connect();
+		await App.start();
+
+		Logger.info(`server started on http://localhost:${App.getPort()}`);
+	} catch (e: any) {
+		await handleCloseDependencies();
+		Logger.error(`server initialization failed`, errorToObject(e));
+		process.exit(1);
+	}
+})();

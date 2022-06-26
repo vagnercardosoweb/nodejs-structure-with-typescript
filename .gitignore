@@ -5,3 +5,6 @@ dist
 !.env.example
 .vscode
 .npm
+database-compiled
+aws-infra
+core

@@ -18,7 +18,7 @@ ENV USER=node
 USER ${USER}
 
 # set workdir
-ENV WORKDIR=/home/node
+ENV WORKDIR=/home/node/app
 WORKDIR ${WORKDIR}
 
 # create node_modules
