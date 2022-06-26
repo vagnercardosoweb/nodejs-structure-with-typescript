@@ -6,8 +6,8 @@
 - ORM Sequelize [https://sequelize.org/](https://sequelize.org/)
 - Jest testing [https://jestjs.io/pt-BR/](https://jestjs.io/pt-BR/)
 - Docker and Docker-Compose [https://www.docker.com/](https://www.docker.com/)
-    - Postgresql [https://www.postgresql.org/](https://www.postgresql.org/)
-    - Redis [https://redis.io/](https://redis.io/)
+  - Postgresql [https://www.postgresql.org/](https://www.postgresql.org/)
+  - Redis [https://redis.io/](https://redis.io/)
 - and other auxiliaries...
 
 ## Run Project
