@@ -6,7 +6,7 @@ if [ ! -f ".env" ]; then
 fi
 
 echo "Install node_modules..."
-npm install
+npm install --silent
 
 echo "Running dev server"
 npm run dev

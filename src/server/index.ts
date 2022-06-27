@@ -19,6 +19,10 @@ process.on('uncaughtException', (error) => {
 	process.exit(ExitStatus.FAILURE);
 });
 
+process.on('exit', (code) => {
+	Logger.warn(`server exited with ${code === 0 ? 'success' : 'failed'}`);
+});
+
 const processExitWithError = (error: any) => {
 	Logger.error(`server exited with error`, { stack: error.stack });
 	process.exit(ExitStatus.FAILURE);
@@ -49,11 +53,7 @@ const processExitWithError = (error: any) => {
 			},
 		});
 
-		process.on('exit', (code) => {
-			Logger.warn(`server exited with code ${code}`);
-		});
-
-		Logger.info(`server listening on port ${app.getPort()}`);
+		Logger.info(`server listening on port ${app.getPort()} and process id ${process.pid}`);
 	} catch (error: any) {
 		processExitWithError(error);
 	}
