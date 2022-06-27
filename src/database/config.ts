@@ -33,12 +33,12 @@ export class Config {
 			schema: Env.get('DB_SCHEMA', 'public'),
 			logging: (sql) => {
 				if (Env.get('DB_LOGGING', false)) {
-					Logger.info(sql, { appName: 'SEQUELIZE' });
+					Logger.warn(sql, { loggerId: 'SEQUELIZE' });
 				}
 			},
 			pool: {
-				max: Env.get('DB_POOL_MAX', 5),
-				min: Env.get('DB_POOL_MIN', 0),
+				max: Env.get('DB_POOL_MAX'),
+				min: Env.get('DB_POOL_MIN'),
 				acquire: Env.get('DB_POOL_ACQUIRE'),
 				idle: Env.get('DB_POOL_IDLE'),
 				evict: Env.get('DB_POOL_EVICT'),

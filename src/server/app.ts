@@ -13,11 +13,10 @@ import {
 	methodOverrideMiddleware,
 	notFoundMiddleware,
 } from '@/middlewares';
-import { Env } from '@/utils';
+import appRoutes from '@/server/routes';
+import { Env, Logger } from '@/utils';
 
-import appRoutes from './routes';
-
-class App {
+export class App {
 	protected app: express.Application;
 	protected server: http.Server;
 	protected port: number;
@@ -25,7 +24,7 @@ class App {
 	constructor() {
 		this.app = express();
 		this.server = http.createServer(this.app);
-		this.port = Number(process.env.PORT || 3333);
+		this.port = Env.get('PORT', 3333);
 
 		this.app.set('trust proxy', true);
 		this.app.set('x-powered-by', false);
@@ -54,9 +53,12 @@ class App {
 		this.app.use(appRoutes);
 	}
 
-	public async start(): Promise<http.Server> {
-		return new Promise((resolve) => {
-			this.server = this.server.listen(this.port, () => {
+	public async createServer(): Promise<http.Server> {
+		return new Promise((resolve, reject) => {
+			this.server = this.server.listen(this.port);
+
+			this.server.on('error', reject);
+			this.server.on('listening', () => {
 				this.registerMiddlewares();
 				this.registerRoutes();
 				this.registerErrorHandling();
@@ -66,14 +68,15 @@ class App {
 		});
 	}
 
-	public async close(): Promise<void> {
-		if (!this.server.listening) {
-			return;
-		}
+	public async closeServer(): Promise<void> {
+		Logger.info('closing server');
 
-		await new Promise((_, reject) => {
-			this.server.close((err) => {
-				if (err) reject(err);
+		if (!this.server.listening) return;
+
+		await new Promise<void>((resolve, reject) => {
+			this.server.close((error) => {
+				if (error) reject(error);
+				resolve();
 			});
 		});
 	}
@@ -90,5 +93,3 @@ class App {
 		return this.app;
 	}
 }
-
-export default new App();

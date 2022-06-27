@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "npm run tsnd -- './src/server/index.ts'",
     "dev:docker": "docker-compose -f docker-compose.yml up --build -d",
-    "tsnd": "ts-node-dev --poll --respawn --transpile-only --inspect=0.0.0.0:9229 --ignore-watch './node_modules'",
+    "tsnd": "ts-node-dev --poll --respawn --transpile-only --ignore-watch './node_modules'",
     "start": "node ./dist/server/index.js",
     "check": "npx npm-check -s -u",
     "clean": "rm -rf ./dist",
@@ -76,6 +76,7 @@
     "express": "4.18.1",
     "express-async-errors": "3.1.1",
     "helmet": "5.1.0",
+    "http-graceful-shutdown": "3.1.7",
     "ioredis": "5.1.0",
     "jsonwebtoken": "8.5.1",
     "module-alias": "2.2.2",

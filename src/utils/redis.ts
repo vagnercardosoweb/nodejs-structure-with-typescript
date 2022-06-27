@@ -32,7 +32,7 @@ export class Redis {
 			lazyConnect: true,
 		});
 
-		Logger.info('creating connection with redis client');
+		Logger.info('creating redis');
 		await this.client.connect();
 
 		return this;
@@ -59,7 +59,7 @@ export class Redis {
 	}
 
 	public async close(): Promise<void> {
-		Logger.info('closing connection with redis client');
+		Logger.info('closing redis');
 
 		if (this.client !== null) {
 			await this.client.quit();

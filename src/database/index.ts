@@ -32,18 +32,8 @@ export class Database {
 		return sequelize;
 	}
 
-	private static async authenticate() {
-		Logger.info('creating connection with sequelize orm');
-
-		const sequelize = Database.getSequelize();
-		await sequelize.authenticate();
-
-		await sequelize.query(`SET timezone TO '${Config.getTimezone()}'`);
-		await sequelize.query(`SET client_encoding TO '${Config.getCharset()}'`);
-	}
-
 	public async close() {
-		Logger.info('closing connection with sequelize orm');
+		Logger.info('closing sequelize');
 
 		if (this.sequelize !== null) {
 			await this.sequelize.close();
@@ -54,8 +44,15 @@ export class Database {
 
 	public async connect(options?: SequelizeOptions): Promise<Database> {
 		if (this.sequelize === null) {
+			Logger.info('creating sequelize');
 			this.sequelize = new Sequelize(Config.create(options));
-			await Database.authenticate();
+
+			Logger.info('sequelize authenticate');
+			await this.sequelize.authenticate();
+
+			Logger.info('sequelize set timezone and encoding');
+			await this.sequelize.query(`SET timezone TO '${Config.getTimezone()}'`);
+			await this.sequelize.query(`SET client_encoding TO '${Config.getCharset()}'`);
 		}
 
 		return this;

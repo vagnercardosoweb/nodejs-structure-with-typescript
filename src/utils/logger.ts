@@ -19,12 +19,11 @@ class Logger implements ILogger {
 	private static getFormats() {
 		const formats = [
 			format.timestamp(),
-			format.printf(({ level, message, timestamp, requestId, appName = 'APP', ...metadata }) => {
+			format.printf(({ level, message, timestamp, loggerId = 'APP', ...metadata }) => {
 				const regex = new RegExp(Object.keys(LogLevel).join('|'), 'ig');
 				const levelToUpper = level.replace(regex, (level) => level.toUpperCase());
-				const parseAppName = requestId ?? appName;
 
-				return `[${levelToUpper}][${parseAppName}](${timestamp}): ${message} ${JSON.stringify(metadata)}`;
+				return `[${levelToUpper}][${loggerId}](${timestamp}): ${message} ${JSON.stringify(metadata)}`;
 			}),
 		];
 

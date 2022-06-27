@@ -1,45 +1,60 @@
 import 'reflect-metadata';
+import httpGraceFullShutdown from 'http-graceful-shutdown';
 
-import '../config/dotenv';
 import '../config/module-alias';
+import '@/config/dotenv';
 
 import { Database } from '@/database';
-import { errorToObject, Logger, Redis } from '@/utils';
+import { ExitStatus } from '@/enums';
+import { App } from '@/server/app';
+import { Logger, Redis } from '@/utils';
 
-import App from './app';
+process.on('unhandledRejection', (reason, promise) => {
+	Logger.error(`server exiting due to an unhandled promise: ${promise} and reason: ${reason}`);
+	throw reason;
+});
 
-const handleCloseDependencies = async () => {
-	await Redis.getInstance().close();
-	await Database.getInstance().close();
-	await App.close();
+process.on('uncaughtException', (error) => {
+	Logger.error('server exiting due to an uncaught exception', { stack: error.stack });
+	process.exit(ExitStatus.FAILURE);
+});
 
-	process.exit(0);
+const processExitWithError = (error: any) => {
+	Logger.error(`server exited with error`, { stack: error.stack });
+	process.exit(ExitStatus.FAILURE);
 };
 
-(async () => {
-	process.on('SIGINT', handleCloseDependencies);
-	process.on('SIGTERM', handleCloseDependencies);
-	process.on('SIGQUIT', handleCloseDependencies);
-
-	process.on('unhandledRejection', (reason, promise) => {
-		Logger.error(`App exiting due to an unhandled promise: ${promise} and reason: ${reason}`);
-		throw reason;
-	});
-
-	process.on('uncaughtException', (error) => {
-		Logger.error(`App exiting due to an uncaught exception: ${error}`);
-		process.exit(1);
-	});
-
+(async (): Promise<void> => {
 	try {
+		const app = new App();
 		await Redis.getInstance().connect();
 		await Database.getInstance().connect();
-		await App.start();
+		const server = await app.createServer();
 
-		Logger.info(`server started on http://localhost:${App.getPort()}`);
-	} catch (e: any) {
-		await handleCloseDependencies();
-		Logger.error(`server initialization failed`, errorToObject(e));
-		process.exit(1);
+		httpGraceFullShutdown(server, {
+			signals: 'SIGINT SIGTERM SIGQUIT',
+			forceExit: true,
+			onShutdown: async (code) => {
+				Logger.warn(`server received signal ${code}`);
+
+				try {
+					await app.closeServer();
+					await Redis.getInstance().close();
+					await Database.getInstance().close();
+
+					process.exit(ExitStatus.SUCCESS);
+				} catch (error) {
+					processExitWithError(error);
+				}
+			},
+		});
+
+		process.on('exit', (code) => {
+			Logger.warn(`server exited with code ${code}`);
+		});
+
+		Logger.info(`server listening on port ${app.getPort()}`);
+	} catch (error: any) {
+		processExitWithError(error);
 	}
 })();
