@@ -24,9 +24,7 @@ export class Database {
 		const { sequelize } = Database.getInstance();
 
 		if (sequelize === null) {
-			throw new InternalServerError({
-				description: 'sequelize is not initialized',
-			});
+			throw new InternalServerError({ description: 'sequelize is not initialized' });
 		}
 
 		return sequelize;
@@ -44,7 +42,7 @@ export class Database {
 
 	public async connect(options?: SequelizeOptions): Promise<Database> {
 		if (this.sequelize === null) {
-			Logger.info('creating sequelize');
+			Logger.info('connection to sequelize');
 			this.sequelize = new Sequelize(Config.create(options));
 
 			Logger.info('sequelize authenticate');

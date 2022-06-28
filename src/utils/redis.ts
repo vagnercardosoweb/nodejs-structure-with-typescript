@@ -32,7 +32,7 @@ export class Redis {
 			lazyConnect: true,
 		});
 
-		Logger.info('creating redis');
+		Logger.info('connection to redis');
 		await this.client.connect();
 
 		return this;

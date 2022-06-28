@@ -20,7 +20,7 @@ process.on('uncaughtException', (error) => {
 });
 
 process.on('exit', (code) => {
-	Logger.warn(`server exited with ${code === 0 ? 'success' : 'failed'}`);
+	Logger.info(`server exited with ${code === 0 ? 'success' : 'failed'}`);
 });
 
 const processExitWithError = (error: any) => {
@@ -39,7 +39,7 @@ const processExitWithError = (error: any) => {
 			signals: 'SIGINT SIGTERM SIGQUIT',
 			forceExit: true,
 			onShutdown: async (code) => {
-				Logger.warn(`server received signal ${code}`);
+				Logger.info(`server received signal ${code}`);
 
 				try {
 					await app.closeServer();

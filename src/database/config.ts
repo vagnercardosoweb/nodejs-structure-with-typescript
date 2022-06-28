@@ -31,11 +31,7 @@ export class Config {
 			migrationStorageTableName: Env.get('DB_MIGRATION_NAME', 'migrations'),
 			quoteIdentifiers: false,
 			schema: Env.get('DB_SCHEMA', 'public'),
-			logging: (sql) => {
-				if (Env.get('DB_LOGGING', false)) {
-					Logger.warn(sql, { loggerId: 'SEQUELIZE' });
-				}
-			},
+			logging: Env.get('DB_LOGGING', false) ? (sql) => Logger.info(sql, { id: 'SEQUELIZE' }) : false,
 			pool: {
 				max: Env.get('DB_POOL_MAX'),
 				min: Env.get('DB_POOL_MIN'),

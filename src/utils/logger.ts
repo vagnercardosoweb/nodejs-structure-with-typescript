@@ -4,10 +4,11 @@ import { LogLevel, NodeEnv } from '@/enums';
 import { Env } from '@/utils/env';
 
 class Logger implements ILogger {
+	private metadata: Record<string, any> = {};
 	private readonly winston: WinstonLogger;
-	private globalMetadata: Record<string, any> = {};
 
 	constructor() {
+		this.metadata.id = Env.get('LOGGER_ID', 'APP');
 		this.winston = createLogger({
 			transports: Logger.getTransports(),
 			exceptionHandlers: Logger.getTransports(),
@@ -19,17 +20,20 @@ class Logger implements ILogger {
 	private static getFormats() {
 		const formats = [
 			format.timestamp(),
-			format.printf(({ level, message, timestamp, loggerId = 'APP', ...metadata }) => {
+			format.printf(({ level, message, timestamp, id, ...metadata }) => {
 				const regex = new RegExp(Object.keys(LogLevel).join('|'), 'ig');
 				const levelToUpper = level.replace(regex, (level) => level.toUpperCase());
 
-				return `[${levelToUpper}][${loggerId}](${timestamp}): ${message} ${JSON.stringify(metadata)}`;
+				return JSON.stringify({
+					id,
+					pid: process.pid,
+					level: levelToUpper,
+					timestamp: `${timestamp} UTC`,
+					message,
+					metadata,
+				});
 			}),
 		];
-
-		if (!Env.get('IS_AWS_LAMBDA', false)) {
-			formats.unshift(format.colorize());
-		}
 
 		return formats;
 	}
@@ -43,7 +47,7 @@ class Logger implements ILogger {
 			return;
 		}
 
-		const parseMetadata = { ...this.globalMetadata, ...metadata };
+		const parseMetadata = { ...this.metadata, ...metadata };
 		this.winston.log(level, message, parseMetadata);
 	}
 
@@ -51,30 +55,21 @@ class Logger implements ILogger {
 		this.log(LogLevel.ERROR, message, metadata);
 	}
 
-	public warn(message: string, metadata?: Metadata) {
-		this.log(LogLevel.WARN, message, metadata);
-	}
-
 	public info(message: string, metadata?: Metadata) {
 		this.log(LogLevel.INFO, message, metadata);
 	}
 
-	public addGlobalMetadata(key: string, value: any): void {
-		this.globalMetadata[key] = value;
+	public addMetadata(key: string, value: any): void {
+		this.metadata[key] = value;
 	}
 }
 
 type Metadata = Record<string, any>;
 
 interface ILogger {
-	addGlobalMetadata(key: string, value: any): void;
-
+	addMetadata(key: string, value: any): void;
 	log(level: LogLevel, message: string, metadata?: Metadata): void;
-
 	error(message: string, metadata?: Metadata): void;
-
-	warn(message: string, metadata?: Metadata): void;
-
 	info(message: string, metadata?: Metadata): void;
 }
 

@@ -8,7 +8,6 @@ export const errorHandlerMiddleware = (error: any, request: Request, response: R
 	}
 
 	const errorObject = errorToObject(error);
-
 	Logger.error('error-handler-information', {
 		path: request.path,
 		method: request.method,
@@ -20,5 +19,7 @@ export const errorHandlerMiddleware = (error: any, request: Request, response: R
 		errorObject,
 	});
 
-	return response.status(errorObject.statusCode).json(errorObject);
+	response.statusCode = errorObject.statusCode;
+
+	return response.json(errorObject);
 };
