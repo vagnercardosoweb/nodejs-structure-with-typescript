@@ -3,10 +3,6 @@ import { NextFunction, Request, Response } from 'express';
 import { MethodNotAllowedError, PageNotFoundError } from '@/errors';
 
 export const notFoundMiddleware = (request: Request, response: Response, next: NextFunction) => {
-	if (response.headersSent) {
-		return next();
-	}
-
 	const errorOptions = {
 		path: request.path,
 		method: request.method,
