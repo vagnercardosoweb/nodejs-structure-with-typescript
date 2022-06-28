@@ -19,7 +19,6 @@ interface Response {
 	code: string;
 	name: string;
 	message: string;
-	originalMessage?: string;
 	stack?: string[];
 	statusCode: number;
 	description?: string;
@@ -54,17 +53,14 @@ export const errorToObject = (error: any): Response => {
 		}
 	}
 
-	const responseErrorToObject = {
+	return {
 		name: error.name,
 		code: error?.code ?? 'default',
 		statusCode,
 		message,
-		originalMessage: error?.metadata,
 		description: error?.description,
 		originalError: error?.originalError,
 		metadata: { errorId, ...metadata, validators },
 		stack: error?.stack?.split('\n'),
 	};
-
-	return responseErrorToObject;
 };
