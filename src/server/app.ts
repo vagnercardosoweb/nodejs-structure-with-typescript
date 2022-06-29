@@ -9,7 +9,7 @@ import { NodeEnv } from '@/enums';
 import {
 	corsMiddleware,
 	errorHandlerMiddleware,
-	generateRequestIdMiddleware,
+	loggerMetadataMiddleware,
 	methodOverrideMiddleware,
 	notFoundMiddleware,
 } from '@/middlewares';
@@ -40,7 +40,7 @@ export class App {
 			this.app.use(morgan('combined'));
 			this.app.use(corsMiddleware);
 			this.app.use(methodOverrideMiddleware);
-			this.app.use(generateRequestIdMiddleware);
+			this.app.use(loggerMetadataMiddleware);
 		}
 	}
 

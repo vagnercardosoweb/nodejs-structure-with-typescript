@@ -4,4 +4,4 @@ export { methodOverrideMiddleware } from './method-override';
 export { notFoundMiddleware } from './not-found';
 export { noCacheMiddleware } from './no-cache';
 export { protectRouteByTokenMiddleware } from './protect-route-by-token';
-export { generateRequestIdMiddleware } from './generate-request-id';
+export { loggerMetadataMiddleware } from './logger-metadata';
