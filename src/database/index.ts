@@ -24,7 +24,9 @@ export class Database {
 		const { sequelize } = Database.getInstance();
 
 		if (sequelize === null) {
-			throw new InternalServerError({ description: 'sequelize is not initialized' });
+			throw new InternalServerError({
+				description: 'sequelize is not initialized',
+			});
 		}
 
 		return sequelize;
@@ -50,7 +52,9 @@ export class Database {
 
 			Logger.info('sequelize set timezone and encoding');
 			await this.sequelize.query(`SET timezone TO '${Config.getTimezone()}'`);
-			await this.sequelize.query(`SET client_encoding TO '${Config.getCharset()}'`);
+			await this.sequelize.query(
+				`SET client_encoding TO '${Config.getCharset()}'`,
+			);
 		}
 
 		return this;

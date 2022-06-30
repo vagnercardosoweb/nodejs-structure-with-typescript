@@ -31,7 +31,9 @@ const makeError = (e: any, metadata: any) =>
 		originalError: e,
 	});
 
-export const httpRequest = async <T = any>(options: HttpRequest): Promise<Response<T>> => {
+export const httpRequest = async <T = any>(
+	options: HttpRequest,
+): Promise<Response<T>> => {
 	const { url, body, ...rest } = options;
 	rest.method = rest.method ?? HttpMethod.GET;
 

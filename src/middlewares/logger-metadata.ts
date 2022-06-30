@@ -3,7 +3,11 @@ import { NextFunction, Request, Response } from 'express';
 
 import { Env, Logger } from '@/utils';
 
-export const loggerMetadataMiddleware = (request: Request, response: Response, next: NextFunction) => {
+export const loggerMetadataMiddleware = (
+	request: Request,
+	response: Response,
+	next: NextFunction,
+) => {
 	const requestUuid = randomUUID();
 
 	Logger.addMetadata('id', requestUuid);

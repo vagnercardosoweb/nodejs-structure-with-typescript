@@ -1,4 +1,9 @@
-import { createLogger, format, Logger as WinstonLogger, transports } from 'winston';
+import {
+	createLogger,
+	format,
+	Logger as WinstonLogger,
+	transports,
+} from 'winston';
 
 import { LogLevel, NodeEnv } from '@/enums';
 import { Env } from '@/utils/env';
@@ -22,7 +27,9 @@ class Logger implements ILogger {
 			format.timestamp(),
 			format.printf(({ level, message, timestamp, id, ...metadata }) => {
 				const regex = new RegExp(Object.keys(LogLevel).join('|'), 'ig');
-				const levelToUpper = level.replace(regex, (level) => level.toUpperCase());
+				const levelToUpper = level.replace(regex, (level) =>
+					level.toUpperCase(),
+				);
 
 				return JSON.stringify({
 					id,

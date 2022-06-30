@@ -34,7 +34,11 @@ async function validateJwtToken(request: Request) {
 	}
 }
 
-export const protectRouteByTokenMiddleware = async (request: Request, _response: Response, next: NextFunction) => {
+export const protectRouteByTokenMiddleware = async (
+	request: Request,
+	_response: Response,
+	next: NextFunction,
+) => {
 	const token = extractTokenInRequest(request);
 
 	if (token === Env.get('API_KEY')) {

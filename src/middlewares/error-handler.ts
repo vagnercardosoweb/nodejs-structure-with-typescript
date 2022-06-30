@@ -2,7 +2,12 @@ import { NextFunction, Request, Response } from 'express';
 
 import { errorToObject, Logger } from '@/utils';
 
-export const errorHandlerMiddleware = (error: any, request: Request, response: Response, next: NextFunction) => {
+export const errorHandlerMiddleware = (
+	error: any,
+	request: Request,
+	response: Response,
+	next: NextFunction,
+) => {
 	if (response.headersSent) {
 		return next(error);
 	}

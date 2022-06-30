@@ -10,12 +10,16 @@ import { App } from '@/server/app';
 import { Logger, Redis } from '@/utils';
 
 process.on('unhandledRejection', (reason, promise) => {
-	Logger.error(`server exiting due to an unhandled promise: ${promise} and reason: ${reason}`);
+	Logger.error(
+		`server exiting due to an unhandled promise: ${promise} and reason: ${reason}`,
+	);
 	throw reason;
 });
 
 process.on('uncaughtException', (error) => {
-	Logger.error('server exiting due to an uncaught exception', { stack: error.stack });
+	Logger.error('server exiting due to an uncaught exception', {
+		stack: error.stack,
+	});
 	process.exit(ExitStatus.FAILURE);
 });
 
@@ -53,7 +57,9 @@ const processExitWithError = (error: any) => {
 			},
 		});
 
-		Logger.info(`server listening on port ${app.getPort()} and process id ${process.pid}`);
+		Logger.info(
+			`server listening on port ${app.getPort()} and process id ${process.pid}`,
+		);
 	} catch (error: any) {
 		processExitWithError(error);
 	}

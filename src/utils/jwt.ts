@@ -3,7 +3,10 @@ import jsonwebtoken, { SignOptions, VerifyOptions } from 'jsonwebtoken';
 import { Env } from '@/utils/env';
 
 export class Jwt {
-	public static async encode(payload: any, options?: SignOptions): Promise<string> {
+	public static async encode(
+		payload: any,
+		options?: SignOptions,
+	): Promise<string> {
 		return new Promise((resolve, reject) => {
 			try {
 				resolve(
@@ -19,7 +22,10 @@ export class Jwt {
 		});
 	}
 
-	public static async decode<T = any>(token: string, options?: VerifyOptions): Promise<T> {
+	public static async decode<T = any>(
+		token: string,
+		options?: VerifyOptions,
+	): Promise<T> {
 		return new Promise((resolve, reject) => {
 			try {
 				resolve(

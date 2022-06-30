@@ -21,7 +21,9 @@ export class Redis {
 	public async connect(options?: RedisOptions): Promise<Redis> {
 		if (this.client !== null) return this;
 
-		this.keyPrefix = this.normalizeKeyPrefix(options?.keyPrefix ?? Env.get('REDIS_KEY_PREFIX'));
+		this.keyPrefix = this.normalizeKeyPrefix(
+			options?.keyPrefix ?? Env.get('REDIS_KEY_PREFIX'),
+		);
 		this.client = new IORedis({
 			port: Env.get('REDIS_PORT', 6379),
 			host: Env.get('REDIS_HOST'),
@@ -68,11 +70,18 @@ export class Redis {
 		this.client = null;
 	}
 
-	public async get<T>(key: string, defaultValue?: any, expired?: number): Promise<T | null> {
+	public async get<T>(
+		key: string,
+		defaultValue?: any,
+		expired?: number,
+	): Promise<T | null> {
 		let result = await this.getClient().get(key);
 
 		if (!result && defaultValue) {
-			result = typeof defaultValue === 'function' ? await defaultValue.apply(this) : defaultValue;
+			result =
+				typeof defaultValue === 'function'
+					? await defaultValue.apply(this)
+					: defaultValue;
 			await this.set(key, result, expired);
 		}
 
@@ -91,12 +100,16 @@ export class Redis {
 
 	public async deletePrefix(prefix: string): Promise<void> {
 		const keys = await this.getClient().keys(this.mergePrefix(prefix));
-		await Promise.all(keys.map((key) => this.delete(this.removeKeyPrefix(key))));
+		await Promise.all(
+			keys.map((key) => this.delete(this.removeKeyPrefix(key))),
+		);
 	}
 
 	public async getByPrefix(prefix: string) {
 		const keys = await this.getClient().keys(this.mergePrefix(prefix));
-		const result = await Promise.all(keys.map((key) => this.get(this.removeKeyPrefix(key))));
+		const result = await Promise.all(
+			keys.map((key) => this.get(this.removeKeyPrefix(key))),
+		);
 
 		return result;
 	}
