@@ -4,9 +4,9 @@ directory="$(pwd)/node_modules"
 
 echo "Checking if $directory folder exists..."
 if [ ! -d $directory ]; then
-  echo "Install node_modules..."
-  npm install
+  echo "Installing node_modules..."
+  npm install --silent
 fi
 
-npm run db:compile
+npx swc ./database --config-file ./database/swcrc.json --out-dir ./database-compiled
 echo "Compiled database successfully!"

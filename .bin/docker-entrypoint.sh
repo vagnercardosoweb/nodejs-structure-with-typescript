@@ -5,8 +5,8 @@ if [ ! -f ".env" ]; then
   cp .env.example .env
 fi
 
-echo "Install node_modules..."
+echo "Installing node_modules..."
 npm install --silent
 
-echo "Running dev server"
+echo "Running dev server..."
 npm run dev

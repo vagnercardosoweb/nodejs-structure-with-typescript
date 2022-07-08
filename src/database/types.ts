@@ -13,3 +13,12 @@ export interface DeletedAt {
 export interface Timestamp extends CreatedAt, UpdatedAt {}
 
 export interface TimestampWithSoftDelete extends Timestamp, DeletedAt {}
+
+type FnHook = () => Promise<void> | void;
+
+export interface Transaction {
+	commit(): Promise<void>;
+	rollback(): Promise<void>;
+	afterCommit(fn: FnHook): void;
+	afterRollback(fn: FnHook): void;
+}
