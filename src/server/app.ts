@@ -14,7 +14,7 @@ import {
 	notFoundMiddleware,
 } from '@/middlewares';
 import appRoutes from '@/server/routes';
-import { Env, Logger } from '@/utils';
+import { Env } from '@/utils';
 
 export class App {
 	protected app: express.Application;
@@ -69,8 +69,6 @@ export class App {
 	}
 
 	public async closeServer(): Promise<void> {
-		Logger.info('closing server');
-
 		if (!this.server.listening) return;
 
 		await new Promise<void>((resolve, reject) => {

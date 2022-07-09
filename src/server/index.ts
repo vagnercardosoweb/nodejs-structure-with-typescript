@@ -46,7 +46,9 @@ const processExitWithError = (error: any) => {
 				Logger.info(`server received signal ${code}`);
 
 				try {
+					Logger.info('closing server');
 					await app.closeServer();
+
 					await Redis.getInstance().close();
 					await Database.getInstance().close();
 
@@ -57,9 +59,7 @@ const processExitWithError = (error: any) => {
 			},
 		});
 
-		Logger.info(
-			`server listening on port ${app.getPort()} and process id ${process.pid}`,
-		);
+		Logger.info(`server listening on port ${app.getPort()}`);
 	} catch (error: any) {
 		processExitWithError(error);
 	}
