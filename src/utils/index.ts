@@ -2,6 +2,7 @@ export { Env } from './env';
 export { Num } from './number';
 export { Jwt } from './jwt';
 export { Redis } from './redis';
+export { Pagination } from './pagination';
 
 export { default as Logger } from './logger';
 
