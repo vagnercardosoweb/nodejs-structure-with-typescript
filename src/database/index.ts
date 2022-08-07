@@ -7,56 +7,51 @@ import Logger from '@/utils/logger';
 import { Config } from './config';
 
 export class Database {
-	private static instance: Database | null = null;
-	private sequelize: Sequelize | null = null;
+  private static instance: Database | null = null;
+  private sequelize: Sequelize | null = null;
 
-	private constructor() {}
+  private constructor() {}
 
-	public static getInstance(): Database {
-		if (this.instance === null) {
-			this.instance = new Database();
-		}
+  public static getInstance(): Database {
+    if (this.instance === null) this.instance = new Database();
+    return this.instance;
+  }
 
-		return this.instance;
-	}
+  public static getSequelize(): Sequelize {
+    const { sequelize } = this.getInstance();
+    if (sequelize === null) {
+      throw new InternalServerError({
+        description: 'sequelize is not initialized',
+      });
+    }
+    return sequelize;
+  }
 
-	public static getSequelize(): Sequelize {
-		const { sequelize } = Database.getInstance();
+  public async close() {
+    this.createLogger('closing sequelize');
+    if (this.sequelize !== null) await this.sequelize.close();
+    this.sequelize = null;
+  }
 
-		if (sequelize === null) {
-			throw new InternalServerError({
-				description: 'sequelize is not initialized',
-			});
-		}
+  public async connect(options?: SequelizeOptions): Promise<Database> {
+    if (this.sequelize === null) {
+      this.createLogger('connection to sequelize');
+      this.sequelize = new Sequelize(Config.create(options));
 
-		return sequelize;
-	}
+      this.createLogger('sequelize authenticate');
+      await this.sequelize.authenticate();
 
-	public async close() {
-		Logger.info('closing sequelize');
+      this.createLogger('sequelize set timezone and encoding');
+      await this.sequelize.query(`SET timezone TO '${Config.getTimezone()}'`);
+      await this.sequelize.query(
+        `SET client_encoding TO '${Config.getCharset()}'`,
+      );
+    }
 
-		if (this.sequelize !== null) {
-			await this.sequelize.close();
-		}
+    return this;
+  }
 
-		this.sequelize = null;
-	}
-
-	public async connect(options?: SequelizeOptions): Promise<Database> {
-		if (this.sequelize === null) {
-			Logger.info('connection to sequelize');
-			this.sequelize = new Sequelize(Config.create(options));
-
-			Logger.info('sequelize authenticate');
-			await this.sequelize.authenticate();
-
-			Logger.info('sequelize set timezone and encoding');
-			await this.sequelize.query(`SET timezone TO '${Config.getTimezone()}'`);
-			await this.sequelize.query(
-				`SET client_encoding TO '${Config.getCharset()}'`,
-			);
-		}
-
-		return this;
-	}
+  protected createLogger(message: string) {
+    Logger.info(message, { id: 'SEQUELIZE' });
+  }
 }

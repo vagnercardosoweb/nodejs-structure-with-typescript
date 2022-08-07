@@ -1,6 +1,6 @@
 export enum NodeEnv {
-	TEST = 'test',
-	LOCAL = 'local',
-	PRODUCTION = 'production',
-	STAGING = 'staging',
+  TEST = 'test',
+  LOCAL = 'local',
+  PRODUCTION = 'production',
+  STAGING = 'staging',
 }

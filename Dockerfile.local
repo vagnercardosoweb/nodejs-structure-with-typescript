@@ -2,7 +2,7 @@ FROM node:18-alpine
 MAINTAINER "Vagner dos Santos Cardoso <vagnercardosoweb@gmail.com>"
 
 # set environments
-ENV TZ=${TZ:-America/Sao_Paulo}
+ENV TZ=${TZ:-UTC}
 
 # update system and install tz
 RUN apk add --update --no-cache bash tzdata openssl && rm -rf /var/cache/apk/*
@@ -10,8 +10,8 @@ RUN apk add --update --no-cache bash tzdata openssl && rm -rf /var/cache/apk/*
 # install dockerize
 ENV DOCKERIZE_VERSION v0.6.1
 RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
-    && tar -C /usr/local/bin -xzvf dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
-    && rm dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+  && tar -C /usr/local/bin -xzvf dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
+  && rm dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz
 
 # set non-root user
 ENV USER=node

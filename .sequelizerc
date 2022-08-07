@@ -1,5 +1,6 @@
 require("dotenv").config({
-  path: process.env.NODE_ENV === "test" ? ".env.test" : ".env", encoding: "utf-8"
+  path: process.env.NODE_ENV === "test" ? ".env.test" : ".env",
+  encoding: "utf-8"
 });
 
 const { resolve, join } = require("path");

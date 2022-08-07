@@ -4,133 +4,138 @@ import { Env } from '@/utils/env';
 import Logger from '@/utils/logger';
 
 export class Redis {
-	private static instance: Redis | null = null;
-	private client: IORedis | null = null;
-	private keyPrefix: string | undefined;
+  private static instance: Redis | null = null;
+  private client: IORedis | null = null;
+  private keyPrefix: string | undefined;
 
-	private constructor() {}
+  private constructor() {}
 
-	public static getInstance(): Redis {
-		if (this.instance === null) {
-			this.instance = new Redis();
-		}
+  public static getInstance(): Redis {
+    if (this.instance === null) {
+      this.instance = new Redis();
+    }
 
-		return this.instance;
-	}
+    return this.instance;
+  }
 
-	public async connect(options?: RedisOptions): Promise<Redis> {
-		if (this.client !== null) return this;
+  public async connect(options?: RedisOptions): Promise<Redis> {
+    if (this.client !== null) return this;
 
-		this.keyPrefix = this.normalizeKeyPrefix(
-			options?.keyPrefix ?? Env.get('REDIS_KEY_PREFIX'),
-		);
-		this.client = new IORedis({
-			port: Env.get('REDIS_PORT', 6379),
-			host: Env.get('REDIS_HOST'),
-			password: Env.get('REDIS_PASSWORD'),
-			db: Env.get('REDIS_DATABASE', 0),
-			...options,
-			keyPrefix: this.keyPrefix,
-			lazyConnect: true,
-		});
+    const prefix = options?.keyPrefix ?? Env.get('REDIS_KEY_PREFIX');
+    this.keyPrefix = this.normalizeKeyPrefix(prefix);
 
-		Logger.info('connection to redis');
-		await this.client.connect();
+    this.client = new IORedis({
+      port: Env.get('REDIS_PORT', 6379),
+      host: Env.get('REDIS_HOST'),
+      password: Env.get('REDIS_PASSWORD'),
+      db: Env.get('REDIS_DATABASE', 0),
+      ...options,
+      keyPrefix: this.keyPrefix,
+      lazyConnect: true,
+    });
 
-		return this;
-	}
+    this.createLogger('connecting to redis');
+    await this.client.connect();
 
-	public getClient(): IORedis {
-		if (this.client === null) {
-			throw new Error('Redis client is not connected');
-		}
+    return this;
+  }
 
-		return this.client;
-	}
+  public getClient(): IORedis {
+    if (this.client === null) {
+      throw new Error('Redis client is not connected');
+    }
 
-	public async set(key: string, value: any, expired?: number) {
-		value = JSON.stringify(value);
+    return this.client;
+  }
 
-		if (expired) {
-			await this.getClient().set(key, value, 'EX', expired);
-		} else {
-			await this.getClient().set(key, value);
-		}
+  public async set(key: string, value: any, expired?: number) {
+    value = JSON.stringify(value);
 
-		return value;
-	}
+    if (expired) {
+      await this.getClient().set(key, value, 'EX', expired);
+    } else {
+      await this.getClient().set(key, value);
+    }
 
-	public async close(): Promise<void> {
-		Logger.info('closing redis');
+    return value;
+  }
 
-		if (this.client !== null) {
-			await this.client.quit();
-		}
+  public async close(): Promise<void> {
+    this.createLogger('closing redis');
 
-		this.client = null;
-	}
+    if (this.client !== null) {
+      await this.client.quit();
+    }
 
-	public async get<T>(
-		key: string,
-		defaultValue?: any,
-		expired?: number,
-	): Promise<T | null> {
-		let result = await this.getClient().get(key);
+    this.client = null;
+  }
 
-		if (!result && defaultValue) {
-			result =
-				typeof defaultValue === 'function'
-					? await defaultValue.apply(this)
-					: defaultValue;
-			await this.set(key, result, expired);
-		}
+  public async get<T>(
+    key: string,
+    defaultValue?: any,
+    expired?: number,
+  ): Promise<T | null> {
+    let result = await this.getClient().get(key);
 
-		return result ? JSON.parse(result) : null;
-	}
+    if (!result && defaultValue) {
+      result =
+        typeof defaultValue === 'function'
+          ? await defaultValue.apply(this)
+          : defaultValue;
 
-	public async exists(key: string): Promise<boolean> {
-		const result = await this.getClient().exists(key);
-		return result === 1;
-	}
+      await this.set(key, result, expired);
+    }
 
-	public async delete(key: string): Promise<boolean> {
-		const result = await this.getClient().del(key);
-		return result === 1;
-	}
+    return result ? JSON.parse(result) : null;
+  }
 
-	public async deletePrefix(prefix: string): Promise<void> {
-		const keys = await this.getClient().keys(this.mergePrefix(prefix));
-		await Promise.all(
-			keys.map((key) => this.delete(this.removeKeyPrefix(key))),
-		);
-	}
+  public async exists(key: string): Promise<boolean> {
+    const result = await this.getClient().exists(key);
+    return result === 1;
+  }
 
-	public async getByPrefix(prefix: string) {
-		const keys = await this.getClient().keys(this.mergePrefix(prefix));
-		const result = await Promise.all(
-			keys.map((key) => this.get(this.removeKeyPrefix(key))),
-		);
+  public async delete(key: string): Promise<boolean> {
+    const result = await this.getClient().del(key);
+    return result === 1;
+  }
 
-		return result;
-	}
+  public async deletePrefix(prefix: string): Promise<void> {
+    const keys = await this.getClient().keys(this.mergePrefix(prefix));
+    await Promise.all(
+      keys.map((key) => this.delete(this.removeKeyPrefix(key))),
+    );
+  }
 
-	private removeKeyPrefix(prefix: string): string {
-		if (!this.keyPrefix?.length) {
-			return prefix;
-		}
+  public async getByPrefix(prefix: string) {
+    const keys = await this.getClient().keys(this.mergePrefix(prefix));
+    const result = await Promise.all(
+      keys.map((key) => this.get(this.removeKeyPrefix(key))),
+    );
 
-		return prefix.replace(this.keyPrefix, '');
-	}
+    return result;
+  }
 
-	private normalizeKeyPrefix(prefix?: string) {
-		if (prefix?.length && !prefix.endsWith(':')) {
-			return `${prefix}:`;
-		}
+  protected createLogger(message: string) {
+    Logger.info(message, { id: 'REDIS' });
+  }
 
-		return prefix;
-	}
+  private removeKeyPrefix(prefix: string): string {
+    if (!this.keyPrefix?.length) {
+      return prefix;
+    }
 
-	private mergePrefix(prefix: string): string {
-		return `${this.keyPrefix}${prefix}`;
-	}
+    return prefix.replace(this.keyPrefix, '');
+  }
+
+  private normalizeKeyPrefix(prefix?: string) {
+    if (prefix?.length && !prefix.endsWith(':')) {
+      return `${prefix}:`;
+    }
+
+    return prefix;
+  }
+
+  private mergePrefix(prefix: string): string {
+    return `${this.keyPrefix}${prefix}`;
+  }
 }

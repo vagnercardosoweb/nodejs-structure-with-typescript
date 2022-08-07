@@ -3,10 +3,6 @@
   "jsc": {
     "target": "es2021",
     "baseUrl": ".",
-    "paths": {
-      "@/tests/*": ["./tests/*"],
-      "@/*": ["./src/*"]
-    },
     "parser": {
       "syntax": "typescript",
       "tsx": false,

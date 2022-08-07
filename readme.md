@@ -21,5 +21,7 @@ after that just run the commands below.
 - Copy `.env.example` to `.env` and change the values according to your needs.
 - Run server with docker `npm run dev:docker`
 - Run migration with docker `docker exec app.server npm run db:migrate`
+- Run seeders with docker `docker exec app.server npm run db:seed`
 
-after step up your server will be online on host [http://localhost:3333](http://localhost:3333)
+after step up your server will be online on
+host [http://localhost:3333](http://localhost:3333)
