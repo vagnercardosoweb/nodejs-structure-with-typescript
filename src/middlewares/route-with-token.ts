@@ -23,7 +23,7 @@ const extractTokenInRequest = (request: Request): string => {
   return token;
 };
 
-async function validateJwtToken(request: Request) {
+const validateJwtToken = async (request: Request) => {
   try {
     request.app.locals.jwt = await Jwt.decode(request.app.locals.token);
   } catch (e: any) {
@@ -32,7 +32,7 @@ async function validateJwtToken(request: Request) {
       originalError: e,
     });
   }
-}
+};
 
 export const routeWithTokenMiddleware = async (
   request: Request,
@@ -40,12 +40,7 @@ export const routeWithTokenMiddleware = async (
   next: NextFunction,
 ) => {
   const token = extractTokenInRequest(request);
-
-  if (token === Env.get('API_KEY')) {
-    return next();
-  }
-
+  if (token === Env.get('API_KEY')) return next();
   await validateJwtToken(request);
-
   return next();
 };
