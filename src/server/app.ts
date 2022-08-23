@@ -5,15 +5,19 @@ import helmet from 'helmet';
 import http from 'http';
 import morgan from 'morgan';
 
-import { NodeEnv } from '@/enums';
+import configRoutes from '@/config/routes';
+import { HttpMethod, NodeEnv } from '@/enums';
 import {
+  checkAccessByRouteMiddleware,
   corsMiddleware,
   errorHandlerMiddleware,
+  extractTokenMiddleware,
+  isAuthenticatedMiddleware,
   loggerMetadataMiddleware,
   methodOverrideMiddleware,
   notFoundMiddleware,
+  routeWithTokenMiddleware,
 } from '@/middlewares';
-import appRoutes from '@/server/routes';
 import { Env } from '@/utils';
 
 export class App {
@@ -28,6 +32,7 @@ export class App {
 
     this.app.set('trust proxy', true);
     this.app.set('x-powered-by', false);
+    this.app.set('strict routing', true);
   }
 
   public registerMiddlewares(): void {
@@ -42,6 +47,8 @@ export class App {
       this.app.use(methodOverrideMiddleware);
       this.app.use(loggerMetadataMiddleware);
     }
+
+    this.app.use(extractTokenMiddleware);
   }
 
   public registerErrorHandling() {
@@ -50,7 +57,26 @@ export class App {
   }
 
   public registerRoutes() {
-    this.app.use(appRoutes);
+    configRoutes.forEach((route) => {
+      route.method = route.method ?? HttpMethod.GET;
+      route.middlewares = route.middlewares ?? [];
+      route.public = route.public ?? false;
+
+      const middlewares: RequestHandler[] = [];
+      if (route.public === false) middlewares.push(routeWithTokenMiddleware);
+
+      if (route.authType) {
+        middlewares.push(isAuthenticatedMiddleware(route.authType));
+        middlewares.push(checkAccessByRouteMiddleware);
+      }
+
+      (<any>this.app)[route.method.toLowerCase()](
+        route.path,
+        ...middlewares,
+        ...route.middlewares,
+        route.handler,
+      );
+    });
   }
 
   public async createServer(): Promise<http.Server> {

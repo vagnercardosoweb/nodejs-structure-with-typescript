@@ -1,25 +1,32 @@
 import { RequestHandler } from 'express';
 
-import { AuthType, HttpMethod } from '@/enums';
+import { AuthType, HttpMethod, HttpStatusCode } from '@/enums';
 
 export type Route = {
   path: string;
   method?: HttpMethod;
   handler: RequestHandler;
   middlewares?: RequestHandler[];
-  roles?: string[];
-  permissions?: string[];
   authType?: AuthType;
+  public?: boolean;
 };
 
 const configRoutes: Route[] = [
   {
     path: '/',
-    handler: (_, response) =>
+    public: true,
+    handler: (request, response) =>
       response.json({
         date: new Date().toISOString(),
-        message: 'Hello World!',
+        ipAddress: request.ip,
+        agent: request.header('User-Agent'),
       }),
+  },
+
+  {
+    path: '/favicon.ico',
+    public: true,
+    handler: (_, response) => response.sendStatus(HttpStatusCode.OK),
   },
 ];
 

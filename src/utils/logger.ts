@@ -8,12 +8,10 @@ import {
 import { LogLevel, NodeEnv } from '@/enums';
 import { Env } from '@/utils/env';
 
-class Logger implements ILogger {
-  private metadata: Record<string, any> = {};
+class Logger {
   private readonly winston: WinstonLogger;
 
-  constructor() {
-    this.metadata.id = Env.get('LOGGER_ID', 'APP');
+  constructor(private id = Env.get('LOGGER_ID', 'APP')) {
     this.winston = createLogger({
       transports: Logger.getTransports(),
       exceptionHandlers: Logger.getTransports(),
@@ -31,11 +29,13 @@ class Logger implements ILogger {
 
         return JSON.stringify({
           id,
-          pid: process.pid,
           level: levelToUpper,
-          timestamp: `${timestamp} UTC`,
           message,
-          metadata,
+          metadata: {
+            pid: process.pid,
+            timestamp: `${timestamp} UTC`,
+            ...metadata,
+          },
         });
       }),
     ];
@@ -47,13 +47,20 @@ class Logger implements ILogger {
     return [new transports.Console()];
   }
 
+  public newInstance(id: string) {
+    const logger = new Logger(id);
+    return logger;
+  }
+
   public log(level: LogLevel, message: string, metadata?: Metadata) {
     if (!Env.get('LOG_ENABLED', true)) {
       return;
     }
 
-    const parseMetadata = { ...this.metadata, ...metadata };
-    this.winston.log(level, message, parseMetadata);
+    this.winston.log(level, message, {
+      id: this.id,
+      ...metadata,
+    });
   }
 
   public error(message: string, metadata?: Metadata) {
@@ -67,24 +74,8 @@ class Logger implements ILogger {
   public warn(message: string, metadata?: Metadata) {
     this.log(LogLevel.WARN, message, metadata);
   }
-
-  public addMetadata(key: string, value: any): void {
-    this.metadata[key] = value;
-  }
 }
 
 type Metadata = Record<string, any>;
-
-interface ILogger {
-  addMetadata(key: string, value: any): void;
-
-  log(level: LogLevel, message: string, metadata?: Metadata): void;
-
-  error(message: string, metadata?: Metadata): void;
-
-  warn(message: string, metadata?: Metadata): void;
-
-  info(message: string, metadata?: Metadata): void;
-}
 
 export default new Logger();

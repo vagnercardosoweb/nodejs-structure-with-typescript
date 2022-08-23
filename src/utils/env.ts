@@ -17,7 +17,7 @@ export class Env {
 
     if (!value) {
       throw new InternalServerError({
-        message: `Environment ${key} is not defined`,
+        message: `process.env[${key}] is not defined`,
       });
     }
 
