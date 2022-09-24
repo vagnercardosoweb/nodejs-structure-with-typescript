@@ -7,11 +7,7 @@ import jsonwebtoken, {
 import { Env } from '@/utils/env';
 import { removeUndefined } from '@/utils/remove-undefined';
 
-type EncodePayload = {
-  sub: any;
-  [key: string]: any;
-};
-
+type EncodePayload = { sub: any; [key: string]: any };
 interface DecodePayload extends JwtPayload {
   iat: number;
   exp: number;
@@ -85,7 +81,6 @@ export class Jwt {
             ...options,
           }),
         ) as DecodePayload;
-
         if (!decoded.sub) throw new Error('Jwt decoded.sub is required.');
         resolve(decoded);
       } catch (err) {

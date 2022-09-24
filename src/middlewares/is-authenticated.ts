@@ -5,7 +5,7 @@ import { UnauthorizedError } from '@/errors';
 
 export const isAuthenticatedMiddleware =
   (type: AuthType) =>
-  (request: Request, response: Response, next: NextFunction) => {
+  (request: Request, _response: Response, next: NextFunction) => {
     if (!request.app.locals.jwt?.sub) {
       throw new UnauthorizedError({
         code: 'jwt.sub-not-exist',

@@ -7,23 +7,23 @@ export class Redis {
   private static instance: Redis | null = null;
   private client: IORedis | null = null;
   private keyPrefix: string | undefined;
+  protected logger: typeof Logger;
 
-  private constructor() {}
+  private constructor() {
+    this.logger = Logger.newInstance('REDIS');
+  }
 
   public static getInstance(): Redis {
     if (this.instance === null) {
       this.instance = new Redis();
     }
-
     return this.instance;
   }
 
   public async connect(options?: RedisOptions): Promise<Redis> {
     if (this.client !== null) return this;
-
     const prefix = options?.keyPrefix ?? Env.get('REDIS_KEY_PREFIX');
     this.keyPrefix = this.normalizeKeyPrefix(prefix);
-
     this.client = new IORedis({
       port: Env.get('REDIS_PORT', 6379),
       host: Env.get('REDIS_HOST'),
@@ -33,10 +33,8 @@ export class Redis {
       keyPrefix: this.keyPrefix,
       lazyConnect: true,
     });
-
-    this.createLogger('connecting to redis');
+    this.logger.info('connecting to redis');
     await this.client.connect();
-
     return this;
   }
 
@@ -44,29 +42,24 @@ export class Redis {
     if (this.client === null) {
       throw new Error('Redis client is not connected');
     }
-
     return this.client;
   }
 
   public async set(key: string, value: any, expired?: number) {
     value = JSON.stringify(value);
-
     if (expired) {
       await this.getClient().set(key, value, 'EX', expired);
     } else {
       await this.getClient().set(key, value);
     }
-
     return value;
   }
 
   public async close(): Promise<void> {
-    this.createLogger('closing redis');
-
+    this.logger.info('closing redis');
     if (this.client !== null) {
       await this.client.quit();
     }
-
     this.client = null;
   }
 
@@ -76,16 +69,13 @@ export class Redis {
     expired?: number,
   ): Promise<T | null> {
     let result = await this.getClient().get(key);
-
     if (!result && defaultValue) {
       result =
         typeof defaultValue === 'function'
           ? await defaultValue.apply(this)
           : defaultValue;
-
       await this.set(key, result, expired);
     }
-
     return result ? JSON.parse(result) : null;
   }
 
@@ -111,27 +101,16 @@ export class Redis {
     const result = await Promise.all(
       keys.map((key) => this.get(this.removeKeyPrefix(key))),
     );
-
     return result;
   }
 
-  protected createLogger(message: string) {
-    Logger.info(message, { id: 'REDIS' });
-  }
-
   private removeKeyPrefix(prefix: string): string {
-    if (!this.keyPrefix?.length) {
-      return prefix;
-    }
-
+    if (!this.keyPrefix?.length) return prefix;
     return prefix.replace(this.keyPrefix, '');
   }
 
   private normalizeKeyPrefix(prefix?: string) {
-    if (prefix?.length && !prefix.endsWith(':')) {
-      return `${prefix}:`;
-    }
-
+    if (prefix?.length && !prefix.endsWith(':')) return `${prefix}:`;
     return prefix;
   }
 

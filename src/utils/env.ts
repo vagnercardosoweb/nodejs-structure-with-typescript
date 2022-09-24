@@ -4,7 +4,6 @@ import { normalizeValue } from '@/utils/normalize-value';
 export class Env {
   public static get(key: string, defaultValue?: any) {
     const value = process.env[key] || defaultValue;
-
     return normalizeValue(value);
   }
 
@@ -14,13 +13,11 @@ export class Env {
 
   public static required(key: string, defaultValue?: any) {
     const value = this.get(key, defaultValue);
-
     if (!value) {
       throw new InternalServerError({
         message: `process.env[${key}] is not defined`,
       });
     }
-
     return value;
   }
 }

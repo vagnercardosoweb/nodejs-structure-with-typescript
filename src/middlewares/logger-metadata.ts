@@ -6,8 +6,8 @@ export const loggerMetadataMiddleware = (
   response: Response,
   next: NextFunction,
 ) => {
-  const requestId = randomUUID();
-  request.app.locals.requestId = requestId;
-  response.setHeader('X-Request-Id', requestId);
+  const uuid = randomUUID();
+  request.app.locals.requestId = uuid;
+  response.setHeader('X-Request-Id', uuid);
   return next();
 };

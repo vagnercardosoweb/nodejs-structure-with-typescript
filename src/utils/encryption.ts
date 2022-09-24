@@ -16,14 +16,11 @@ export class Encryption {
           this.generateSecretKey(salt),
           iv,
         );
-
         const encrypted = Buffer.concat([
           cipher.update(JSON.stringify(payload)),
           cipher.final(),
         ]);
-
         const authTag = cipher.getAuthTag();
-
         resolve(
           Buffer.from(
             JSON.stringify({
@@ -45,15 +42,12 @@ export class Encryption {
       try {
         const { iv, encrypted, salt, authTag } = this.getPayload(value);
         const key = this.generateSecretKey(salt);
-
         const decipher = crypto.createDecipheriv(this.algorithm, key, iv);
         decipher.setAuthTag(authTag);
-
         const decrypted = Buffer.concat([
           decipher.update(encrypted),
           decipher.final(),
         ]).toString();
-
         resolve(JSON.parse(decrypted));
       } catch (e) {
         reject(e);
@@ -69,7 +63,6 @@ export class Encryption {
   } {
     const payload = Buffer.from(value, 'base64');
     const { iv, encrypted, salt, authTag } = JSON.parse(payload.toString());
-
     return {
       iv: Buffer.from(iv, 'hex'),
       encrypted: Buffer.from(encrypted, 'hex'),
@@ -86,7 +79,6 @@ export class Encryption {
       this.size,
       'sha512',
     );
-
     return result;
   }
 }

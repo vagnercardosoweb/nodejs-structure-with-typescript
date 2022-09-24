@@ -25,11 +25,10 @@ class Logger {
       format.timestamp(),
       format.printf(({ level, message, timestamp, id, ...metadata }) => {
         const regex = new RegExp(Object.keys(LogLevel).join('|'), 'ig');
-        const levelToUpper = level.replace(regex, (n) => n.toUpperCase());
-
+        level = level.replace(regex, (n) => n.toUpperCase());
         return JSON.stringify({
           id,
-          level: levelToUpper,
+          level,
           message,
           metadata: {
             pid: process.pid,
@@ -39,7 +38,6 @@ class Logger {
         });
       }),
     ];
-
     return formats;
   }
 
@@ -48,19 +46,12 @@ class Logger {
   }
 
   public newInstance(id: string) {
-    const logger = new Logger(id);
-    return logger;
+    return new Logger(id);
   }
 
   public log(level: LogLevel, message: string, metadata?: Metadata) {
-    if (!Env.get('LOG_ENABLED', true)) {
-      return;
-    }
-
-    this.winston.log(level, message, {
-      id: this.id,
-      ...metadata,
-    });
+    if (!Env.get('LOG_ENABLED', true)) return;
+    this.winston.log(level, message, { id: this.id, ...metadata });
   }
 
   public error(message: string, metadata?: Metadata) {

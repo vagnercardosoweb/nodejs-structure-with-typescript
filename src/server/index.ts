@@ -7,7 +7,7 @@ import '@/config/dotenv';
 import { Database } from '@/database';
 import { ExitStatus } from '@/enums';
 import { App } from '@/server/app';
-import { Jwt, Logger, Redis } from '@/utils';
+import { Logger, Redis } from '@/utils';
 
 process.on('unhandledRejection', (reason, promise) => {
   Logger.error(
@@ -38,17 +38,6 @@ const processExitWithError = (error: any) => {
     await Redis.getInstance().connect();
     await Database.getInstance().connect();
     const server = await app.createServer();
-
-    console.log(
-      'jwt',
-      await Jwt.decode(
-        await Jwt.encode({
-          sub: 'aaa',
-          roles: ['ADMIN'],
-          permissions: ['get::/users'],
-        }),
-      ),
-    );
 
     httpGraceFullShutdown(server, {
       signals: 'SIGINT SIGTERM SIGQUIT',

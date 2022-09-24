@@ -11,6 +11,7 @@ services:
       dockerfile: Dockerfile.local
     container_name: app.server
     working_dir: /home/node/app
+    env_file: .env
     entrypoint: dockerize -wait tcp://postgres:5432 -wait tcp://redis:6379 -timeout 60s .bin/docker-entrypoint.sh
     tty: true
     depends_on:
@@ -31,6 +32,7 @@ services:
     image: bitnami/postgresql:14
     container_name: app.postgres
     tty: true
+    env_file: .env
     volumes:
       - app.volume.postgres:/bitnami/postgresql
     networks:
@@ -46,6 +48,7 @@ services:
     image: bitnami/redis:latest
     container_name: app.redis
     tty: true
+    env_file: .env
     volumes:
       - app.volume.redis:/bitnami/redis/data
     networks:

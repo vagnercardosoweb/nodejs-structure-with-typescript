@@ -22,7 +22,6 @@ const configRoutes: Route[] = [
         agent: request.header('User-Agent'),
       }),
   },
-
   {
     path: '/favicon.ico',
     public: true,

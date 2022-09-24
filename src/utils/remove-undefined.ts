@@ -4,6 +4,5 @@ export const removeUndefined = (value: Record<string, any>) => {
       delete value[key];
     }
   });
-
   return value;
 };
