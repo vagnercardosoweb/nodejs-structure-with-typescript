@@ -23,7 +23,6 @@ export const methodOverrideMiddleware = (
       }
     });
   }
-
   if (!newMethod) {
     const header = <any>request.headers['x-http-method-override'];
     if (!header) return next();

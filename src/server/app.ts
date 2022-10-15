@@ -76,7 +76,7 @@ export class App {
       route.middlewares = route.middlewares ?? [];
       route.public = route.public ?? false;
       const middlewares: RequestHandler[] = [];
-      if (route.public === false) middlewares.push(routeWithTokenMiddleware);
+      if (!route.public) middlewares.push(routeWithTokenMiddleware);
       if (route.authType) {
         middlewares.push(isAuthenticatedMiddleware(route.authType));
         middlewares.push(checkAccessByRouteMiddleware);

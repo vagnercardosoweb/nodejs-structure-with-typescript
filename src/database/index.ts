@@ -1,10 +1,9 @@
 import 'reflect-metadata';
-import { Transaction } from 'sequelize';
+
 import { Sequelize, SequelizeOptions } from 'sequelize-typescript';
 
 import { InternalServerError } from '@/errors';
-import { Env } from '@/utils';
-import Logger from '@/utils/logger';
+import { Env, Logger } from '@/utils';
 
 import { Config } from './config';
 
@@ -12,7 +11,6 @@ export class Database {
   private static instance: Database | null = null;
   private sequelize: Sequelize | null = null;
   private logger: typeof Logger;
-  private transaction?: Transaction;
 
   private constructor() {
     this.logger = Logger.newInstance('DATABASE');
@@ -24,7 +22,7 @@ export class Database {
   }
 
   public static getSequelize(): Sequelize {
-    const { sequelize } = this.getInstance();
+    const { sequelize } = Database.getInstance();
     if (sequelize === null) {
       throw new InternalServerError({
         description: 'sequelize is not initialized',
@@ -58,14 +56,6 @@ export class Database {
         `SET client_encoding TO '${Config.getCharset()}'`,
       );
     }
-
     return this;
-  }
-
-  private getTransaction(): Transaction {
-    if (!this.transaction) {
-      throw new Error('Transaction not created');
-    }
-    return this.transaction;
   }
 }
