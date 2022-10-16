@@ -1,14 +1,19 @@
 #!/usr/bin/env sh
 
-echo "Copying env file..."
+echo "Checking exist env file..."
 if [ ! -f .env ]; then
+  echo "Copying env file..."
   cp .env.example .env
 fi
 
-echo "Installing node_modules..."
-if [ ! -d node_modules ]; then
-  npm install --silent
-fi
+#echo "Checking exist node_modules..."
+#if [ ! -d node_modules ]; then
+#  echo "Install dependencies node_modules..."
+#  npm install --silent
+#fi
+
+echo "Install node_modules..."
+npm install
 
 echo "Running dev server..."
 npm run dev

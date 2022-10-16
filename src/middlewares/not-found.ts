@@ -11,13 +11,11 @@ export const notFoundMiddleware = (
     path: request.path,
     method: request.method,
   };
-
   if (
     (<any>request)?.originalMethod &&
     (<any>request).originalMethod.toUpperCase() !== request.method.toUpperCase()
   ) {
     return next(new MethodNotAllowedError(errorOptions));
   }
-
   return next(new PageNotFoundError(errorOptions));
 };

@@ -7,7 +7,7 @@ import '@/config/dotenv';
 import { Database } from '@/database';
 import { ExitStatus } from '@/enums';
 import { App } from '@/server/app';
-import { Logger, Redis } from '@/utils';
+import { Logger, Redis } from '@/shared';
 
 process.on('unhandledRejection', (reason, promise) => {
   Logger.error(

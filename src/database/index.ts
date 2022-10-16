@@ -1,16 +1,20 @@
 import 'reflect-metadata';
+
 import { Sequelize, SequelizeOptions } from 'sequelize-typescript';
 
 import { InternalServerError } from '@/errors';
-import Logger from '@/utils/logger';
+import { Env, Logger } from '@/shared';
 
 import { Config } from './config';
 
 export class Database {
   private static instance: Database | null = null;
   private sequelize: Sequelize | null = null;
+  private logger: typeof Logger;
 
-  private constructor() {}
+  private constructor() {
+    this.logger = Logger.newInstance('DATABASE');
+  }
 
   public static getInstance(): Database {
     if (this.instance === null) this.instance = new Database();
@@ -18,7 +22,7 @@ export class Database {
   }
 
   public static getSequelize(): Sequelize {
-    const { sequelize } = this.getInstance();
+    const { sequelize } = Database.getInstance();
     if (sequelize === null) {
       throw new InternalServerError({
         description: 'sequelize is not initialized',
@@ -28,30 +32,30 @@ export class Database {
   }
 
   public async close() {
-    this.createLogger('closing sequelize');
+    this.logger.info('closing database...');
     if (this.sequelize !== null) await this.sequelize.close();
     this.sequelize = null;
   }
 
   public async connect(options?: SequelizeOptions): Promise<Database> {
     if (this.sequelize === null) {
-      this.createLogger('connection to sequelize');
-      this.sequelize = new Sequelize(Config.create(options));
-
-      this.createLogger('sequelize authenticate');
+      this.logger.info('connecting in database...');
+      const parseOptions = Config.create(options);
+      if (Env.get('DB_LOGGING', false)) {
+        parseOptions.logging = (sql) =>
+          this.logger.info(Config.transformSql(sql));
+      } else {
+        parseOptions.logging = false;
+      }
+      this.sequelize = new Sequelize(parseOptions);
+      this.logger.info('checking database...');
       await this.sequelize.authenticate();
-
-      this.createLogger('sequelize set timezone and encoding');
+      this.logger.info('set timezone and encoding in database...');
       await this.sequelize.query(`SET timezone TO '${Config.getTimezone()}'`);
       await this.sequelize.query(
         `SET client_encoding TO '${Config.getCharset()}'`,
       );
     }
-
     return this;
-  }
-
-  protected createLogger(message: string) {
-    Logger.info(message, { id: 'SEQUELIZE' });
   }
 }

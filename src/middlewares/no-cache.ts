@@ -12,6 +12,5 @@ export const noCacheMiddleware = (
     'Cache-Control',
     'no-store, no-cache, must-revalidate, proxy-revalidate',
   );
-
   return next();
 };

@@ -1,20 +1,25 @@
 import cookieParser from 'cookie-parser';
 import express, { RequestHandler } from 'express';
 import 'express-async-errors';
+import fs from 'fs/promises';
 import helmet from 'helmet';
 import http from 'http';
 import morgan from 'morgan';
 
-import { NodeEnv } from '@/enums';
+import configRoutes from '@/config/routes';
+import { HttpMethod, NodeEnv } from '@/enums';
 import {
+  checkAccessByRouteMiddleware,
   corsMiddleware,
   errorHandlerMiddleware,
+  extractTokenMiddleware,
+  isAuthenticatedMiddleware,
   loggerMetadataMiddleware,
   methodOverrideMiddleware,
   notFoundMiddleware,
+  routeWithTokenMiddleware,
 } from '@/middlewares';
-import appRoutes from '@/server/routes';
-import { Env } from '@/utils';
+import { Env, Logger } from '@/shared';
 
 export class App {
   protected app: express.Application;
@@ -28,6 +33,7 @@ export class App {
 
     this.app.set('trust proxy', true);
     this.app.set('x-powered-by', false);
+    this.app.set('strict routing', true);
   }
 
   public registerMiddlewares(): void {
@@ -42,6 +48,8 @@ export class App {
       this.app.use(methodOverrideMiddleware);
       this.app.use(loggerMetadataMiddleware);
     }
+
+    this.app.use(extractTokenMiddleware);
   }
 
   public registerErrorHandling() {
@@ -49,20 +57,46 @@ export class App {
     this.app.use(errorHandlerMiddleware);
   }
 
-  public registerRoutes() {
-    this.app.use(appRoutes);
+  public async registerRoutes() {
+    const directory = `${__dirname}/../modules`;
+    const modules = await fs.opendir(directory);
+    for await (const dir of modules) {
+      if (!dir.isDirectory()) continue;
+      const routePath = `${directory}/${dir.name}/routes.ts`;
+      try {
+        if (!(await fs.stat(routePath))) continue;
+        configRoutes.push(...(await import(routePath)).default);
+      } catch (e: any) {
+        Logger.warn(`error dynamic route`, { stack: e.stack });
+      }
+    }
+    for await (const route of configRoutes) {
+      route.method = route.method ?? HttpMethod.GET;
+      route.middlewares = route.middlewares ?? [];
+      route.public = route.public ?? false;
+      const middlewares: RequestHandler[] = [];
+      if (!route.public) middlewares.push(routeWithTokenMiddleware);
+      if (route.authType) {
+        middlewares.push(isAuthenticatedMiddleware(route.authType));
+        middlewares.push(checkAccessByRouteMiddleware);
+      }
+      (<any>this.app)[route.method.toLowerCase()](
+        route.path,
+        ...middlewares,
+        ...route.middlewares,
+        route.handler,
+      );
+    }
   }
 
   public async createServer(): Promise<http.Server> {
     return new Promise((resolve, reject) => {
       this.server = this.server.listen(this.port);
-
       this.server.on('error', reject);
-      this.server.on('listening', () => {
+      this.server.on('listening', async () => {
         this.registerMiddlewares();
-        this.registerRoutes();
+        await this.registerRoutes();
         this.registerErrorHandling();
-
         resolve(this.server);
       });
     });
@@ -70,7 +104,6 @@ export class App {
 
   public async closeServer(): Promise<void> {
     if (!this.server.listening) return;
-
     await new Promise<void>((resolve, reject) => {
       this.server.close((error) => {
         if (error) reject(error);

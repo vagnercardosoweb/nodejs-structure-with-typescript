@@ -36,17 +36,14 @@ export const httpRequest = async <T = any>(
 ): Promise<Response<T>> => {
   const { url, body, ...rest } = options;
   rest.method = rest.method ?? HttpMethod.GET;
-
   const response = await new Promise<Response>((resolve, reject) => {
     const request = https.request(url, rest, async (res) => {
       const chunks: any[] = [];
-
       res.on('error', (e) => reject(makeError(e, options)));
       res.on('data', (chunk) => chunks.push(chunk));
       res.on('end', () => {
         const data = Buffer.concat(chunks).toString().trim();
         const { statusCode = HttpStatusCode.OK, headers } = res;
-
         resolve({
           body: jsonParse(data),
           statusCode: Number(statusCode),
@@ -54,15 +51,9 @@ export const httpRequest = async <T = any>(
         });
       });
     });
-
     request.on('error', (e) => reject(makeError(e, options)));
-
-    if (body?.trim()?.length) {
-      request.write(body);
-    }
-
+    if (body?.trim()?.length) request.write(body);
     request.end();
   });
-
   return response;
 };

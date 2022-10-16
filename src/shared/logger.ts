@@ -6,14 +6,12 @@ import {
 } from 'winston';
 
 import { LogLevel, NodeEnv } from '@/enums';
-import { Env } from '@/utils/env';
+import { Env } from '@/shared/env';
 
-class Logger implements ILogger {
-  private metadata: Record<string, any> = {};
+class Logger {
   private readonly winston: WinstonLogger;
 
-  constructor() {
-    this.metadata.id = Env.get('LOGGER_ID', 'APP');
+  constructor(private id = Env.get('LOGGER_ID', 'APP')) {
     this.winston = createLogger({
       transports: Logger.getTransports(),
       exceptionHandlers: Logger.getTransports(),
@@ -27,19 +25,19 @@ class Logger implements ILogger {
       format.timestamp(),
       format.printf(({ level, message, timestamp, id, ...metadata }) => {
         const regex = new RegExp(Object.keys(LogLevel).join('|'), 'ig');
-        const levelToUpper = level.replace(regex, (n) => n.toUpperCase());
-
+        level = level.replace(regex, (n) => n.toUpperCase());
         return JSON.stringify({
           id,
-          pid: process.pid,
-          level: levelToUpper,
-          timestamp: `${timestamp} UTC`,
+          level,
           message,
-          metadata,
+          metadata: {
+            pid: process.pid,
+            timestamp: `${timestamp} UTC`,
+            ...metadata,
+          },
         });
       }),
     ];
-
     return formats;
   }
 
@@ -47,13 +45,13 @@ class Logger implements ILogger {
     return [new transports.Console()];
   }
 
-  public log(level: LogLevel, message: string, metadata?: Metadata) {
-    if (!Env.get('LOG_ENABLED', true)) {
-      return;
-    }
+  public newInstance(id: string) {
+    return new Logger(id);
+  }
 
-    const parseMetadata = { ...this.metadata, ...metadata };
-    this.winston.log(level, message, parseMetadata);
+  public log(level: LogLevel, message: string, metadata?: Metadata) {
+    if (!Env.get('LOG_ENABLED', true)) return;
+    this.winston.log(level, message, { id: this.id, ...metadata });
   }
 
   public error(message: string, metadata?: Metadata) {
@@ -67,24 +65,8 @@ class Logger implements ILogger {
   public warn(message: string, metadata?: Metadata) {
     this.log(LogLevel.WARN, message, metadata);
   }
-
-  public addMetadata(key: string, value: any): void {
-    this.metadata[key] = value;
-  }
 }
 
 type Metadata = Record<string, any>;
-
-interface ILogger {
-  addMetadata(key: string, value: any): void;
-
-  log(level: LogLevel, message: string, metadata?: Metadata): void;
-
-  error(message: string, metadata?: Metadata): void;
-
-  warn(message: string, metadata?: Metadata): void;
-
-  info(message: string, metadata?: Metadata): void;
-}
 
 export default new Logger();

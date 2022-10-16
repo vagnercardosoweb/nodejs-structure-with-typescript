@@ -1,9 +1,6 @@
 import { Request } from 'express';
 
-type Properties = {
-  page: number;
-  limit: number;
-};
+type Properties = { page: number; limit: number };
 
 type Result = {
   totalRows: number;
@@ -56,7 +53,6 @@ export class Pagination {
     const totalPages = Math.max(Math.ceil(this.totalRows / this.limit));
     const nextPage = totalPages > this.page ? this.page + 1 : totalPages;
     const prevPage = this.page > 1 ? this.page - 1 : 1;
-
     return {
       totalRows: this.totalRows,
       totalPages,

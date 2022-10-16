@@ -3,7 +3,7 @@
 directory="$(pwd)/node_modules"
 
 echo "Checking if $directory folder exists..."
-if [ ! -d $directory ]; then
+if [ ! -d "$directory" ]; then
   echo "Installing node_modules..."
   npm install --silent
 fi

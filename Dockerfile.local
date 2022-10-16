@@ -1,5 +1,5 @@
 FROM node:18-alpine
-MAINTAINER "Vagner dos Santos Cardoso <vagnercardosoweb@gmail.com>"
+LABEL MAINTENANCE="Vagner dos Santos Cardoso <vagnercardosoweb@gmail.com>"
 
 # set environments
 ENV TZ=${TZ:-UTC}

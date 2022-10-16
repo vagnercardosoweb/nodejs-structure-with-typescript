@@ -5,3 +5,6 @@ export { notFoundMiddleware } from './not-found';
 export { noCacheMiddleware } from './no-cache';
 export { routeWithTokenMiddleware } from './route-with-token';
 export { loggerMetadataMiddleware } from './logger-metadata';
+export { extractTokenMiddleware } from './extract-token';
+export { isAuthenticatedMiddleware } from './is-authenticated';
+export { checkAccessByRouteMiddleware } from './check-access-route';

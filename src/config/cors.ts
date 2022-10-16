@@ -11,6 +11,8 @@ const configCors = {
     'X-HTTP-Method-Override',
     'Accept-Language',
     'X-Refresh-Token',
+    'X-Aws-IdToken',
+    'X-Test',
   ],
 };
 

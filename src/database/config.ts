@@ -1,7 +1,7 @@
 import { SequelizeOptions } from 'sequelize-typescript';
 
 import { NodeEnv } from '@/enums';
-import { Env, Logger } from '@/utils';
+import { Env } from '@/shared';
 
 import * as models from './models';
 
@@ -35,9 +35,7 @@ export class Config {
       migrationStorageTableName: Env.get('DB_MIGRATION_NAME', 'migrations'),
       quoteIdentifiers: false,
       schema: Env.get('DB_SCHEMA', 'public'),
-      logging: Env.get('DB_LOGGING', false)
-        ? (sql) => Logger.info(this.transformSql(sql), { id: 'SEQUELIZE' })
-        : false,
+      keepDefaultTimezone: true,
       pool: {
         max: Env.get('DB_POOL_MAX'),
         min: Env.get('DB_POOL_MIN'),
