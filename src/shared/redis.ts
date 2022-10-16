@@ -1,7 +1,7 @@
 import IORedis, { RedisOptions } from 'ioredis';
 
-import { Env } from '@/utils/env';
-import Logger from '@/utils/logger';
+import { Env } from '@/shared/env';
+import Logger from '@/shared/logger';
 
 export class Redis {
   private static instance: Redis | null = null;

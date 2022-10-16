@@ -1,5 +1,5 @@
 import { InternalServerError } from '@/errors';
-import { normalizeValue } from '@/utils/normalize-value';
+import { normalizeValue } from '@/shared/normalize-value';
 
 export class Env {
   public static get(key: string, defaultValue?: any) {

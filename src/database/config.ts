@@ -1,7 +1,7 @@
 import { SequelizeOptions } from 'sequelize-typescript';
 
 import { NodeEnv } from '@/enums';
-import { Env } from '@/utils';
+import { Env } from '@/shared';
 
 import * as models from './models';
 

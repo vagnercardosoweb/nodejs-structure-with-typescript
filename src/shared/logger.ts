@@ -6,7 +6,7 @@ import {
 } from 'winston';
 
 import { LogLevel, NodeEnv } from '@/enums';
-import { Env } from '@/utils/env';
+import { Env } from '@/shared/env';
 
 class Logger {
   private readonly winston: WinstonLogger;

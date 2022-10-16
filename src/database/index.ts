@@ -3,7 +3,7 @@ import 'reflect-metadata';
 import { Sequelize, SequelizeOptions } from 'sequelize-typescript';
 
 import { InternalServerError } from '@/errors';
-import { Env, Logger } from '@/utils';
+import { Env, Logger } from '@/shared';
 
 import { Config } from './config';
 

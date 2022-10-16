@@ -15,7 +15,6 @@ export class BaseModel<
     this: ModelStatic<M>,
     options: FindOptions<M['_attributes']> & { message: string },
   ): Promise<M>;
-
   public static async findOrFail(
     options: FindOptions<Model['_attributes']> & { message: string },
   ): Promise<Model> {

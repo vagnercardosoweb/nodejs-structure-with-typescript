@@ -19,7 +19,7 @@ import {
   notFoundMiddleware,
   routeWithTokenMiddleware,
 } from '@/middlewares';
-import { Env, Logger } from '@/utils';
+import { Env, Logger } from '@/shared';
 
 export class App {
   protected app: express.Application;
@@ -70,7 +70,6 @@ export class App {
         Logger.warn(`error dynamic route`, { stack: e.stack });
       }
     }
-
     for await (const route of configRoutes) {
       route.method = route.method ?? HttpMethod.GET;
       route.middlewares = route.middlewares ?? [];

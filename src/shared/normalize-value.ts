@@ -1,10 +1,10 @@
-import { Num } from './number';
+import { Util } from './util';
 
 export const normalizeValue = (value: any) => {
-  if (Num.isDecimal(value)) {
+  if (Util.isDecimal(value)) {
     return parseFloat(value);
   }
-  if (Num.isNumber(value)) {
+  if (Util.isNumber(value)) {
     return Number(value);
   }
   if (value === 'true') {

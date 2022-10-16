@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
 
-import { Env } from '@/utils/env';
+import { Env } from '@/shared/env';
 
 export class Encryption {
   private static readonly size = 32;

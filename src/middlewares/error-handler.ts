@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { errorToObject, Logger } from '@/utils';
+import { errorToObject, Logger } from '@/shared';
 
 export const errorHandlerMiddleware = (
   error: any,
@@ -20,6 +20,7 @@ export const errorHandlerMiddleware = (
     params: request.params,
     query: request.query,
     body: request.body,
+    locals: request.app.locals,
     errorObject,
   });
   response.statusCode = errorObject.statusCode;

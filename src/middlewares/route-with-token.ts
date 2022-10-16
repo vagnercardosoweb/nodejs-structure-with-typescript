@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 
 import { UnauthorizedError } from '@/errors';
-import { Env, Jwt } from '@/utils';
+import { Env, Jwt } from '@/shared';
 
 export const routeWithTokenMiddleware = async (
   request: Request,

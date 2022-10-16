@@ -4,8 +4,8 @@ import jsonwebtoken, {
   VerifyOptions,
 } from 'jsonwebtoken';
 
-import { Env } from '@/utils/env';
-import { removeUndefined } from '@/utils/remove-undefined';
+import { Env } from '@/shared/env';
+import { removeUndefined } from '@/shared/remove-undefined';
 
 type EncodePayload = { sub: any; [key: string]: any };
 interface DecodePayload extends JwtPayload {

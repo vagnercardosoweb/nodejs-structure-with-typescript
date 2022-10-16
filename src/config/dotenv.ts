@@ -4,7 +4,7 @@ import { config } from 'dotenv';
 import { existsSync } from 'fs';
 import { resolve } from 'path';
 
-import { Logger } from '@/utils';
+import { Logger } from '@/shared';
 
 const rootPath = process.cwd();
 const environment = process.env.NODE_ENV;
