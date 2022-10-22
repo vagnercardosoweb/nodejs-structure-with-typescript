@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import { NextFunction, Request, Response } from 'express';
 
-export const loggerMetadataMiddleware = (
+export const requestUuidHandler = (
   request: Request,
   response: Response,
   next: NextFunction,

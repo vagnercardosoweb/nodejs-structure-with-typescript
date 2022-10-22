@@ -26,7 +26,7 @@ interface Response {
   originalError?: any;
 }
 
-export const errorToObject = (error: any): Response => {
+export const parseToObject = (error: any): Response => {
   let message = error?.message || error?.toString();
   let statusCode = error?.statusCode ?? HttpStatusCode.BAD_REQUEST;
   let validators: ValidatorError[] | undefined;

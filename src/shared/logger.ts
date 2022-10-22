@@ -1,3 +1,4 @@
+import os from 'os';
 import {
   createLogger,
   format,
@@ -32,6 +33,7 @@ class Logger {
           message,
           metadata: {
             pid: process.pid,
+            hostname: os.hostname(),
             timestamp: `${timestamp} UTC`,
             ...metadata,
           },

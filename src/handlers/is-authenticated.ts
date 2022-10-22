@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 import { AuthType } from '@/enums';
 import { UnauthorizedError } from '@/errors';
 
-export const isAuthenticatedMiddleware =
+export const isAuthenticatedHandler =
   (type: AuthType) =>
   (request: Request, _response: Response, next: NextFunction) => {
     if (!request.app.locals.jwt?.sub) {

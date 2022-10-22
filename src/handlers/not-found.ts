@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import { MethodNotAllowedError, PageNotFoundError } from '@/errors';
 
-export const notFoundMiddleware = (
+export const notFoundHandler = (
   request: Request,
   response: Response,
   next: NextFunction,

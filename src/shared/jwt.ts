@@ -5,7 +5,8 @@ import jsonwebtoken, {
 } from 'jsonwebtoken';
 
 import { Env } from '@/shared/env';
-import { removeUndefined } from '@/shared/remove-undefined';
+
+import { Util } from './util';
 
 type EncodePayload = { sub: any; [key: string]: any };
 interface DecodePayload extends JwtPayload {
@@ -50,7 +51,7 @@ export class Jwt {
           jsonwebtoken.sign(
             payload,
             this.secretKey,
-            removeUndefined({
+            Util.removeUndefined({
               algorithm: this.algorithm,
               expiresIn: this.expiresIn,
               audience: this.audience,
@@ -74,7 +75,7 @@ export class Jwt {
         const decoded = jsonwebtoken.verify(
           token,
           this.publicKey,
-          removeUndefined({
+          Util.removeUndefined({
             algorithms: [this.algorithm],
             audience: this.audience,
             issuer: this.issuer,

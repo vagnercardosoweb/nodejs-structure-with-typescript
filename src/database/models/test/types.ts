@@ -7,7 +7,6 @@ export namespace Test {
 
   export interface Attribute extends Dto, Timestamp {
     id: string;
-
     [key: string]: any;
   }
 }

@@ -192,4 +192,35 @@ export class Util {
     }
     return false;
   }
+
+  public static removeUndefined(value: Record<string, any>) {
+    Object.keys(value).forEach((key) => {
+      if (Object.prototype.toString.call(value[key]) === '[object Undefined]') {
+        delete value[key];
+      }
+    });
+    return value;
+  }
+
+  public static normalizeValue(value: any) {
+    if (this.isDecimal(value)) {
+      return parseFloat(value);
+    }
+    if (this.isNumber(value)) {
+      return Number(value);
+    }
+    if (value === 'true') {
+      return true;
+    }
+    if (value === 'false') {
+      return false;
+    }
+    if (value === 'null') {
+      return null;
+    }
+    if (value?.toString() === 'undefined') {
+      return undefined;
+    }
+    return value;
+  }
 }
