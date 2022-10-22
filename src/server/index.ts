@@ -1,13 +1,15 @@
 import 'reflect-metadata';
-import httpGraceFullShutdown from 'http-graceful-shutdown';
 
+import '../config/dotenv';
 import '../config/module-alias';
-import '@/config/dotenv';
+
+import httpGraceFullShutdown from 'http-graceful-shutdown';
 
 import { Database } from '@/database';
 import { ExitStatus } from '@/enums';
 import { App } from '@/server/app';
 import { Logger, Redis } from '@/shared';
+import { createSwapperDoc } from '@/swagger';
 
 process.on('unhandledRejection', (reason, promise) => {
   Logger.error(
@@ -35,6 +37,8 @@ const processExitWithError = (error: any) => {
 (async (): Promise<void> => {
   try {
     const app = new App();
+    createSwapperDoc(app);
+
     await Redis.getInstance().connect();
     await Database.getInstance().connect();
     const server = await app.createServer();
