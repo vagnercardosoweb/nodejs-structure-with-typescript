@@ -1,12 +1,16 @@
 import { BadRequestError } from '../errors';
 
 export class Email {
-  constructor(private readonly value: string) {
-    if (!this.isValid()) {
+  constructor(private readonly value: string, validateImmediate = true) {
+    if (validateImmediate && !this.isValid()) {
       throw new BadRequestError({
         message: 'emial.invalid',
       });
     }
+  }
+
+  public getValue(): string {
+    return this.value;
   }
 
   public isValid(): boolean {

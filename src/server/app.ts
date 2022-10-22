@@ -9,16 +9,16 @@ import morgan from 'morgan';
 import configRoutes from '@/config/routes';
 import { HttpMethod, NodeEnv } from '@/enums';
 import {
-  checkAccessByRouteMiddleware,
-  corsMiddleware,
-  errorHandlerMiddleware,
-  extractTokenMiddleware,
-  isAuthenticatedMiddleware,
-  loggerMetadataMiddleware,
-  methodOverrideMiddleware,
-  notFoundMiddleware,
-  routeWithTokenMiddleware,
-} from '@/middlewares';
+  checkAccessByRouteHandler,
+  corsHandler,
+  errorHandler,
+  extractTokenHandler,
+  isAuthenticatedHandler,
+  requestUuidHandler,
+  methodOverrideHandler,
+  notFoundHandler,
+  routeWithTokenHandler,
+} from '@/handlers';
 import { Env, Logger } from '@/shared';
 
 export class App {
@@ -36,25 +36,23 @@ export class App {
     this.app.set('strict routing', true);
   }
 
-  public registerMiddlewares(): void {
+  public registerHandlers(): void {
     this.app.use(express.json() as RequestHandler);
     this.app.use(express.urlencoded({ extended: true }) as RequestHandler);
     this.app.use(cookieParser(Env.required('APP_KEY')));
-
     if (Env.required('NODE_ENV') !== NodeEnv.TEST) {
       this.app.use(helmet() as RequestHandler);
       this.app.use(morgan('combined'));
-      this.app.use(corsMiddleware);
-      this.app.use(methodOverrideMiddleware);
-      this.app.use(loggerMetadataMiddleware);
+      this.app.use(corsHandler);
+      this.app.use(methodOverrideHandler);
+      this.app.use(requestUuidHandler);
     }
-
-    this.app.use(extractTokenMiddleware);
+    this.app.use(extractTokenHandler);
   }
 
   public registerErrorHandling() {
-    this.app.use(notFoundMiddleware);
-    this.app.use(errorHandlerMiddleware);
+    this.app.use(notFoundHandler);
+    this.app.use(errorHandler);
   }
 
   public async registerRoutes() {
@@ -72,18 +70,18 @@ export class App {
     }
     for await (const route of configRoutes) {
       route.method = route.method ?? HttpMethod.GET;
-      route.middlewares = route.middlewares ?? [];
+      route.handlers = route.handlers ?? [];
       route.public = route.public ?? false;
-      const middlewares: RequestHandler[] = [];
-      if (!route.public) middlewares.push(routeWithTokenMiddleware);
+      const handlers: RequestHandler[] = [];
+      if (!route.public) handlers.push(routeWithTokenHandler);
       if (route.authType) {
-        middlewares.push(isAuthenticatedMiddleware(route.authType));
-        middlewares.push(checkAccessByRouteMiddleware);
+        handlers.push(isAuthenticatedHandler(route.authType));
+        handlers.push(checkAccessByRouteHandler);
       }
       (<any>this.app)[route.method.toLowerCase()](
         route.path,
-        ...middlewares,
-        ...route.middlewares,
+        ...handlers,
+        ...route.handlers,
         route.handler,
       );
     }
@@ -94,7 +92,7 @@ export class App {
       this.server = this.server.listen(this.port);
       this.server.on('error', reject);
       this.server.on('listening', async () => {
-        this.registerMiddlewares();
+        this.registerHandlers();
         await this.registerRoutes();
         this.registerErrorHandling();
         resolve(this.server);

@@ -1,14 +1,15 @@
 import { InternalServerError } from '@/errors';
-import { normalizeValue } from '@/shared/normalize-value';
+
+import { Util } from './util';
 
 export class Env {
   public static get(key: string, defaultValue?: any) {
     const value = process.env[key] || defaultValue;
-    return normalizeValue(value);
+    return Util.normalizeValue(value);
   }
 
   public static set(key: string, value: any) {
-    process.env[key] = value;
+    process.env[key] = Util.normalizeValue(value);
   }
 
   public static required(key: string, defaultValue?: any) {

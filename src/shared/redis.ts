@@ -39,9 +39,7 @@ export class Redis {
   }
 
   public getClient(): IORedis {
-    if (this.client === null) {
-      throw new Error('Redis client is not connected');
-    }
+    if (this.client === null) throw new Error('Redis client is not connected');
     return this.client;
   }
 
@@ -57,9 +55,7 @@ export class Redis {
 
   public async close(): Promise<void> {
     this.logger.info('closing redis');
-    if (this.client !== null) {
-      await this.client.quit();
-    }
+    if (this.client !== null) await this.client.quit();
     this.client = null;
   }
 
@@ -74,19 +70,19 @@ export class Redis {
         typeof defaultValue === 'function'
           ? await defaultValue.apply(this)
           : defaultValue;
-      await this.set(key, result, expired);
+      if (result) await this.set(key, result, expired);
     }
     return result ? JSON.parse(result) : null;
   }
 
   public async exists(key: string): Promise<boolean> {
     const result = await this.getClient().exists(key);
-    return result === 1;
+    return result > 0;
   }
 
   public async delete(key: string): Promise<boolean> {
     const result = await this.getClient().del(key);
-    return result === 1;
+    return result > 0;
   }
 
   public async deletePrefix(prefix: string): Promise<void> {

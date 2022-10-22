@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 
-export const extractTokenMiddleware = (
+export const extractTokenHandler = (
   request: Request,
   _response: Response,
   next: NextFunction,

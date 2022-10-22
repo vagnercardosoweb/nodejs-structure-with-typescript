@@ -10,7 +10,6 @@ export class InternalServerError extends AppError {
       message: 'error.internal_server_error',
       ...options,
     });
-
     this.name = 'InternalServerError';
   }
 }

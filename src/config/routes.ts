@@ -6,7 +6,7 @@ export type Route = {
   path: string;
   method?: HttpMethod;
   handler: RequestHandler;
-  middlewares?: RequestHandler[];
+  handlers?: RequestHandler[];
   authType?: AuthType;
   public?: boolean;
 };

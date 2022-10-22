@@ -2,9 +2,7 @@ export class MaskValue {
   public static create(value: string, mask: string): string {
     const parseMask = mask.replace(/[^#]/g, '');
     const parseValue = this.unmask(value);
-    if (parseMask.length !== parseValue.length) {
-      return value;
-    }
+    if (parseMask.length !== parseValue.length) return value;
     let result = '';
     let maskIndex = 0;
     // let unmaskedIndex = 0;

@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import configCors from '@/config/cors';
 
-export const corsMiddleware = (
+export const corsHandler = (
   request: Request,
   response: Response,
   next: NextFunction,

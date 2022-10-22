@@ -12,14 +12,11 @@ export interface Options {
 export class AppError extends Error {
   constructor(options: Options) {
     super(options.message);
-
     this.name = 'AppError';
     const { originalError, ...rest } = options;
-
     Object.entries(rest).forEach(([key, value]) => {
       this.defineProperty(key, value);
     });
-
     this.defineProperty(
       'originalError',
       originalError?.stack

@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import configCors from '@/config/cors';
 
-export const methodOverrideMiddleware = (
+export const methodOverrideHandler = (
   request: Request,
   _: Response,
   next: NextFunction,
