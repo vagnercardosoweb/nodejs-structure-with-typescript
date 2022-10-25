@@ -35,6 +35,7 @@ const processExitWithError = (error: any) => {
 (async (): Promise<void> => {
   try {
     const app = new App();
+    createSwapperDoc(app);
     const server = await app.createServer();
     httpGraceFullShutdown(server, {
       signals: 'SIGINT SIGTERM SIGQUIT',
@@ -55,7 +56,6 @@ const processExitWithError = (error: any) => {
     });
     await Redis.getInstance().connect();
     await Database.getInstance().connect();
-    createSwapperDoc(app);
     Logger.info(`server listening on port ${app.getPort()}`);
   } catch (error: any) {
     processExitWithError(error);

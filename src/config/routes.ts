@@ -1,6 +1,7 @@
 import { RequestHandler } from 'express';
 
 import { AuthType, HttpMethod, HttpStatusCode } from '@/enums';
+import { AppError } from '@/errors';
 
 export type Route = {
   path: string;
@@ -21,6 +22,13 @@ const configRoutes: Route[] = [
         ipAddress: request.ip,
         agent: request.header('User-Agent'),
       }),
+  },
+  {
+    path: '/test-error',
+    public: true,
+    handler: () => {
+      throw new AppError({ message: 'test' });
+    },
   },
   {
     path: '/favicon.ico',

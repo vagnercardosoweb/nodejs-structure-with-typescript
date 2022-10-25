@@ -26,9 +26,21 @@ const swaggerComponents = {
       properties: {
         name: { type: 'string' },
         code: { type: 'string' },
-        level: { type: 'string' },
-        message: { type: 'string' },
         statusCode: { type: 'number' },
+        message: { type: 'string' },
+        errorId: { type: 'string' },
+        originalError: {
+          type: 'object',
+          nullable: true,
+          properties: {
+            name: { type: 'string' },
+            message: { type: 'string' },
+            stack: {
+              $ref: '#/components/schemas/default-error/properties/stack',
+            },
+          },
+        },
+        metadata: { type: 'object' },
         stack: {
           type: 'array',
           items: {

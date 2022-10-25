@@ -1,6 +1,6 @@
-import { randomInt } from 'crypto';
-
 import { HttpStatusCode } from '@/enums';
+
+import { AppError } from './app';
 
 interface ValidatorError {
   type: string;
@@ -21,9 +21,9 @@ interface Response {
   message: string;
   stack?: string[];
   statusCode: number;
-  description?: string;
   metadata: Metadata;
   originalError?: any;
+  errorId: string;
 }
 
 export const parseToObject = (error: any): Response => {
@@ -31,7 +31,7 @@ export const parseToObject = (error: any): Response => {
   let statusCode = error?.statusCode ?? HttpStatusCode.BAD_REQUEST;
   let validators: ValidatorError[] | undefined;
   const metadata = error?.metadata ?? {};
-  const errorId = randomInt(100_000_000, 999_999_999);
+  const errorId = error?.errorId ?? AppError.generateErrorId();
   if ('inner' in error && Array.isArray(error?.errors)) {
     message = error.errors[0] ?? message;
     if (!error.inner?.length) error.inner.push({ ...error, inner: undefined });
@@ -52,9 +52,9 @@ export const parseToObject = (error: any): Response => {
     code: error?.code ?? 'DEFAULT',
     statusCode,
     message,
-    description: error?.description,
+    errorId,
     originalError: error?.originalError,
-    metadata: { errorId, ...metadata, validators },
+    metadata: { ...metadata, validators },
     stack: error?.stack?.split('\n'),
   };
 };
