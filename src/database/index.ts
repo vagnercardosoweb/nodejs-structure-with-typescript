@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 
+import { Transaction, TransactionOptions } from 'sequelize';
 import { Sequelize, SequelizeOptions } from 'sequelize-typescript';
 
 import { InternalServerError } from '@/errors';
@@ -29,6 +30,28 @@ export class Database {
       });
     }
     return sequelize;
+  }
+
+  public async createTransaction(
+    options?: TransactionOptions,
+  ): Promise<Transaction> {
+    const transaction = await Database.getSequelize().transaction(options);
+    return transaction;
+  }
+
+  public async createTransactionManaged<Result = any>(
+    fn: (transaction: Transaction) => PromiseLike<Result>,
+    options: TransactionOptions = {},
+  ): Promise<Result> {
+    const result = await Database.getSequelize().transaction<Result>(
+      options,
+      fn,
+    );
+    return result;
+  }
+
+  public isConnected(): boolean {
+    return this.sequelize !== null;
   }
 
   public async close() {
