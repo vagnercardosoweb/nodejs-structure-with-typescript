@@ -6,27 +6,25 @@ import '../config/module-alias';
 import httpGraceFullShutdown from 'http-graceful-shutdown';
 
 import { Database } from '@/database';
-import { ExitStatus } from '@/enums';
+import { ExitStatus, NodeEnv } from '@/enums';
 import { App } from '@/server/app';
-import { Logger, Redis } from '@/shared';
+import { Env, Logger, Redis } from '@/shared';
 import { createSwapperDoc } from '@/swagger';
 
 process.on('unhandledRejection', (reason, promise) => {
-  Logger.error(
-    `server exiting due to an unhandled promise: ${promise} and reason: ${reason}`,
-  );
+  const message = `server exiting due to an unhandled promise: ${promise} and reason: ${reason}`;
+  Logger.error(message);
   throw reason;
 });
 
 process.on('uncaughtException', (error) => {
-  Logger.error('server exiting due to an uncaught exception', {
-    stack: error.stack,
-  });
+  Logger.error('server exiting due to an uncaught exception', error);
   process.exit(ExitStatus.FAILURE);
 });
 
 process.on('exit', (code) => {
-  Logger.info(`server exited with ${code === 0 ? 'success' : 'failed'}`);
+  const withStatus = code === ExitStatus.SUCCESS ? 'success' : 'failed';
+  Logger.info(`server exited with ${withStatus}`);
 });
 
 const processExitWithError = (error: any) => {
@@ -37,32 +35,27 @@ const processExitWithError = (error: any) => {
 (async (): Promise<void> => {
   try {
     const app = new App();
-    createSwapperDoc(app);
-
-    await Redis.getInstance().connect();
-    await Database.getInstance().connect();
     const server = await app.createServer();
-
     httpGraceFullShutdown(server, {
       signals: 'SIGINT SIGTERM SIGQUIT',
+      development: Env.get('NODE_ENV') !== NodeEnv.PRODUCTION,
       forceExit: true,
       onShutdown: async (code) => {
         Logger.info(`server received signal ${code}`);
-
         try {
           Logger.info('closing server');
           await app.closeServer();
-
           await Redis.getInstance().close();
           await Database.getInstance().close();
-
           process.exit(ExitStatus.SUCCESS);
         } catch (error) {
           processExitWithError(error);
         }
       },
     });
-
+    await Redis.getInstance().connect();
+    await Database.getInstance().connect();
+    createSwapperDoc(app);
     Logger.info(`server listening on port ${app.getPort()}`);
   } catch (error: any) {
     processExitWithError(error);
