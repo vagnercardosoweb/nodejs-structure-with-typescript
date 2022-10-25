@@ -17,11 +17,11 @@ interface DecodePayload extends JwtPayload {
 
 export class Jwt {
   private static get publicKey() {
-    return Env.required('JWT_PUBLIC_KEY');
+    return Util.base64ToString(Env.required('JWT_PUBLIC_KEY'));
   }
 
   private static get secretKey() {
-    return Env.required('JWT_PRIVATE_KEY');
+    return Util.base64ToString(Env.required('JWT_PRIVATE_KEY'));
   }
 
   private static get algorithm() {
@@ -33,11 +33,11 @@ export class Jwt {
   }
 
   private static get audience() {
-    return Env.get('JWT_AUDIENCE');
+    return Env.required('JWT_AUDIENCE');
   }
 
   private static get issuer() {
-    return Env.get('JWT_ISSUER');
+    return Env.required('JWT_ISSUER');
   }
 
   public static async encode(

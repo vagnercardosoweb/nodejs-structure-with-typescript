@@ -223,4 +223,8 @@ export class Util {
     }
     return value;
   }
+
+  public static base64ToString(value: string): string {
+    return Buffer.from(value, 'base64').toString();
+  }
 }
