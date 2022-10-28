@@ -2,6 +2,8 @@ import childProcess from 'child_process';
 import { randomBytes, randomInt, randomUUID } from 'crypto';
 import { promisify } from 'util';
 
+import { BadRequestError } from '@/errors';
+
 export class Util {
   public static uuid(): string {
     return randomUUID();
@@ -139,6 +141,34 @@ export class Util {
     };
   }
 
+  public static parseDate(date: DateParam): Date {
+    if (this.isValidDate(date)) return <Date>date;
+    if (typeof date === 'number') return new Date(date);
+    let newDate: DateParam | null = null;
+    if (typeof date === 'string') {
+      const [$date, $hour] = date.split(' ', 2);
+      const $time = $hour ? ` ${$hour}` : ' 00:00:00';
+      if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test($date)) {
+        date = `${$date.split('/').reverse().join('/')}${$time}`;
+      } else if (/^\d{4}\/\d{1,2}\/\d{1,2}$/.test($date)) {
+        date = `${$date}${$time}`;
+      }
+      newDate = new Date(date);
+      if (!$hour) newDate.setHours(0, 0, 0, 0);
+    }
+    if (!newDate || !this.isValidDate(newDate)) {
+      throw new BadRequestError({
+        message: 'date.invalid',
+        metadata: { date },
+      });
+    }
+    return newDate;
+  }
+
+  public static isValidDate(date: DateParam): boolean {
+    return date instanceof Date && !isNaN(date.getTime());
+  }
+
   public static calculateAge(birthday: Date): number {
     const today = new Date();
     const age = today.getFullYear() - birthday.getFullYear();
@@ -223,4 +253,10 @@ export class Util {
     }
     return value;
   }
+
+  public static base64ToString(value: string): string {
+    return Buffer.from(value, 'base64').toString();
+  }
 }
+
+type DateParam = number | string | Date;

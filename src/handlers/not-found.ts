@@ -4,7 +4,7 @@ import { MethodNotAllowedError, PageNotFoundError } from '@/errors';
 
 export const notFoundHandler = (
   request: Request,
-  response: Response,
+  _response: Response,
   next: NextFunction,
 ) => {
   const errorOptions = {
