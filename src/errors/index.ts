@@ -3,7 +3,7 @@ export { BadRequestError } from './bad-request';
 export { ConflictError } from './conflict';
 export { NotAcceptableError } from './not-acceptable';
 export { InternalServerError } from './internal-server';
-export { ForbiddenError } from './fobidden';
+export { ForbiddenError } from './forbidden';
 export { InvalidParamError } from './invalid-param';
 export { MethodNotAllowedError } from './method-not-allowed';
 export { MissingParamError } from './missing-param';
