@@ -7,7 +7,7 @@ import httpGraceFullShutdown from 'http-graceful-shutdown';
 
 import { Database } from '@/database';
 import { ExitStatus, NodeEnv } from '@/enums';
-import { parseToObject as parseErrorToObject } from '@/errors';
+import { parseErrorToObject } from '@/errors';
 import { App } from '@/server/app';
 import { Env, Logger, Redis } from '@/shared';
 import { createSwapperDoc } from '@/swagger';

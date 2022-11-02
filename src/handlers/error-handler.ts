@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { parseToObject } from '@/errors';
+import { parseErrorToObject } from '@/errors';
 import { Logger } from '@/shared';
 
 export const errorHandler = (
@@ -10,7 +10,7 @@ export const errorHandler = (
   next: NextFunction,
 ) => {
   if (response.headersSent) return next(error);
-  const errorObject = parseToObject(error);
+  const errorObject = parseErrorToObject(error);
   if (errorObject.showInLogger) {
     Logger.error('error-to-object', {
       path: request.path,
