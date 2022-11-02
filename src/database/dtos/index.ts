@@ -1,0 +1,1 @@
+export { TestDto } from './test';

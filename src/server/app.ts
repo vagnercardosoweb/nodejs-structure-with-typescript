@@ -5,8 +5,8 @@ import fs from 'fs/promises';
 import helmet from 'helmet';
 import http from 'http';
 import morgan from 'morgan';
+import path from 'path';
 
-import configRoutes from '@/config/routes';
 import { HttpMethod, NodeEnv } from '@/enums';
 import {
   checkAccessByRouteHandler,
@@ -19,6 +19,7 @@ import {
   notFoundHandler,
   routeWithTokenHandler,
 } from '@/handlers';
+import appRoutes from '@/server/routes';
 import { Env, Logger } from '@/shared';
 
 export class App {
@@ -40,13 +41,13 @@ export class App {
     this.app.use(express.json() as RequestHandler);
     this.app.use(express.urlencoded({ extended: true }) as RequestHandler);
     this.app.use(cookieParser(Env.required('APP_KEY')));
+    this.app.use(helmet() as RequestHandler);
     if (Env.required('NODE_ENV') !== NodeEnv.TEST) {
-      this.app.use(helmet() as RequestHandler);
       this.app.use(morgan('combined'));
-      this.app.use(corsHandler);
-      this.app.use(methodOverrideHandler);
-      this.app.use(requestUuidHandler);
     }
+    this.app.use(corsHandler);
+    this.app.use(methodOverrideHandler);
+    this.app.use(requestUuidHandler);
     this.app.use(extractTokenHandler);
   }
 
@@ -56,19 +57,19 @@ export class App {
   }
 
   public async registerRoutes() {
-    const directory = `${__dirname}/../modules`;
+    const directory = path.resolve(__dirname, '..', 'modules');
     const modules = await fs.opendir(directory);
     for await (const dir of modules) {
       if (!dir.isDirectory()) continue;
-      const routePath = `${directory}/${dir.name}/routes.ts`;
+      const routePath = path.resolve(directory, dir.name, 'routes');
+      Logger.info(`register route path ${routePath}`);
       try {
-        if (!(await fs.stat(routePath))) continue;
-        configRoutes.push(...(await import(routePath)).default);
+        appRoutes.push(...(await import(routePath)).default);
       } catch (e: any) {
         Logger.warn(`error dynamic route`, { stack: e.stack });
       }
     }
-    for await (const route of configRoutes) {
+    for await (const route of appRoutes) {
       route.method = route.method ?? HttpMethod.GET;
       route.handlers = route.handlers ?? [];
       route.public = route.public ?? false;

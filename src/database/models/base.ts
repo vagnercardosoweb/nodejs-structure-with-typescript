@@ -22,10 +22,9 @@ export class BaseModel<
       ...options,
       rejectOnEmpty: new NotFoundError({
         message: options.message,
-        code: 'model:find_or_fail',
+        code: 'model:not-found',
       }),
     });
-
     return result;
   }
 

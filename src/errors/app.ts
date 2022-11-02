@@ -8,6 +8,7 @@ export interface Options {
   metadata?: Record<string, any>;
   statusCode?: HttpStatusCode;
   originalError?: Error;
+  showInLogger?: boolean;
 }
 
 export class AppError extends Error {

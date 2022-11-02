@@ -12,4 +12,4 @@ export { PageNotFoundError } from './page-not-found';
 export { RateLimiterError } from './rate-limiter';
 export { UnauthorizedError } from './unauthorized';
 export { UnprocessableEntityError } from './unprocessable-entity';
-export { parseToObject } from './parse-to-object';
+export { parseErrorToObject as parseToObject } from './parse-to-object';

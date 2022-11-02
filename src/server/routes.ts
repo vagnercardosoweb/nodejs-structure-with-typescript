@@ -1,7 +1,6 @@
 import { RequestHandler } from 'express';
 
 import { AuthType, HttpMethod, HttpStatusCode } from '@/enums';
-import { AppError } from '@/errors';
 
 export type Route = {
   path: string;
@@ -12,22 +11,16 @@ export type Route = {
   public?: boolean;
 };
 
-const configRoutes: Route[] = [
+const appRoutes: Route[] = [
   {
     path: '/',
     public: true,
-    handler: (request, response) =>
-      response.json({
+    handler: async (request, response) => {
+      return response.json({
         date: new Date().toISOString(),
         ipAddress: request.ip,
         agent: request.header('User-Agent'),
-      }),
-  },
-  {
-    path: '/test-error',
-    public: true,
-    handler: () => {
-      throw new AppError({ message: 'test' });
+      });
     },
   },
   {
@@ -37,4 +30,4 @@ const configRoutes: Route[] = [
   },
 ];
 
-export default configRoutes;
+export default appRoutes;

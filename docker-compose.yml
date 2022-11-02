@@ -12,7 +12,7 @@ services:
     container_name: app.server
     working_dir: /home/node/app
     env_file: .env
-    entrypoint: dockerize -wait tcp://postgres:5432 -wait tcp://redis:6379 -timeout 60s .bin/docker-entrypoint.sh
+    entrypoint: dockerize -wait tcp://postgres:5432 -wait tcp://redis:6379 -timeout 60s scripts/docker-entrypoint.sh
     tty: true
     depends_on:
       - redis

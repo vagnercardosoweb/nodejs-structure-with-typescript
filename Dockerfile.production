@@ -15,6 +15,7 @@ ENV WORKDIR=/home/node/app
 WORKDIR ${WORKDIR}
 
 COPY ./src ./src
+COPY ./scripts ./scripts
 COPY ./tsconfig.json ./
 COPY ./tsconfig-build.json ./
 COPY ./package.json ./
@@ -32,11 +33,11 @@ RUN apk add --update --no-cache bash vim tzdata && rm -rf /var/cache/apk/*
 ENV WORKDIR=/home/node/app
 WORKDIR ${WORKDIR}
 
+COPY ./scripts ./scripts
 COPY ./package.json ./
 COPY ./package-lock.json ./
-COPY ./.sequelizerc ./
-
 COPY --from=builder ${WORKDIR}/dist ./dist
+COPY ./.sequelizerc ./
 
 RUN npm install --omit=dev --ignore-scripts
 

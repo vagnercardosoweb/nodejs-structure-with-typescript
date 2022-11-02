@@ -1,17 +1,18 @@
 import 'reflect-metadata';
 
-import { Transaction, TransactionOptions } from 'sequelize';
-import { Sequelize, SequelizeOptions } from 'sequelize-typescript';
+import { Sequelize } from 'sequelize-typescript';
 
+import { CreateOptions } from '@/database/create-options';
+import { Transaction } from '@/database/transaction';
+import { BindOrReplacements } from '@/database/types';
 import { InternalServerError } from '@/errors';
-import { Env, Logger } from '@/shared';
-
-import { Config } from './config';
+import { Logger, Util } from '@/shared';
 
 export class Database {
-  private static instance: Database | null = null;
-  private sequelize: Sequelize | null = null;
   private logger: typeof Logger;
+  private static instance: Database | null = null;
+  private sequelize: Sequelize;
+  private connected = false;
 
   private constructor() {
     this.logger = Logger.newInstance('DATABASE');
@@ -22,63 +23,72 @@ export class Database {
     return this.instance;
   }
 
-  public static getSequelize(): Sequelize {
-    const { sequelize } = Database.getInstance();
-    if (sequelize === null) {
-      throw new InternalServerError({
-        description: 'sequelize is not initialized',
-      });
-    }
-    return sequelize;
+  public getSequelize(): Sequelize {
+    return this.sequelize;
   }
 
-  public async createTransaction(
-    options?: TransactionOptions,
-  ): Promise<Transaction> {
-    const transaction = await Database.getSequelize().transaction(options);
+  public async query<TResult = any>(
+    sql: string,
+    bind?: BindOrReplacements,
+  ): Promise<TResult[]> {
+    if (!this.connected) {
+      this.logger.error('database is not connected to perform queries');
+      throw new InternalServerError();
+    }
+    const results = await this.sequelize.query(sql, {
+      raw: true,
+      bind,
+    });
+    return results[0] as TResult[];
+  }
+
+  public async createTransaction(): Promise<Transaction> {
+    const transaction = new Transaction(this);
+    await transaction.start();
     return transaction;
   }
 
-  public async createTransactionManaged<Result = any>(
-    fn: (transaction: Transaction) => PromiseLike<Result>,
-    options: TransactionOptions = {},
-  ): Promise<Result> {
-    const result = await Database.getSequelize().transaction<Result>(
-      options,
-      fn,
-    );
-    return result;
-  }
-
-  public isConnected(): boolean {
-    return this.sequelize !== null;
+  public async createTransactionManaged<T = any>(
+    fn: (database: Database) => Promise<T>,
+  ): Promise<T> {
+    const transaction = await this.createTransaction();
+    try {
+      const result = await fn(this);
+      await transaction.commit();
+      return result;
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
+    }
   }
 
   public async close() {
-    this.logger.info('closing database...');
-    if (this.sequelize !== null) await this.sequelize.close();
-    this.sequelize = null;
+    if (!this.connected) return;
+    this.logger.info('closing database');
+    await this.sequelize.close();
+    this.connected = false;
   }
 
-  public async connect(options?: SequelizeOptions): Promise<Database> {
-    if (this.sequelize === null) {
-      this.logger.info('connecting in database...');
-      const parseOptions = Config.create(options);
-      if (Env.get('DB_LOGGING', false)) {
-        parseOptions.logging = (sql) =>
-          this.logger.info(Config.transformSql(sql));
-      } else {
-        parseOptions.logging = false;
-      }
-      this.sequelize = new Sequelize(parseOptions);
-      this.logger.info('checking database...');
-      await this.sequelize.authenticate();
-      this.logger.info('set timezone and encoding in database...');
-      await this.sequelize.query(`SET timezone TO '${Config.getTimezone()}'`);
-      await this.sequelize.query(
-        `SET client_encoding TO '${Config.getCharset()}'`,
-      );
+  public async connect(): Promise<Database> {
+    if (this.connected) return this;
+    this.logger.info('connecting in database');
+    const options = CreateOptions.create();
+    if (options.logging) {
+      options.logging = (sql) =>
+        this.logger.info(Util.removeLinesAndSpaceFromSql(sql));
+    } else {
+      options.logging = false;
     }
+    this.sequelize = new Sequelize(options);
+    this.logger.info('authenticate in database');
+    await this.sequelize.authenticate();
+    this.logger.info('set timezone in database');
+    await this.sequelize.query(`SET timezone TO '${CreateOptions.timezone()}'`);
+    this.logger.info('set encoding in database');
+    await this.sequelize.query(
+      `SET client_encoding TO '${CreateOptions.charset()}'`,
+    );
+    this.connected = true;
     return this;
   }
 }

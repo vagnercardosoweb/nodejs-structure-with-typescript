@@ -1,29 +1,23 @@
 import { SequelizeOptions } from 'sequelize-typescript';
 
+import * as models from '@/database/models';
 import { NodeEnv } from '@/enums';
 import { Env } from '@/shared';
 
-import * as models from './models';
-
-export class Config {
-  public static getTimezone(): string {
+export class CreateOptions {
+  public static timezone(): string {
     return Env.get('DB_TIMEZONE', 'UTC');
   }
 
-  public static getCharset() {
+  public static charset() {
     return Env.get('DB_ENCODING', 'utf8');
   }
 
-  public static transformSql(sql: string): string {
-    return sql.replace(/\n/g, '').replace(/\s+/g, ' ').trim();
-  }
-
-  public static create(options?: SequelizeOptions): SequelizeOptions {
-    const charset = this.getCharset();
-
-    const mergeConfig = {
+  public static create(): SequelizeOptions {
+    const charset = this.charset();
+    const options = {
       models: Object.values(models),
-      timezone: this.getTimezone(),
+      timezone: this.timezone(),
       encoding: charset,
       benchmark: Env.get('DB_BENCHMARK', false),
       dialect: Env.get('DB_TYPE', 'postgres'),
@@ -36,6 +30,7 @@ export class Config {
       quoteIdentifiers: false,
       schema: Env.get('DB_SCHEMA', 'public'),
       keepDefaultTimezone: true,
+      logging: Env.get('DB_LOGGING', false),
       pool: {
         max: Env.get('DB_POOL_MAX'),
         min: Env.get('DB_POOL_MIN'),
@@ -53,13 +48,10 @@ export class Config {
         updatedAt: Env.get('DB_UPDATED_AT_NAME', 'updated_at'),
         deletedAt: Env.get('DB_DELETED_AT_NAME', 'deleted_at'),
       },
-      ...options,
     } as SequelizeOptions;
-
     if (Env.get('NODE_ENV') === NodeEnv.TEST) {
-      mergeConfig.logging = false;
+      options.logging = false;
     }
-
-    return mergeConfig;
+    return options;
   }
 }

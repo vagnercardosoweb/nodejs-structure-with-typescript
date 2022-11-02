@@ -1,11 +1,11 @@
 import { Timestamp } from '@/database/types';
 
-export namespace Test {
-  export interface Dto {
+export namespace TestDto {
+  export interface Create {
     name: string;
   }
 
-  export interface Attribute extends Dto, Timestamp {
+  export interface Result extends Create, Timestamp {
     id: string;
     [key: string]: any;
   }

@@ -257,6 +257,10 @@ export class Util {
   public static base64ToString(value: string): string {
     return Buffer.from(value, 'base64').toString();
   }
+
+  public static removeLinesAndSpaceFromSql(sql: string): string {
+    return sql.replace(/\n/g, '').replace(/\s+/g, ' ').trim();
+  }
 }
 
 type DateParam = number | string | Date;

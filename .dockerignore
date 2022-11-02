@@ -1,5 +1,4 @@
 dist/
 node_modules/
-.bin/
 .husky/
 database/

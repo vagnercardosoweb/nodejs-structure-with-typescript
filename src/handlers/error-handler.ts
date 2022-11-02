@@ -9,21 +9,22 @@ export const errorHandler = (
   response: Response,
   next: NextFunction,
 ) => {
-  if (response.headersSent) {
-    return next(error);
-  }
+  if (response.headersSent) return next(error);
   const errorObject = parseToObject(error);
-  Logger.error('error-handler-information', {
-    path: request.path,
-    method: request.method,
-    cookies: request.cookies,
-    headers: request.headers,
-    params: request.params,
-    query: request.query,
-    body: request.body,
-    locals: request.app.locals,
-    errorObject,
-  });
+  if (errorObject.showInLogger) {
+    Logger.error('error-to-object', {
+      path: request.path,
+      method: request.method,
+      cookies: request.cookies,
+      headers: request.headers,
+      params: request.params,
+      query: request.query,
+      body: request.body,
+      locals: request.app.locals,
+      errorObject,
+    });
+  }
+  errorObject.showInLogger = undefined as any;
   response.statusCode = errorObject.statusCode;
   return response.json(errorObject);
 };
