@@ -92,10 +92,6 @@ export class Util {
     return value / 100;
   }
 
-  public normalizeMoney(value: string): number {
-    return Number.parseInt(value.replace(/[^0-9-]/g, ''), 10) / 100;
-  }
-
   public static formatMoneyToBrl(
     value: number,
     options?: Omit<Intl.NumberFormatOptions, 'style' | 'currency'>,
@@ -113,17 +109,18 @@ export class Util {
     await promisify(childProcess.exec)(`mkdir -p ${path}`);
   }
 
-  public static hideKeysFromAnObject(immutableData: any, keys: string[] = []) {
-    const payload = { ...immutableData };
+  public static obfuscateValueFromObject(
+    immutableData: Record<string, any>,
+    keys: string[] = [],
+  ) {
+    const data = { ...immutableData };
     const allKeys = [...keys, 'password', 'password_confirm'];
-
-    Object.entries(payload).forEach(([key, value]) => {
+    Object.entries(data).forEach(([key, value]) => {
       if (allKeys.includes(key) || String(value).match(/data:image\/(.+);/gm)) {
-        payload[key] = '******';
+        data[key] = 'obfuscate';
       }
     });
-
-    return payload;
+    return data;
   }
 
   public static getFirstAndLastName(value: string): {
@@ -188,16 +185,10 @@ export class Util {
     return `${parseFloat((bytes / k ** i).toFixed(dm))} ${sizes[i]}`;
   }
 
-  public static strLimit(
-    value: string,
-    limit?: number,
-    endLine?: '...',
-  ): string {
-    const strLength = value.replace(/\s/g, '').length;
-    if (limit && strLength > limit) {
-      return value.substring(0, limit) + endLine;
-    }
-    return value;
+  public static strLimit(value: string, limit: number, end?: '...'): string {
+    const lengthWithoutSpace = value.replace(/\s/g, '').length;
+    if (limit > lengthWithoutSpace) return value;
+    return value.substring(0, limit) + end;
   }
 
   public static async sleep(ms = 0): Promise<void> {
@@ -260,6 +251,10 @@ export class Util {
 
   public static removeLinesAndSpaceFromSql(sql: string): string {
     return sql.replace(/\n/g, '').replace(/\s+/g, ' ').trim();
+  }
+
+  public normalizeMoney(value: string): number {
+    return Number.parseInt(value.replace(/[^0-9-]/g, ''), 10) / 100;
   }
 }
 
