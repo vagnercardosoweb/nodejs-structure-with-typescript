@@ -2,7 +2,9 @@ import childProcess from 'child_process';
 import { randomBytes, randomInt, randomUUID } from 'crypto';
 import { promisify } from 'util';
 
-import { BadRequestError } from '@/errors';
+import { parseErrorToObject } from '@/errors';
+import { BadRequestError } from '@/errors/bad-request';
+import { Logger } from '@/shared';
 
 export class Util {
   public static uuid(): string {
@@ -117,7 +119,7 @@ export class Util {
     const allKeys = [...keys, 'password', 'password_confirm'];
     Object.entries(data).forEach(([key, value]) => {
       if (allKeys.includes(key) || String(value).match(/data:image\/(.+);/gm)) {
-        data[key] = 'obfuscate';
+        data[key] = '*'.repeat(data[key]?.length ?? 3);
       }
     });
     return data;
@@ -197,7 +199,7 @@ export class Util {
     });
   }
 
-  public static parseJson(
+  public static parseJson2(
     json: string | null,
   ): boolean | Record<string, never> {
     if (typeof json !== 'string') {
@@ -212,6 +214,21 @@ export class Util {
       return json;
     }
     return false;
+  }
+
+  public static parseJson<T = any>(json: any, defaultValue?: any): T {
+    const normalizedJson = this.normalizeValue(json);
+    if ([null, undefined].includes(normalizedJson)) return defaultValue;
+    if (typeof normalizedJson !== 'string') return normalizedJson;
+    try {
+      return {
+        ...defaultValue,
+        ...JSON.parse(normalizedJson),
+      };
+    } catch (e: any) {
+      Logger.error('error parsing json', parseErrorToObject(e));
+      return defaultValue;
+    }
   }
 
   public static removeUndefined(value: Record<string, any>) {
@@ -247,6 +264,10 @@ export class Util {
 
   public static base64ToString(value: string): string {
     return Buffer.from(value, 'base64').toString();
+  }
+
+  public static stringToBase64(value: string): string {
+    return Buffer.from(value).toString('base64');
   }
 
   public static removeLinesAndSpaceFromSql(sql: string): string {

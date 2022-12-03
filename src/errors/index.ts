@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 export { AppError } from './app';
 export { BadRequestError } from './bad-request';
 export { ConflictError } from './conflict';

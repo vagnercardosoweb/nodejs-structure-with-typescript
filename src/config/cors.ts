@@ -12,6 +12,7 @@ const configCors = {
     'Accept-Language',
     'X-Refresh-Token',
     'X-Aws-IdToken',
+    'X-Device-Id',
     'X-Test',
   ],
 };

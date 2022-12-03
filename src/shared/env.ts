@@ -1,3 +1,4 @@
+import { NodeEnv } from '@/enums';
 import { InternalServerError } from '@/errors';
 
 import { Util } from './util';
@@ -20,5 +21,21 @@ export class Env {
       });
     }
     return value;
+  }
+
+  public static isLocal(): boolean {
+    return Env.get('NODE_ENV') === NodeEnv.LOCAL;
+  }
+
+  public static isProduction(): boolean {
+    return Env.get('NODE_ENV') === NodeEnv.PRODUCTION;
+  }
+
+  public static isStaging(): boolean {
+    return Env.get('NODE_ENV') === NodeEnv.STAGING;
+  }
+
+  public static isTesting(): boolean {
+    return Env.get('NODE_ENV') === NodeEnv.TEST;
   }
 }

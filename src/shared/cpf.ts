@@ -1,11 +1,9 @@
-import { BadRequestError } from '../errors';
+import { BadRequestError } from '@/errors';
 
 export class Cpf {
   constructor(private readonly value: string, validateImmediate = true) {
     if (validateImmediate && !this.isValid()) {
-      throw new BadRequestError({
-        message: 'cpf.invalid',
-      });
+      throw new BadRequestError({ message: 'cpf.invalid' });
     }
   }
 

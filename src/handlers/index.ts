@@ -8,3 +8,5 @@ export { requestUuidHandler } from './request-uuid';
 export { extractTokenHandler } from './extract-token';
 export { isAuthenticatedHandler } from './is-authenticated';
 export { checkAccessByRouteHandler } from './check-access-route';
+export { configureAppHandler } from './configure-app';
+export { rateLimiterHandler } from './rate-limiter';

@@ -11,6 +11,8 @@ export type Route = {
   public?: boolean;
 };
 
+const sendStatusOk = (_: any, r: any) => r.sendStatus(HttpStatusCode.OK);
+
 const appRoutes: Route[] = [
   {
     path: '/',
@@ -26,7 +28,12 @@ const appRoutes: Route[] = [
   {
     path: '/favicon.ico',
     public: true,
-    handler: (_, response) => response.sendStatus(HttpStatusCode.OK),
+    handler: sendStatusOk,
+  },
+  {
+    path: '/sw.js',
+    public: true,
+    handler: sendStatusOk,
   },
 ];
 

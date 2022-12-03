@@ -1,6 +1,7 @@
 # build stage 1
 FROM node:18-alpine as builder
 
+# Update system and install required libs
 RUN apk add \
   --update \
   --no-cache \
@@ -11,35 +12,43 @@ RUN apk add \
   openssh-client \
   && rm -rf /var/cache/apk/*
 
-ENV WORKDIR=/home/node/app
-WORKDIR ${WORKDIR}
+# Configure workdir
+WORKDIR /app
 
+# Copy files to build
 COPY ./src ./src
+COPY ./database ./database
+COPY ./.sequelizerc ./
 COPY ./scripts ./scripts
 COPY ./tsconfig.json ./
 COPY ./tsconfig-build.json ./
 COPY ./package.json ./
 COPY ./package-lock.json ./
+COPY ./global.d.ts ./
 
-RUN npm ci
-RUN npm run build
+# Build application
+RUN npm install --ignore-scripts && npm run build && npm run db:compile
 
 # build stage 2
 FROM node:18-alpine as finish
 
-ENV TZ=${TZ:-America/Sao_Paulo}
+# Set TZ and install required libs
+ENV TZ=${TZ:-UTC}
 RUN apk add --update --no-cache bash vim tzdata && rm -rf /var/cache/apk/*
 
-ENV WORKDIR=/home/node/app
-WORKDIR ${WORKDIR}
+# Configure workdir
+WORKDIR /app
 
-COPY ./scripts ./scripts
-COPY ./package.json ./
-COPY ./package-lock.json ./
-COPY --from=builder ${WORKDIR}/dist ./dist
-COPY ./.sequelizerc ./
+# Copy files to run application
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/scripts ./scripts
+COPY --from=builder /app/.sequelizerc ./
+COPY --from=builder /app/database-compiled ./database-compiled
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/package-lock.json ./
 
+# Install production libs
 RUN npm install --omit=dev --ignore-scripts
 
 EXPOSE ${PORT:-3333}
-CMD ["npm", "start"]
+CMD ["npm", "run", "start"]

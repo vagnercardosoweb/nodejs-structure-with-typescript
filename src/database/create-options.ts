@@ -28,6 +28,7 @@ export class CreateOptions {
       database: Env.required('DB_NAME'),
       migrationStorageTableName: Env.get('DB_MIGRATION_NAME', 'migrations'),
       quoteIdentifiers: false,
+      minifyAliases: true,
       schema: Env.get('DB_SCHEMA', 'public'),
       keepDefaultTimezone: true,
       logging: Env.get('DB_LOGGING', false),

@@ -6,12 +6,12 @@ import { UnauthorizedError } from '@/errors';
 export const isAuthenticatedHandler =
   (type: AuthType) =>
   (request: Request, _response: Response, next: NextFunction) => {
-    if (!request.app.locals.jwt?.sub) {
+    if (!request.context.jwt.sub) {
       throw new UnauthorizedError({
         code: 'jwt.sub-not-exist',
         message: 'middleware.jwt.sub-not-exist',
       });
     }
-    request.app.locals.jwt.type = type;
+    request.context.jwt.type = type;
     return next();
   };

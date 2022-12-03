@@ -9,6 +9,7 @@ export interface Options {
   statusCode?: HttpStatusCode;
   originalError?: Error;
   showInLogger?: boolean;
+  sendToSlack?: boolean;
 }
 
 export class AppError extends Error {

@@ -8,12 +8,11 @@ export const routeWithTokenHandler = async (
   _response: Response,
   next: NextFunction,
 ) => {
-  request.app.locals.jwt = null;
   try {
-    const { token } = request.app.locals;
+    const { token } = request.context.jwt;
     if (!token) throw new Error('Token missing in the request.');
     if (token !== Env.get('API_KEY')) {
-      request.app.locals.jwt = await Jwt.decode(token);
+      request.context.jwt = (await Jwt.decode(token)) as any;
     }
   } catch (e: any) {
     throw new UnauthorizedError({

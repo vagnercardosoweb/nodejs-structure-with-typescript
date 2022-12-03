@@ -10,13 +10,14 @@ import path from 'path';
 import { HttpMethod, NodeEnv } from '@/enums';
 import {
   checkAccessByRouteHandler,
+  configureAppHandler,
   corsHandler,
   errorHandler,
   extractTokenHandler,
   isAuthenticatedHandler,
-  requestUuidHandler,
   methodOverrideHandler,
   notFoundHandler,
+  requestUuidHandler,
   routeWithTokenHandler,
 } from '@/handlers';
 import appRoutes from '@/server/routes';
@@ -31,7 +32,6 @@ export class App {
     this.app = express();
     this.server = http.createServer(this.app);
     this.port = Env.get('PORT', 3333);
-
     this.app.set('trust proxy', true);
     this.app.set('x-powered-by', false);
     this.app.set('strict routing', true);
@@ -47,11 +47,12 @@ export class App {
     }
     this.app.use(corsHandler);
     this.app.use(methodOverrideHandler);
+    this.app.use(configureAppHandler);
     this.app.use(requestUuidHandler);
     this.app.use(extractTokenHandler);
   }
 
-  public registerErrorHandling() {
+  public registerErrorHandlers() {
     this.app.use(notFoundHandler);
     this.app.use(errorHandler);
   }
@@ -62,11 +63,13 @@ export class App {
     for await (const dir of modules) {
       if (!dir.isDirectory()) continue;
       const routePath = path.resolve(directory, dir.name, 'routes');
-      Logger.info(`register route path ${routePath}`);
       try {
-        appRoutes.push(...(await import(routePath)).default);
+        const routes = (await import(routePath)).default;
+        if (!Array.isArray(routes)) continue;
+        Logger.info(`register route path ${routePath}`);
+        appRoutes.push(...routes);
       } catch (e: any) {
-        Logger.warn(`error dynamic route`, { stack: e.stack });
+        Logger.warn('register route error', { stack: e.stack });
       }
     }
     for await (const route of appRoutes) {
@@ -95,7 +98,7 @@ export class App {
       this.server.on('listening', async () => {
         this.registerHandlers();
         await this.registerRoutes();
-        this.registerErrorHandling();
+        this.registerErrorHandlers();
         resolve(this.server);
       });
     });

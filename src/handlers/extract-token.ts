@@ -5,13 +5,13 @@ export const extractTokenHandler = (
   _response: Response,
   next: NextFunction,
 ) => {
-  let token: string | null = String(request.query.token).trim();
+  let token: string | undefined = String(request.query.token).trim();
   const { authorization } = request.headers;
   if (authorization) {
     const [, authToken] = authorization.split(' ');
     token = authToken.trim();
   }
-  if (token === 'undefined' || !token?.length) token = null;
-  request.app.locals.token = token;
+  if (token === 'undefined' || !token?.length) token = undefined;
+  request.context.jwt.token = token as any;
   return next();
 };

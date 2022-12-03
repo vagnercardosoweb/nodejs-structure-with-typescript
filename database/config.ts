@@ -1,5 +1,5 @@
 const charset = process.env.DB_ENCODING || 'utf8';
-const timezone = process.env.DB_TIMEZONE || 'America/Sao_Paulo';
+const timezone = process.env.DB_TIMEZONE || 'UTC';
 const collate = process.env.DB_COLLATE || 'utf8_general_ci';
 const migrationStorageTableName =
   process.env.DB_MIGRATION_TABLE_NAME || 'migrations';

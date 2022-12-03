@@ -6,7 +6,7 @@ import { CreateOptions } from '@/database/create-options';
 import { Transaction } from '@/database/transaction';
 import { BindOrReplacements } from '@/database/types';
 import { InternalServerError } from '@/errors';
-import { Logger, Util } from '@/shared';
+import { Env, Logger, Util } from '@/shared';
 
 export class Database {
   private logger: typeof Logger;
@@ -74,8 +74,17 @@ export class Database {
     this.logger.info('connecting in database');
     const options = CreateOptions.create();
     if (options.logging) {
-      options.logging = (sql) =>
-        this.logger.info(Util.removeLinesAndSpaceFromSql(sql));
+      options.logging = (sql, object) => {
+        sql = Util.removeLinesAndSpaceFromSql(sql);
+        if (Env.get('DB_LOGGING_BASE64', false)) {
+          sql = Util.stringToBase64(sql);
+        }
+        const obj = object as any;
+        this.logger.info('query', {
+          sql,
+          bind: obj?.bind ?? obj?.replacements,
+        });
+      };
     } else {
       options.logging = false;
     }

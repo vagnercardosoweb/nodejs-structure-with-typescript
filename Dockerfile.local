@@ -13,12 +13,15 @@ RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSI
   && tar -C /usr/local/bin -xzvf dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
   && rm dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz
 
+# create node_modules
+RUN mkdir -p ${WORKDIR}/node_modules
+
 # set non-root user
 ENV USER=node
 USER ${USER}
 
 # set workdir
-ENV WORKDIR=/home/node/app
+ENV WORKDIR=/home/node
 WORKDIR ${WORKDIR}
 
 # create node_modules

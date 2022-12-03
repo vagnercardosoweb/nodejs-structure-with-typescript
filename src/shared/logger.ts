@@ -22,7 +22,7 @@ class Logger {
   }
 
   private static getFormats() {
-    const formats = [
+    return [
       format.timestamp(),
       format.printf(({ level, message, timestamp, id, ...metadata }) => {
         const regex = new RegExp(Object.keys(LogLevel).join('|'), 'ig');
@@ -31,16 +31,13 @@ class Logger {
           id,
           level,
           message,
-          metadata: {
-            pid: process.pid,
-            hostname: os.hostname(),
-            timestamp: `${timestamp} UTC`,
-            ...metadata,
-          },
+          pid: process.pid,
+          hostname: os.hostname(),
+          timestamp: `${timestamp} ${Env.get('TZ')}`,
+          metadata,
         });
       }),
     ];
-    return formats;
   }
 
   private static getTransports() {

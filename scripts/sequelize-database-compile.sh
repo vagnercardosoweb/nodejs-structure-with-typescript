@@ -8,5 +8,6 @@ if [ ! -d "$directory" ]; then
   npm install --silent
 fi
 
+cp ./src/database/table-names.ts ./database/table-names.ts
 npx swc ./database --config-file ./database/swcrc.json --out-dir ./database-compiled
 echo "Compiled database successfully!"

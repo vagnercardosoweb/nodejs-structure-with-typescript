@@ -1,26 +1,26 @@
 {
-	"compilerOptions": {
-		"strict": true,
-		"incremental": true,
-		"target": "es2021",
-		"module": "commonjs",
-		"skipLibCheck": true,
-		"outDir": "./dist",
-		"moduleResolution": "node",
-		"removeComments": true,
-		"allowSyntheticDefaultImports": true,
-		"esModuleInterop": true,
-		"emitDecoratorMetadata": true,
-		"experimentalDecorators": true,
-		"forceConsistentCasingInFileNames": true,
-		"strictPropertyInitialization": false,
-		"baseUrl": ".",
-		"rootDirs": ["src", "test"],
-		"paths": {
-			"@/tests/*": ["./tests/*"],
-			"@/*": ["./src/*"]
-		}
-	},
-	"exclude": ["node_modules"],
-	"include": ["./src/**/*.ts", "./tests/**/*.ts"]
+  "compilerOptions": {
+    "strict": true,
+    "incremental": true,
+    "target": "es2021",
+    "module": "commonjs",
+    "skipLibCheck": true,
+    "outDir": "./dist",
+    "moduleResolution": "node",
+    "removeComments": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "strictPropertyInitialization": false,
+    "baseUrl": ".",
+    "rootDirs": ["src", "test"],
+    "paths": {
+      "@/tests/*": ["./tests/*"],
+      "@/*": ["./src/*"]
+    }
+  },
+  "exclude": ["node_modules"],
+  "include": ["./src/**/*.ts", "./tests/**/*.ts", "global.d.ts"]
 }
