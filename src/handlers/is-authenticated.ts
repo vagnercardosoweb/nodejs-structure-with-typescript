@@ -10,6 +10,7 @@ export const isAuthenticatedHandler =
       throw new UnauthorizedError({
         code: 'jwt.sub-not-exist',
         message: 'middleware.jwt.sub-not-exist',
+        sendToSlack: false,
       });
     }
     request.context.jwt.type = type;

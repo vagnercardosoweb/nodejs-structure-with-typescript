@@ -119,7 +119,7 @@ export class Util {
     const allKeys = [...keys, 'password', 'password_confirm'];
     Object.entries(data).forEach(([key, value]) => {
       if (allKeys.includes(key) || String(value).match(/data:image\/(.+);/gm)) {
-        data[key] = '*'.repeat(data[key]?.length ?? 3);
+        data[key] = '***';
       }
     });
     return data;
@@ -272,6 +272,21 @@ export class Util {
 
   public static removeLinesAndSpaceFromSql(sql: string): string {
     return sql.replace(/\n/g, '').replace(/\s+/g, ' ').trim();
+  }
+
+  static isString(value: any) {
+    return Object.prototype.toString.call(value) === '[object String]';
+  }
+
+  public static sortByAsc<T extends Record<string, any>>(
+    array: T[],
+    column: string,
+  ): T[] {
+    return array.sort((a, b) => {
+      if (a[column] > b[column]) return 1;
+      if (a[column] < b[column]) return -1;
+      return 0;
+    });
   }
 
   public normalizeMoney(value: string): number {

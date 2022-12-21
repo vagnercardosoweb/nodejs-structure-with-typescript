@@ -15,6 +15,7 @@ export class MethodNotAllowedError extends AppError {
       metadata: { path, method },
       statusCode: HttpStatusCode.METHOD_NOT_ALLOWED,
       message: 'error.method_not_allowed',
+      sendToSlack: false,
       ...options,
     });
 

@@ -1,53 +1,65 @@
-// import { z } from 'zod';
-
 import { HttpStatusCode } from '@/enums';
 import { AppError } from '@/errors';
-import { Translation } from '@/translations';
+import { Util } from '@/shared';
 
-interface ValidatorError {
-  type: string;
-  path: string;
-  message?: string;
-  value?: any;
-}
+type ValidatorError = Record<string, any>;
 
-export const parseErrorToObject = (error: any) => {
-  let message = error?.message || error?.toString();
+export type OutputError = {
+  name: string;
+  code: string;
+  statusCode: number;
+  errorId: string;
+  message: string;
+  description: string;
+  sendToSlack: boolean;
+  metadata: Record<string, any>;
+  validators: ValidatorError[];
+  originalError: any;
+  stack: string[];
+};
+
+export const parseErrorToObject = (error: any): OutputError => {
+  let message = error?.message ?? error?.toString();
   let statusCode = error?.statusCode ?? HttpStatusCode.BAD_REQUEST;
   let validators: ValidatorError[] = [];
   const errorId = error?.errorId ?? AppError.generateErrorId();
-  if ('inner' in error && Array.isArray(error?.errors)) {
-    message = error.errors[0] ?? message;
-    if (!error.inner?.length) error.inner.push({ ...error, inner: undefined });
+
+  let sendToSlack = Util.normalizeValue(error?.sendToSlack);
+  if (sendToSlack === undefined) sendToSlack = true;
+
+  // check error with yup validation
+  if ('inner' in error && error?.errors?.length > 0) {
     validators = error.inner;
+    message = error.errors[0] as string;
   }
-  // if (error instanceof z.ZodError) {
-  //   error.name = 'BadRequestError';
-  //   validators = error.issues as any;
-  //   message = validators?.at(0)?.message ?? message;
-  //   error.stack = undefined;
+
+  // check error with zod validation
+  // if (error instanceof z.ZodError && error?.issues?.length > 0) {
+  //   validators = error.issues;
+  //   message = validators[0].message;
   // }
+
   if (error?.name?.startsWith('Sequelize')) {
     statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
-    validators = error?.errors;
     if (error.original) {
       error.originalError = error.original;
       error.stack = error.original?.stack;
     }
   }
-  if (statusCode === HttpStatusCode.INTERNAL_SERVER_ERROR) {
-    error.name = 'InternalServerError';
-    message = 'errors.internal_server_error';
-  }
+
   const metadata = error?.metadata ?? {};
+  if (validators?.length > 0 && message !== 'errors.internal_server_error') {
+    sendToSlack = false;
+  }
+
   return {
     name: error.name,
-    code: error?.code ?? 'DEFAULT',
+    code: error?.code ?? 'API:DEFAULT',
     statusCode,
     errorId,
-    showInLogger: error?.showInLogger ?? true,
-    message: Translation.get(message, { errorId, ...metadata }),
+    message,
     description: error?.description,
+    sendToSlack,
     metadata,
     validators,
     originalError: error?.originalError ?? null,

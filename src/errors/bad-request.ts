@@ -8,6 +8,7 @@ export class BadRequestError extends AppError {
       code: 'bad_request',
       statusCode: HttpStatusCode.BAD_REQUEST,
       message: 'error.bad_request',
+      sendToSlack: false,
       ...options,
     });
 

@@ -2,10 +2,14 @@ import dottie from 'dottie';
 
 import pt_BR from './pt-br';
 
+const fallback = 'pt-br';
+const translations: Record<string, any> = {
+  'pt-br': pt_BR,
+};
+
 export class Translation {
+  private static locale = fallback;
   private static translations: Record<string, any> | null;
-  private static fallback = 'pt-br';
-  private static locale = 'pt-br';
 
   public static get(path: string, replaces: Record<string, any> = {}): string {
     let result = this.translations?.[path] ?? path;
@@ -15,6 +19,10 @@ export class Translation {
     return result;
   }
 
+  public static has(path: string): boolean {
+    return !!this.translations?.[path];
+  }
+
   public static setLocale(locale: string) {
     locale = locale.trim().toLowerCase();
     this.locale = locale;
@@ -22,9 +30,8 @@ export class Translation {
   }
 
   public static load() {
-    this.translations = { 'pt-br': pt_BR };
-    let translation = this.translations?.[this.locale];
-    if (!translation) translation = this.translations[this.fallback];
-    this.translations = dottie.flatten(translation);
+    let translation = translations?.[this.locale];
+    if (!translation) translation = translations[fallback];
+    if (translation) this.translations = dottie.flatten(translation);
   }
 }

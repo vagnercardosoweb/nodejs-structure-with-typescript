@@ -23,13 +23,16 @@ export const makeAppSupertest = async (withRoutes = false) => {
 };
 
 export const truncateTables = async (schema?: string) => {
-  const tables = await Database.getInstance().query<{ name: string }>(
-    `SELECT tablename AS name FROM pg_tables WHERE schemaname = $1`,
-    [schema || 'public'],
+  const tables = await Database.getInstance().query<{ tablename: string }>(
+    `SELECT tablename FROM pg_tables WHERE schemaname = '${
+      schema || 'public'
+    }'`,
   );
 
   for await (const table of tables) {
-    await Database.getInstance().query(`TRUNCATE TABLE ${table.name} CASCADE;`);
+    await Database.getInstance().query(
+      `TRUNCATE TABLE ${table.tablename} CASCADE;`,
+    );
   }
 };
 

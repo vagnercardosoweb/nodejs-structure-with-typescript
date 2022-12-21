@@ -50,7 +50,7 @@ export class Pagination {
   }
 
   public toJson(): Result {
-    const totalPages = Math.max(Math.ceil(this.totalRows / this.limit));
+    const totalPages = Math.max(Math.ceil(this.totalRows / this.limit), 1);
     const nextPage = totalPages > this.page ? this.page + 1 : totalPages;
     const prevPage = this.page > 1 ? this.page - 1 : 1;
     return {

@@ -1,15 +1,8 @@
-import { RequestHandler } from 'express';
+import { Router } from 'express';
 
-import { AuthType, HttpMethod, HttpStatusCode } from '@/enums';
+import { HttpStatusCode } from '@/enums';
 
-export type Route = {
-  path: string;
-  method?: HttpMethod;
-  handler: RequestHandler;
-  handlers?: RequestHandler[];
-  authType?: AuthType;
-  public?: boolean;
-};
+import { Route } from '../../global';
 
 const sendStatusOk = (_: any, r: any) => r.sendStatus(HttpStatusCode.OK);
 
@@ -36,5 +29,15 @@ const appRoutes: Route[] = [
     handler: sendStatusOk,
   },
 ];
+
+export const makeDefaultRoutes = () => {
+  const router = Router({
+    strict: true,
+    mergeParams: true,
+    caseSensitive: false,
+  });
+
+  return router;
+};
 
 export default appRoutes;

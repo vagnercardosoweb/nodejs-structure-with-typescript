@@ -1,11 +1,9 @@
 import cookieParser from 'cookie-parser';
 import express, { RequestHandler } from 'express';
 import 'express-async-errors';
-import fs from 'fs/promises';
 import helmet from 'helmet';
 import http from 'http';
 import morgan from 'morgan';
-import path from 'path';
 
 import { HttpMethod, NodeEnv } from '@/enums';
 import {
@@ -20,8 +18,8 @@ import {
   requestUuidHandler,
   routeWithTokenHandler,
 } from '@/handlers';
-import appRoutes from '@/server/routes';
-import { Env, Logger } from '@/shared';
+import appRoutes, { makeDefaultRoutes } from '@/server/routes';
+import { Env } from '@/shared';
 
 export class App {
   protected app: express.Application;
@@ -46,8 +44,8 @@ export class App {
       this.app.use(morgan('combined'));
     }
     this.app.use(corsHandler);
-    this.app.use(methodOverrideHandler);
     this.app.use(configureAppHandler);
+    this.app.use(methodOverrideHandler);
     this.app.use(requestUuidHandler);
     this.app.use(extractTokenHandler);
   }
@@ -58,21 +56,22 @@ export class App {
   }
 
   public async registerRoutes() {
-    const directory = path.resolve(__dirname, '..', 'modules');
-    const modules = await fs.opendir(directory);
-    for await (const dir of modules) {
-      if (!dir.isDirectory()) continue;
-      const routePath = path.resolve(directory, dir.name, 'routes');
-      try {
-        const routes = (await import(routePath)).default;
-        if (!Array.isArray(routes)) continue;
-        Logger.info(`register route path ${routePath}`);
-        appRoutes.push(...routes);
-      } catch (e: any) {
-        Logger.warn('register route error', { stack: e.stack });
-      }
-    }
-    for await (const route of appRoutes) {
+    this.app.use(makeDefaultRoutes());
+    // const directory = path.resolve(__dirname, '..', 'modules');
+    // const modules = await fs.opendir(directory);
+    // for await (const dir of modules) {
+    //   if (!dir.isDirectory()) continue;
+    //   const routePath = path.resolve(directory, dir.name, 'routes');
+    //   try {
+    //     const routes = (await import(routePath)).default;
+    //     if (!Array.isArray(routes)) continue;
+    //     Logger.info(`register route path ${routePath}`);
+    //     appRoutes.push(...routes);
+    //   } catch (e: any) {
+    //     Logger.warn('register route error', { stack: e.stack });
+    //   }
+    // }
+    for (const route of appRoutes) {
       route.method = route.method ?? HttpMethod.GET;
       route.handlers = route.handlers ?? [];
       route.public = route.public ?? false;

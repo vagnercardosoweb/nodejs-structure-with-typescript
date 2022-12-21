@@ -10,7 +10,7 @@ export interface HttpRequest extends RequestOptions {
   method?: HttpMethod;
 }
 
-interface Response<T = any> {
+export interface HttpResponse<T = any> {
   body: T;
   statusCode: number;
   headers: IncomingHttpHeaders;
@@ -33,10 +33,10 @@ const makeError = (e: any, metadata: any) =>
 
 export const httpRequest = async <T = any>(
   options: HttpRequest,
-): Promise<Response<T>> => {
+): Promise<HttpResponse<T>> => {
   const { url, body, ...rest } = options;
   rest.method = rest.method ?? HttpMethod.GET;
-  const response = await new Promise<Response>((resolve, reject) => {
+  const response = await new Promise<HttpResponse>((resolve, reject) => {
     const request = https.request(url, rest, async (res) => {
       const chunks: any[] = [];
       res.on('error', (e) => reject(makeError(e, options)));

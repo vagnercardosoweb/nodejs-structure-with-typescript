@@ -7,7 +7,7 @@ export const requestUuidHandler = (
   next: NextFunction,
 ) => {
   const uuid = randomUUID();
-  request.app.locals.requestId = uuid;
+  request.context.requestId = uuid;
   response.setHeader('X-Request-Id', uuid);
   return next();
 };

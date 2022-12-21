@@ -9,3 +9,4 @@ export { Pagination } from './pagination';
 export { Redis } from './redis';
 export { Util } from './util';
 export { PasswordHash } from './password-hash';
+export { Slack } from './slack';
