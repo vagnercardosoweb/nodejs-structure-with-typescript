@@ -1,56 +1,46 @@
 import os from 'os';
-import {
-  createLogger,
-  format,
-  Logger as WinstonLogger,
-  transports,
-} from 'winston';
+import { createLogger, format, transports } from 'winston';
 
-import { LogLevel, NodeEnv } from '@/enums';
+import { LogLevel } from '@/enums';
 import { Env } from '@/shared/env';
 
-class Logger {
-  private readonly winston: WinstonLogger;
+const PID = process.pid;
+const HOSTNAME = os.hostname();
+const LOG_ENABLED = Env.get('LOG_ENABLED', true);
+const LOGGER_ID = Env.get('LOGGER_ID', 'APP');
+const TZ = Env.get('TZ');
 
-  constructor(private id = Env.get('LOGGER_ID', 'APP')) {
-    this.winston = createLogger({
-      transports: Logger.getTransports(),
-      exceptionHandlers: Logger.getTransports(),
-      silent: Env.get('NODE_ENV') === NodeEnv.TEST,
-      format: format.combine(...Logger.getFormats()),
-    });
-  }
-
-  private static getFormats() {
-    return [
+const winstonLogger = createLogger({
+  transports: [new transports.Console()],
+  format: format.combine(
+    ...[
       format.timestamp(),
       format.printf(({ level, message, timestamp, id, ...metadata }) => {
-        const regex = new RegExp(Object.keys(LogLevel).join('|'), 'ig');
-        level = level.replace(regex, (n) => n.toUpperCase());
         return JSON.stringify({
           id,
-          level,
+          level: level.toUpperCase(),
           message,
-          pid: process.pid,
-          hostname: os.hostname(),
-          timestamp: `${timestamp} ${Env.get('TZ')}`,
+          pid: PID,
+          hostname: HOSTNAME,
+          timestamp: `${timestamp} ${TZ}`,
           metadata,
         });
       }),
-    ];
-  }
+    ],
+  ),
+  silent: Env.isTesting(),
+});
 
-  private static getTransports() {
-    return [new transports.Console()];
-  }
+class Logger {
+  constructor(private id = LOGGER_ID) {}
 
   public newInstance(id: string) {
     return new Logger(id);
   }
 
   public log(level: LogLevel, message: string, metadata?: Metadata) {
-    if (!Env.get('LOG_ENABLED', true)) return;
-    this.winston.log(level, message, { id: this.id, ...metadata });
+    if (!LOG_ENABLED) return;
+    winstonLogger.log(level, message, { id: this.id, ...metadata });
   }
 
   public error(message: string, metadata?: Metadata) {
