@@ -1,16 +1,17 @@
-import os from 'os';
 import { createLogger, format, transports } from 'winston';
 
+import {
+  HOSTNAME,
+  IS_TESTING,
+  LOG_ENABLED,
+  LOGGER_ID,
+  PID,
+  TZ,
+} from '@/config/constants';
 import { LogLevel } from '@/enums';
-import { Env } from '@/shared/env';
-
-const PID = process.pid;
-const HOSTNAME = os.hostname();
-const LOG_ENABLED = Env.get('LOG_ENABLED', true);
-const LOGGER_ID = Env.get('LOGGER_ID', 'APP');
-const TZ = Env.get('TZ');
 
 const winstonLogger = createLogger({
+  silent: !LOG_ENABLED || IS_TESTING,
   transports: [new transports.Console()],
   format: format.combine(
     ...[
@@ -28,7 +29,6 @@ const winstonLogger = createLogger({
       }),
     ],
   ),
-  silent: Env.isTesting(),
 });
 
 class Logger {
@@ -39,7 +39,6 @@ class Logger {
   }
 
   public log(level: LogLevel, message: string, metadata?: Metadata) {
-    if (!LOG_ENABLED) return;
     winstonLogger.log(level, message, { id: this.id, ...metadata });
   }
 

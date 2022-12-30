@@ -3,9 +3,8 @@ import express, { RequestHandler } from 'express';
 import 'express-async-errors';
 import helmet from 'helmet';
 import http from 'http';
-import morgan from 'morgan';
 
-import { HttpMethod, NodeEnv } from '@/enums';
+import { HttpMethod } from '@/enums';
 import {
   checkAccessByRouteHandler,
   configureAppHandler,
@@ -15,7 +14,7 @@ import {
   isAuthenticatedHandler,
   methodOverrideHandler,
   notFoundHandler,
-  requestUuidHandler,
+  requestLogHandler,
   routeWithTokenHandler,
 } from '@/handlers';
 import appRoutes, { makeDefaultRoutes } from '@/server/routes';
@@ -28,11 +27,12 @@ export class App {
 
   constructor() {
     this.app = express();
-    this.server = http.createServer(this.app);
-    this.port = Env.get('PORT', 3333);
     this.app.set('trust proxy', true);
     this.app.set('x-powered-by', false);
     this.app.set('strict routing', true);
+
+    this.port = Env.get('PORT', 3333);
+    this.server = http.createServer(this.app);
   }
 
   public registerHandlers(): void {
@@ -40,14 +40,11 @@ export class App {
     this.app.use(express.urlencoded({ extended: true }) as RequestHandler);
     this.app.use(cookieParser(Env.required('APP_KEY')));
     this.app.use(helmet() as RequestHandler);
-    if (Env.required('NODE_ENV') !== NodeEnv.TEST) {
-      this.app.use(morgan('combined'));
-    }
     this.app.use(corsHandler);
-    this.app.use(configureAppHandler);
     this.app.use(methodOverrideHandler);
-    this.app.use(requestUuidHandler);
+    this.app.use(configureAppHandler);
     this.app.use(extractTokenHandler);
+    this.app.use(requestLogHandler);
   }
 
   public registerErrorHandlers() {

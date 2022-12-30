@@ -17,14 +17,18 @@ const exitId = randomInt(1_000_000_000, 9_999_999_999).toString();
 
 const sendSlackAlertError = async (code: any, error: any) => {
   if (Env.isLocal()) return;
-  await Slack.sendMessage({
-    color: code === ExitStatus.SUCCESS ? 'warning' : 'error',
-    fields: { exitId },
-    sections: {
-      message: `server exited with signal code: ${code}`,
-      description: error,
-    },
-  });
+  try {
+    await Slack.sendMessage({
+      color: code === ExitStatus.SUCCESS ? 'warning' : 'error',
+      fields: { exitId },
+      sections: {
+        message: `server exited with signal code: ${code}`,
+        description: error,
+      },
+    });
+  } catch (e) {
+    Logger.error('send alert error slack error', parseErrorToObject(e));
+  }
 };
 
 process.on('unhandledRejection', (reason, promise) => {
@@ -35,15 +39,8 @@ process.on('unhandledRejection', (reason, promise) => {
 
 process.on('uncaughtException', async (error: any) => {
   error.exitId = exitId;
-  Logger.error(
-    'server exiting due to an uncaught exception',
-    parseErrorToObject(error),
-  );
-  try {
-    await sendSlackAlertError(ExitStatus.FAILURE, error);
-  } finally {
-    process.exit(ExitStatus.FAILURE);
-  }
+  Logger.error('server received uncaught exception', parseErrorToObject(error));
+  await sendSlackAlertError(ExitStatus.FAILURE, error);
 });
 
 process.on('exit', (code) => {
@@ -67,6 +64,16 @@ const onShutdown = (app: App, error?: any) => {
   };
 };
 
+const sendSlackAlertStartedServer = async (message: string) => {
+  if (Env.isLocal()) return;
+  try {
+    await Slack.sendMessage({ color: 'info', sections: { message } });
+    Logger.info('sent log started to slack');
+  } catch (e) {
+    Logger.error('sent log started error', parseErrorToObject(e));
+  }
+};
+
 (async (): Promise<void> => {
   const app = new App();
   try {
@@ -81,16 +88,7 @@ const onShutdown = (app: App, error?: any) => {
       forceExit: true,
     });
     const message = `server started on port ${app.getPort()}`;
-    if (!Env.isLocal()) {
-      Slack.sendMessage({
-        color: 'info',
-        sections: { message },
-      })
-        .then(() => Logger.info('sent log started to slack'))
-        .catch((error) =>
-          Logger.error('sent log started error', parseErrorToObject(error)),
-        );
-    }
+    await sendSlackAlertStartedServer(message);
     Logger.info(message);
   } catch (error: any) {
     Logger.error(`server started error`, parseErrorToObject(error));

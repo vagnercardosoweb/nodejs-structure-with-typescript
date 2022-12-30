@@ -14,6 +14,7 @@ export type Route = {
 declare global {
   export namespace Express {
     export interface Request {
+      logger: typeof import('../src/shared/logger').default;
       context: {
         requestId: string;
         jwt: {

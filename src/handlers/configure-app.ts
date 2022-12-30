@@ -1,14 +1,17 @@
 import { NextFunction, Request, Response } from 'express';
 
 import { makeRequestContext } from '@/config/make-request-context';
+import { Logger } from '@/shared';
 import { Translation } from '@/translations';
 
 export const configureAppHandler = (
   request: Request,
-  _response: Response,
+  response: Response,
   next: NextFunction,
 ) => {
   request.context = makeRequestContext();
+  request.logger = Logger.newInstance(`REQ-${request.context.requestId}`);
+  response.setHeader('X-Request-Id', request.context.requestId);
   Translation.setLocale(
     request
       .acceptsLanguages()
