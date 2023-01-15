@@ -1,13 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
 
 import { AuthType } from '@/enums';
-import { UnauthorizedError } from '@/errors';
+import { InternalServerError } from '@/errors';
 
 export const isAuthenticatedHandler =
   (type: AuthType) =>
   (request: Request, _response: Response, next: NextFunction) => {
     if (!request.context.jwt.sub) {
-      throw new UnauthorizedError({
+      throw new InternalServerError({
         code: 'jwt.sub-not-exist',
         message: 'middleware.jwt.sub-not-exist',
         sendToSlack: false,

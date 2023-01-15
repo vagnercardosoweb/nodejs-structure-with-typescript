@@ -27,12 +27,11 @@ export class App {
 
   constructor() {
     this.app = express();
+    this.server = http.createServer(this.app);
+    this.port = Env.get('PORT', 3333);
     this.app.set('trust proxy', true);
     this.app.set('x-powered-by', false);
     this.app.set('strict routing', true);
-
-    this.port = Env.get('PORT', 3333);
-    this.server = http.createServer(this.app);
   }
 
   public registerHandlers(): void {

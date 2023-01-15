@@ -1,5 +1,6 @@
 import { Router } from 'express';
 
+import { HOSTNAME } from '@/config/constants';
 import { HttpStatusCode } from '@/enums';
 
 import { Route } from '../../global';
@@ -14,6 +15,7 @@ const appRoutes: Route[] = [
       return response.json({
         date: new Date().toISOString(),
         ipAddress: request.ip,
+        hostname: HOSTNAME,
         agent: request.header('User-Agent'),
       });
     },

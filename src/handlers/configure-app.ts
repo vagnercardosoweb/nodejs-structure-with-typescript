@@ -10,7 +10,7 @@ export const configureAppHandler = (
   next: NextFunction,
 ) => {
   request.context = makeRequestContext();
-  request.logger = Logger.newInstance(`REQ-${request.context.requestId}`);
+  request.logger = Logger.newInstance(`REQ:${request.context.requestId}`);
   response.setHeader('X-Request-Id', request.context.requestId);
   Translation.setLocale(
     request

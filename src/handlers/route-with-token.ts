@@ -9,17 +9,26 @@ export const routeWithTokenHandler = async (
   next: NextFunction,
 ) => {
   const { token } = request.context.jwt;
-  if (!token?.trim())
+  if (!token?.trim()) {
     throw new InternalServerError({
       message: 'Token missing in the request.',
       sendToSlack: false,
     });
+  }
   if (token === Env.get('API_KEY')) return next();
+  if (token.split('.').length !== 3) {
+    throw new InternalServerError({
+      code: 'auth.invalid-format-token',
+      message: 'Token does not have a valid format.',
+      sendToSlack: false,
+    });
+  }
   try {
     request.context.jwt = (await Jwt.decode(token)) as any;
   } catch (e: any) {
     throw new UnauthorizedError({
-      message: e.message,
+      code: 'auth.invalid-token',
+      message: 'Unable to validate your token, contact support.',
       sendToSlack: false,
       originalError: e,
     });

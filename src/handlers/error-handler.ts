@@ -19,17 +19,18 @@ export const errorHandler = (
   if (Env.isLocal()) return response.json(errorObject);
 
   const { requestId } = request.context;
+  const originalPath = request.originalUrl || request.url;
 
   Logger.error('error-to-object', {
-    path: request.path,
+    path: originalPath,
     method: request.method,
-    cookies: request.cookies,
+    query: request.query,
     params: request.params,
-    headers: Util.obfuscateValueFromObject(request.headers),
-    query: Util.obfuscateValueFromObject(request.query),
+    cookies: request.cookies,
+    headers: request.headers,
     body: Util.obfuscateValueFromObject(request.body),
     context: { requestId },
-    errorObject,
+    error: errorObject,
   });
 
   if (errorObject.sendToSlack) {
@@ -43,7 +44,7 @@ export const errorHandler = (
         errorId: errorObject.errorId,
         errorCode: errorObject.code,
         requestMethod: request.method.toUpperCase(),
-        requestPath: request.path,
+        requestPath: originalPath,
         statusCode: errorObject.statusCode,
       },
     })
@@ -60,10 +61,10 @@ export const errorHandler = (
     name: errorObject.name,
     code: errorObject.code,
     errorId: errorObject.errorId,
+    statusCode: errorObject.statusCode,
     message: Translation.get(errorMessage, {
       errorId: errorObject.errorId,
       ...errorObject.metadata,
     }),
-    statusCode: errorObject.statusCode,
   });
 };

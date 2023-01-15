@@ -83,7 +83,9 @@ export class Util {
   }
 
   public static isNumber(value: string | number): boolean {
-    return /^\d+$/.test(value?.toString());
+    let result = /^\d+$/.test(value?.toString());
+    if (!result) result = Util.isDecimal(value);
+    return result;
   }
 
   public static toCents(value: number): number {

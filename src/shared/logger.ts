@@ -16,7 +16,7 @@ const winstonLogger = createLogger({
   format: format.combine(
     ...[
       format.timestamp(),
-      format.printf(({ level, message, timestamp, id, ...metadata }) => {
+      format.printf(({ level, message, timestamp, id, metadata }) => {
         return JSON.stringify({
           id,
           level: level.toUpperCase(),
@@ -39,7 +39,7 @@ class Logger {
   }
 
   public log(level: LogLevel, message: string, metadata?: Metadata) {
-    winstonLogger.log(level, message, { id: this.id, ...metadata });
+    winstonLogger.log(level, message, { id: this.id, metadata });
   }
 
   public error(message: string, metadata?: Metadata) {

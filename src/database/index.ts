@@ -35,10 +35,13 @@ export class Database {
       this.logger.error('database is not connected to perform queries');
       throw new InternalServerError();
     }
-    const results = await this.sequelize.query(sql, {
-      raw: true,
-      bind,
-    });
+    const results = await this.sequelize.query(
+      Util.removeLinesAndSpaceFromSql(sql),
+      {
+        raw: true,
+        bind,
+      },
+    );
     return results[0] as TResult[];
   }
 
