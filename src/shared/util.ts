@@ -2,8 +2,7 @@ import childProcess from 'child_process';
 import { randomBytes, randomInt, randomUUID } from 'crypto';
 import { promisify } from 'util';
 
-import { parseErrorToObject } from '@/errors';
-import { BadRequestError } from '@/errors/bad-request';
+import { BadRequestError, parseErrorToObject } from '@/errors';
 import { Logger } from '@/shared';
 
 export class Util {

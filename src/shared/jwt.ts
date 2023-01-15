@@ -4,7 +4,7 @@ import jsonwebtoken, {
   VerifyOptions,
 } from 'jsonwebtoken';
 
-import { Env } from '@/shared/env';
+import { Env } from '@/shared';
 
 import { Util } from './util';
 
