@@ -1,6 +1,7 @@
 import dottie from 'dottie';
 
-import pt_BR from './pt-br';
+import { Util } from '@/shared';
+import pt_BR from '@/translations/pt-br';
 
 const fallback = 'pt-br';
 const translations: Record<string, any> = {
@@ -16,7 +17,7 @@ export class Translation {
     Object.entries(replaces).forEach(([key, value]) => {
       result = result.replace(`{{${key}}}`, value);
     });
-    return result;
+    return Util.normalizeValue(result);
   }
 
   public static has(path: string): boolean {

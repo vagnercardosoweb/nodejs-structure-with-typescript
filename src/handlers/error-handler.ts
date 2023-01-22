@@ -19,10 +19,10 @@ export const errorHandler = (
   if (Env.isLocal()) return response.json(errorObject);
 
   const { requestId } = request.context;
-  const originalPath = request.originalUrl || request.url;
+  const requestUrl = request.originalUrl || request.url;
 
   Logger.error('error-to-object', {
-    path: originalPath,
+    path: requestUrl,
     method: request.method,
     query: request.query,
     params: request.params,
@@ -44,7 +44,7 @@ export const errorHandler = (
         errorId: errorObject.errorId,
         errorCode: errorObject.code,
         requestMethod: request.method.toUpperCase(),
-        requestPath: originalPath,
+        requestPath: requestUrl,
         statusCode: errorObject.statusCode,
       },
     })

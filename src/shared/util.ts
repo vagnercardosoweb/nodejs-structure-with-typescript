@@ -2,7 +2,7 @@ import childProcess from 'child_process';
 import { randomBytes, randomInt, randomUUID } from 'crypto';
 import { promisify } from 'util';
 
-import { BadRequestError, parseErrorToObject } from '@/errors';
+import { InternalServerError, parseErrorToObject } from '@/errors';
 import { Logger } from '@/shared';
 
 export class Util {
@@ -141,25 +141,34 @@ export class Util {
     };
   }
 
+  public static formatDateYYYYMMDD(date: Date | number | string): string {
+    const parseDate = Util.parseDate(date);
+    const year = parseDate.getFullYear();
+    const month = (parseDate.getMonth() + 1).toString().padStart(2, '0');
+    const day = parseDate.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   public static parseDate(date: DateParam): Date {
-    if (this.isValidDate(date)) return <Date>date;
+    if (this.isValidDate(date)) return date as Date;
     if (typeof date === 'number') return new Date(date);
     let newDate: DateParam | null = null;
     if (typeof date === 'string') {
-      const [$date, $hour] = date.split(' ', 2);
+      let newDateString = date;
+      const [$date, $hour] = newDateString.split(' ', 2);
       const $time = $hour ? ` ${$hour}` : ' 00:00:00';
       if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test($date)) {
-        date = `${$date.split('/').reverse().join('/')}${$time}`;
+        newDateString = `${$date.split('/').reverse().join('/')}${$time}`;
       } else if (/^\d{4}\/\d{1,2}\/\d{1,2}$/.test($date)) {
-        date = `${$date}${$time}`;
+        newDateString = `${$date}${$time}`;
       }
-      newDate = new Date(date);
+      newDate = new Date(newDateString);
       if (!$hour) newDate.setHours(0, 0, 0, 0);
     }
     if (!newDate || !this.isValidDate(newDate)) {
-      throw new BadRequestError({
-        message: 'date.invalid',
-        metadata: { date },
+      throw new InternalServerError({
+        message: `Util.parseDate('${date}') received invalid date format in parameter.`,
+        sendToSlack: true,
       });
     }
     return newDate;

@@ -35,11 +35,11 @@ export class App {
   }
 
   public registerHandlers(): void {
+    this.app.use(corsHandler);
+    this.app.use(helmet() as RequestHandler);
+    this.app.use(cookieParser(Env.required('APP_KEY')));
     this.app.use(express.json() as RequestHandler);
     this.app.use(express.urlencoded({ extended: true }) as RequestHandler);
-    this.app.use(cookieParser(Env.required('APP_KEY')));
-    this.app.use(helmet() as RequestHandler);
-    this.app.use(corsHandler);
     this.app.use(methodOverrideHandler);
     this.app.use(configureAppHandler);
     this.app.use(extractTokenHandler);

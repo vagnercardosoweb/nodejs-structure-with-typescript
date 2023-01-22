@@ -33,11 +33,11 @@ export class CreateOptions {
       keepDefaultTimezone: true,
       logging: Env.get('DB_LOGGING', false),
       pool: {
-        max: Env.get('DB_POOL_MAX'),
-        min: Env.get('DB_POOL_MIN'),
-        acquire: Env.get('DB_POOL_ACQUIRE'),
-        idle: Env.get('DB_POOL_IDLE'),
-        evict: Env.get('DB_POOL_EVICT'),
+        min: Env.get('DB_POOL_MIN', 0),
+        max: Env.get('DB_POOL_MAX', 5),
+        acquire: Env.get('DB_POOL_ACQUIRE', 60000),
+        idle: Env.get('DB_POOL_IDLE', 10000),
+        evict: Env.get('DB_POOL_EVICT', 1000),
       },
       define: {
         charset,
@@ -48,6 +48,9 @@ export class CreateOptions {
         createdAt: Env.get('DB_CREATED_AT_NAME', 'created_at'),
         updatedAt: Env.get('DB_UPDATED_AT_NAME', 'updated_at'),
         deletedAt: Env.get('DB_DELETED_AT_NAME', 'deleted_at'),
+      },
+      dialectOptions: {
+        application_name: Env.get('DB_APP_NAME', 'sequelize'),
       },
     } as SequelizeOptions;
     if (Env.get('NODE_ENV') === NodeEnv.TEST) {

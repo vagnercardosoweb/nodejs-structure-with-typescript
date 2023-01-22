@@ -23,10 +23,6 @@ export class Database {
     return this.instance;
   }
 
-  public getSequelize(): Sequelize {
-    return this.sequelize;
-  }
-
   public async query<TResult = any>(
     sql: string,
     bind?: BindOrReplacements,
