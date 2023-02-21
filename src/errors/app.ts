@@ -40,6 +40,7 @@ export class AppError extends Error {
     Object.defineProperty(this, key, {
       writable: true,
       enumerable: true,
+      configurable: true,
       value,
     });
   }

@@ -2,7 +2,8 @@ import { IncomingHttpHeaders } from 'node:http';
 import https, { RequestOptions } from 'node:https';
 
 import { HttpMethod, HttpStatusCode } from '@/enums';
-import { InternalServerError } from '@/errors';
+import { AppError, GatewayTimeoutError, InternalServerError } from '@/errors';
+import { Util } from '@/shared/util';
 
 export interface HttpRequest extends RequestOptions {
   url: string;
@@ -16,20 +17,18 @@ export interface HttpResponse<T = any> {
   headers: IncomingHttpHeaders;
 }
 
-const jsonParse = (value: any) => {
-  try {
-    return JSON.parse(value);
-  } catch {
-    return value;
-  }
+const makeError = (externalError: any, metadata: any) => {
+  const error =
+    externalError instanceof AppError
+      ? externalError
+      : new InternalServerError({
+          metadata,
+          message: externalError.message,
+          originalError: externalError,
+        });
+  error.stack = externalError.stack;
+  return error;
 };
-
-const makeError = (e: any, metadata: any) =>
-  new InternalServerError({
-    metadata,
-    message: e.message,
-    originalError: e,
-  });
 
 export const httpRequest = async <T = any>(
   options: HttpRequest,
@@ -45,12 +44,13 @@ export const httpRequest = async <T = any>(
         const data = Buffer.concat(chunks).toString().trim();
         const { statusCode = HttpStatusCode.OK, headers } = res;
         resolve({
-          body: jsonParse(data),
+          body: Util.parseJson(data),
           statusCode: Number(statusCode),
           headers,
         });
       });
     });
+    request.on('timeout', () => request.destroy(new GatewayTimeoutError()));
     request.on('error', (e) => reject(makeError(e, options)));
     if (body?.trim()?.length) request.write(body);
     request.end();

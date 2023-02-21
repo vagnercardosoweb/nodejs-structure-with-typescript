@@ -12,4 +12,5 @@ export enum HttpStatusCode {
   METHOD_NOT_ALLOWED = 405,
   NOT_ACCEPTABLE = 406,
   MANY_REQUEST = 429,
+  GATEWAY_TIMEOUT = 504,
 }

@@ -11,4 +11,5 @@ export { PageNotFoundError } from './page-not-found';
 export { RateLimiterError } from './rate-limiter';
 export { UnauthorizedError } from './unauthorized';
 export { UnprocessableEntityError } from './unprocessable-entity';
+export { GatewayTimeoutError } from './gateway-timeout';
 export { parseErrorToObject } from './parse-to-object';
