@@ -22,11 +22,9 @@ export const makeAppSupertest = async (withRoutes = false) => {
   return supertest(expressApp);
 };
 
-export const truncateTables = async (schema?: string) => {
+export const truncateTables = async (schema = 'public') => {
   const tables = await Database.getInstance().query<{ tablename: string }>(
-    `SELECT tablename FROM pg_tables WHERE schemaname = '${
-      schema || 'public'
-    }'`,
+    `SELECT tablename FROM pg_tables WHERE schemaname = '${schema}'`,
   );
 
   for await (const table of tables) {

@@ -22,7 +22,7 @@ services:
     networks:
       - app.network
     ports:
-      - "${LOCAL_PORT:-3333}:${PORT:-3333}"
+      - "${LOCAL_PORT:-3301}:${PORT:-3333}"
       - "${DEBUG_PORT:-9229}:9229"
     environment:
       - NODE_ENV=${NODE_ENV:-local}

@@ -57,7 +57,7 @@ const onShutdown = (app: App, error?: any) => {
       await Database.getInstance().close();
       await sendSlackAlertError(code, error);
     } catch (error: any) {
-      Logger.error('shutdown error', parseErrorToObject(error));
+      Logger.error('server shutdown error', parseErrorToObject(error));
     } finally {
       process.exit(code);
     }

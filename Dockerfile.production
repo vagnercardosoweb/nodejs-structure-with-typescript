@@ -2,15 +2,7 @@
 FROM node:18-alpine as builder
 
 # Update system and install required libs
-RUN apk add \
-  --update \
-  --no-cache \
-  bash  \
-  tzdata  \
-  python3  \
-  alpine-sdk  \
-  openssh-client \
-  && rm -rf /var/cache/apk/*
+RUN apk add --update --no-cache python3 alpine-sdk openssh-client && rm -rf /var/cache/apk/*
 
 # Configure workdir
 WORKDIR /app

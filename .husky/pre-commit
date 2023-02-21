@@ -3,3 +3,5 @@
 
 npm run check-ts
 npm run test:staged
+
+git add -A .

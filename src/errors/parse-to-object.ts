@@ -24,7 +24,6 @@ export const parseErrorToObject = (error: any): OutputError => {
   let statusCode = error?.statusCode ?? HttpStatusCode.BAD_REQUEST;
   let validators: ValidatorError[] = [];
   const errorId = error?.errorId ?? AppError.generateErrorId();
-
   if (!Util.normalizeValue(error?.code)) error.code = 'api:default';
 
   let sendToSlack = Util.normalizeValue(error?.sendToSlack);
@@ -44,7 +43,10 @@ export const parseErrorToObject = (error: any): OutputError => {
   //   sendToSlack = false;
   // }
 
-  if (error?.name?.startsWith('Sequelize')) {
+  if (
+    error.name !== 'SequelizeValidationError' &&
+    error.name?.startsWith('Sequelize')
+  ) {
     statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
     if (error.original) {
       error.originalError = error.original;

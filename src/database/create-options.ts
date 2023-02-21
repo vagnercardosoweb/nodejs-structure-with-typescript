@@ -50,7 +50,7 @@ export class CreateOptions {
         deletedAt: Env.get('DB_DELETED_AT_NAME', 'deleted_at'),
       },
       dialectOptions: {
-        application_name: Env.get('DB_APP_NAME', 'sequelize'),
+        application_name: Env.get('DB_APP_NAME', 'app'),
       },
     } as SequelizeOptions;
     if (Env.get('NODE_ENV') === NodeEnv.TEST) {
