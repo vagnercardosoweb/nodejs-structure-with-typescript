@@ -7,7 +7,7 @@ export class InternalServerError extends AppError {
     super({
       code: 'internal_server_error',
       statusCode: HttpStatusCode.INTERNAL_SERVER_ERROR,
-      message: 'error.internal_server_error',
+      message: 'errors.internal_server_error',
       ...options,
     });
     this.name = 'InternalServerError';

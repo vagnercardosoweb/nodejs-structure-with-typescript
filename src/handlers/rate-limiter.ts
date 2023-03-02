@@ -1,13 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { RateLimiterError } from '@/errors';
-import { Env, Redis } from '@/shared';
+import { HttpStatusCode } from '@/enums';
+import { parseErrorToObject, RateLimiterError } from '@/errors';
+import { Env, Logger, Redis } from '@/shared';
 
-const DEFAULT_LIMIT = Env.get('RATE_LIMITER_LIMIT', 15);
-const DEFAULT_EXPIRES_IN_SECONDS = Env.get(
-  'RATE_LIMITER_EXPIRES_IN',
-  60 * 60 * 24,
-);
+const DEFAULT_LIMIT = Env.get('RATE_LIMITER_LIMIT', 10);
+const DEFAULT_EXPIRES_IN_SECONDS = Env.get('RATE_LIMITER_EXPIRES_IN', 86400);
 
 export const rateLimiterHandler =
   (
@@ -15,12 +13,28 @@ export const rateLimiterHandler =
     expiresIn = DEFAULT_EXPIRES_IN_SECONDS,
     limit = DEFAULT_LIMIT,
   ) =>
-  async (request: Request, _response: Response, next: NextFunction) => {
-    if (Env.isLocal()) return next();
+  async (request: Request, response: Response, next: NextFunction) => {
     const parsedKey = `rate-limiter:${request.ip}:${key}`;
     const clientRedis = Redis.getInstance();
-    const hits = Number(await clientRedis.get<number>(parsedKey, 0));
+
+    response.on('finish', () => {
+      if (
+        response.statusCode >= HttpStatusCode.OK &&
+        response.statusCode < HttpStatusCode.BAD_REQUEST
+      ) {
+        clientRedis
+          .delete(parsedKey)
+          .catch((error) =>
+            Logger.error(
+              `Error remove RATE LIMITE KEY: [${parsedKey}].`,
+              parseErrorToObject(error),
+            ),
+          );
+      }
+    });
+
+    const hits = Number(await clientRedis.get<number>(parsedKey, 0)) + 1;
     if (hits > limit) throw new RateLimiterError();
-    await clientRedis.set(parsedKey, hits + 1, expiresIn);
+    await clientRedis.set(parsedKey, hits, expiresIn);
     return next();
   };

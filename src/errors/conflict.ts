@@ -7,7 +7,7 @@ export class ConflictError extends AppError {
     super({
       code: 'conflict',
       statusCode: HttpStatusCode.CONFLICT,
-      message: 'error.conflict',
+      message: 'errors.conflict',
       ...options,
     });
 

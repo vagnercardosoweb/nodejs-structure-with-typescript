@@ -13,4 +13,5 @@ export enum HttpStatusCode {
   NOT_ACCEPTABLE = 406,
   MANY_REQUEST = 429,
   GATEWAY_TIMEOUT = 504,
+  SERVICE_UNAVAILABLE = 503,
 }

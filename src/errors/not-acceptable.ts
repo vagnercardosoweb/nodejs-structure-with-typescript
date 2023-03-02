@@ -7,7 +7,7 @@ export class NotAcceptableError extends AppError {
     super({
       code: 'not_acceptable',
       statusCode: HttpStatusCode.NOT_ACCEPTABLE,
-      message: 'error.not_acceptable',
+      message: 'errors.not_acceptable',
       ...options,
     });
 

@@ -7,7 +7,7 @@ export class ForbiddenError extends AppError {
     super({
       code: 'forbidden',
       statusCode: HttpStatusCode.FORBIDDEN,
-      message: 'error.forbidden',
+      message: 'errors.forbidden',
       ...options,
     });
 

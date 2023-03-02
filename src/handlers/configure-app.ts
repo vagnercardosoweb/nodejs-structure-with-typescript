@@ -9,14 +9,18 @@ export const configureAppHandler = (
   response: Response,
   next: NextFunction,
 ) => {
-  request.context = makeRequestContext();
-  request.logger = Logger.newInstance(`REQ:${request.context.requestId}`);
-  response.setHeader('X-Request-Id', request.context.requestId);
-  Translation.setLocale(
+  let language =
     request
       .acceptsLanguages()
       .map((language) => language.toLowerCase())
-      .at(0) ?? 'pt-br',
-  );
+      .at(0) ?? '*';
+
+  if (language === '*') language = 'pt-br';
+  Translation.setLocale(language);
+
+  request.context = makeRequestContext();
+  request.logger = Logger.newInstance(`REQ:${request.context.requestId}`);
+  response.setHeader('X-Request-Id', request.context.requestId);
+
   return next();
 };

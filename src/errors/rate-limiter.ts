@@ -7,7 +7,7 @@ export class RateLimiterError extends AppError {
     super({
       code: 'rate_limiter',
       statusCode: HttpStatusCode.MANY_REQUEST,
-      message: 'error.rate_limiter',
+      message: 'errors.rate_limiter',
       sendToSlack: false,
       ...options,
     });

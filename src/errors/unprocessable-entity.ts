@@ -7,7 +7,7 @@ export class UnprocessableEntityError extends AppError {
     super({
       code: 'unprocessable_entity',
       statusCode: HttpStatusCode.UNPROCESSABLE_ENTITY,
-      message: 'error.unprocessable_entity',
+      message: 'errors.unprocessable_entity',
       ...options,
     });
 

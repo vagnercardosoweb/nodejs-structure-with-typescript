@@ -7,7 +7,7 @@ export class GatewayTimeoutError extends AppError {
     super({
       code: 'gateway_timeout',
       statusCode: HttpStatusCode.GATEWAY_TIMEOUT,
-      message: 'error.gateway_timeout',
+      message: 'errors.gateway_timeout',
       ...options,
     });
 

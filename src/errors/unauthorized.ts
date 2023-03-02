@@ -7,7 +7,7 @@ export class UnauthorizedError extends AppError {
     super({
       code: 'unauthorized',
       statusCode: HttpStatusCode.UNAUTHORIZED,
-      message: 'error.unauthorized',
+      message: 'errors.unauthorized',
       ...options,
     });
 

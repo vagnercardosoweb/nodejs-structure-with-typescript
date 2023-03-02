@@ -7,7 +7,7 @@ export class NotFoundError extends AppError {
     super({
       code: 'not_found',
       statusCode: HttpStatusCode.NOT_FOUND,
-      message: 'error.not_found',
+      message: 'errors.not_found',
       ...options,
     });
 

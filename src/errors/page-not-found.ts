@@ -14,7 +14,7 @@ export class PageNotFoundError extends AppError {
       code: 'page_not_found',
       metadata: { path, method },
       statusCode: HttpStatusCode.NOT_FOUND,
-      message: 'error.page_not_found',
+      message: 'errors.page_not_found',
       sendToSlack: false,
       ...options,
     });
