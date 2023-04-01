@@ -70,7 +70,10 @@ export class Redis {
         typeof defaultValue === 'function'
           ? await defaultValue.apply(this)
           : defaultValue;
-      if (result) await this.set(key, result, expired);
+      if (result) {
+        await this.set(key, result, expired);
+        return result as T;
+      }
     }
     return result ? JSON.parse(result) : null;
   }

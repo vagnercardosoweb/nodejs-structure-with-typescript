@@ -1,4 +1,9 @@
-import { createLogger, format, transports } from 'winston';
+import {
+  createLogger,
+  format,
+  Logger as WinstonLogger,
+  transports,
+} from 'winston';
 
 import {
   HOSTNAME,
@@ -10,36 +15,38 @@ import {
 } from '@/config/constants';
 import { LogLevel } from '@/enums';
 
-const winstonLogger = createLogger({
-  silent: !LOG_ENABLED || IS_TESTING,
-  transports: [new transports.Console()],
-  format: format.combine(
-    ...[
-      format.timestamp(),
-      format.printf(({ level, message, timestamp, id, metadata }) => {
-        return JSON.stringify({
-          id,
-          level: level.toUpperCase(),
-          message,
-          pid: PID,
-          hostname: HOSTNAME,
-          timestamp: `${timestamp} ${TZ}`,
-          metadata,
-        });
-      }),
-    ],
-  ),
-});
-
 class Logger {
-  constructor(private id = LOGGER_ID) {}
+  protected client: WinstonLogger;
+
+  constructor(private id = LOGGER_ID) {
+    this.client = createLogger({
+      silent: !LOG_ENABLED || IS_TESTING,
+      transports: [new transports.Console()],
+      format: format.combine(
+        ...[
+          format.timestamp(),
+          format.printf(({ level, message, timestamp, id, metadata }) => {
+            return JSON.stringify({
+              id,
+              level: level.toUpperCase(),
+              message,
+              pid: PID,
+              hostname: HOSTNAME,
+              timestamp: `${timestamp} ${TZ}`,
+              metadata,
+            });
+          }),
+        ],
+      ),
+    });
+  }
 
   public newInstance(id: string) {
     return new Logger(id);
   }
 
   public log(level: LogLevel, message: string, metadata?: Metadata) {
-    winstonLogger.log(level, message, { id: this.id, metadata });
+    this.client.log(level, message, { id: this.id, metadata });
   }
 
   public error(message: string, metadata?: Metadata) {

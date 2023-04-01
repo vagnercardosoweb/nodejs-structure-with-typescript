@@ -15,6 +15,10 @@ export class AppError extends Error {
   constructor(options: Options) {
     super(options.message);
     this.name = 'AppError';
+
+    // Object.setPrototypeOf(this, AppError.prototype);
+    Error.captureStackTrace(this, this.constructor);
+
     const { originalError, ...rest } = options;
     Object.entries(rest).forEach(([key, value]) =>
       this.setProperty(key, value),

@@ -64,7 +64,7 @@ export class Slack {
                   ),
                 },
                 fields: Object.entries(
-                  this.removeUndefined({
+                  Util.removeUndefined({
                     Date: moment().format('YYYY-MM-DD LTS Z'),
                     Checker: checkerUsers
                       .map((user) => `<@${user}>`)
@@ -81,7 +81,7 @@ export class Slack {
                   text: util.format('*%s*\n%s', Util.ucFirst(title), value),
                 })),
               },
-              ...Object.entries(this.removeUndefined(sections)).map(
+              ...Object.entries(Util.removeUndefined(sections)).map(
                 ([title, value]) => ({
                   type: 'section',
                   text: {
@@ -102,14 +102,5 @@ export class Slack {
     if (color === 'warning') return '#F57C00';
     if (color === 'error') return '#D32F2F';
     return '#388E3C';
-  }
-
-  public static removeUndefined(value: Record<string, any>) {
-    Object.keys(value).forEach((key) => {
-      if (Object.prototype.toString.call(value[key]) === '[object Undefined]') {
-        delete value[key];
-      }
-    });
-    return value;
   }
 }
