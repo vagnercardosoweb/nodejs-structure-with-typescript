@@ -5,7 +5,7 @@ import { AppError, Options } from './app';
 export class ForbiddenError extends AppError {
   constructor(options?: Options) {
     super({
-      code: 'forbidden',
+      code: 'FORBIDDEN',
       statusCode: HttpStatusCode.FORBIDDEN,
       message: 'errors.forbidden',
       ...options,

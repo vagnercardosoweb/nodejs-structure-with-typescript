@@ -1,10 +1,11 @@
 const charset = process.env.DB_ENCODING || 'utf8';
 const timezone = process.env.DB_TIMEZONE || 'UTC';
 const collate = process.env.DB_COLLATE || 'utf8_general_ci';
+const enabledSsl = process.env.DB_ENABLED_SSL === 'true';
 const migrationStorageTableName =
   process.env.DB_MIGRATION_TABLE_NAME || 'migrations';
 
-const sequelizeConfig = {
+let options: any = {
   // eslint-disable-next-line no-console
   logging: console.log,
   dialect: process.env.DB_TYPE || 'postgres',
@@ -24,4 +25,18 @@ const sequelizeConfig = {
   },
 };
 
-module.exports = sequelizeConfig;
+if (enabledSsl) {
+  options = {
+    ...options,
+    ssl: true,
+    dialectOptions: {
+      ...options.dialectOptions,
+      ssl: {
+        rejectUnauthorized: false,
+        require: true,
+      },
+    },
+  };
+}
+
+module.exports = options;

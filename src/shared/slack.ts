@@ -1,6 +1,7 @@
+import os from 'node:os';
+import util from 'node:util';
+
 import moment from 'moment-timezone';
-import * as os from 'os';
-import * as util from 'util';
 
 import { HttpMethod } from '@/enums';
 import { Env } from '@/shared/env';
@@ -44,7 +45,7 @@ export class Slack {
       method: HttpMethod.POST,
       headers: {
         'Content-Type': 'application/json; charset=utf8',
-        Authorization: `Bearer ${options.token}`,
+        'Authorization': `Bearer ${options.token}`,
       },
       url: 'https://slack.com/api/chat.postMessage',
       body: JSON.stringify({
@@ -65,8 +66,8 @@ export class Slack {
                 },
                 fields: Object.entries(
                   Util.removeUndefined({
-                    Date: moment().format('YYYY-MM-DD LTS Z'),
-                    Checker: checkerUsers
+                    'Date': moment().format('YYYY-MM-DD LTS Z'),
+                    'Checker': checkerUsers
                       .map((user) => `<@${user}>`)
                       .join(', '),
                     'Hostname/PID': util.format(

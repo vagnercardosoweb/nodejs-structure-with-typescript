@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import { HttpStatusCode } from '@/enums';
 import { parseErrorToObject } from '@/errors';
-import { Env, Logger, Util } from '@/shared';
+import { Env, Util } from '@/shared';
 import { Slack } from '@/shared/slack';
 import { Translation } from '@/translations';
 
@@ -14,24 +14,23 @@ export const errorHandler = (
 ) => {
   if (response.headersSent) return next(error);
   const errorObject = parseErrorToObject(error);
-  response.statusCode = errorObject.statusCode;
-
-  if (Env.isLocal()) return response.json(errorObject);
-
   const { requestId } = request.context;
   const requestUrl = request.originalUrl || request.url;
+  if (!errorObject.requestId) errorObject.requestId = requestId;
 
-  Logger.error('error-to-object', {
-    path: requestUrl,
-    method: request.method,
-    query: request.query,
-    params: request.params,
-    cookies: request.cookies,
-    headers: request.headers,
-    body: Util.obfuscateValueFromObject(request.body),
-    context: { requestId },
-    error: errorObject,
-  });
+  if (errorObject.logging) {
+    request.logger.error('HTTP_REQUEST_ERROR', {
+      path: requestUrl,
+      method: request.method,
+      query: request.query,
+      params: request.params,
+      cookies: request.cookies,
+      headers: request.headers,
+      body: Util.obfuscateValue(request.body),
+      context: {},
+      error: errorObject,
+    });
+  }
 
   if (errorObject.sendToSlack) {
     Slack.sendMessage({
@@ -39,6 +38,7 @@ export const errorHandler = (
       sections: {
         message: errorObject.message,
         description: errorObject?.description,
+        requestId,
       },
       fields: {
         errorId: errorObject.errorId,
@@ -48,23 +48,29 @@ export const errorHandler = (
         statusCode: errorObject.statusCode,
       },
     })
-      .then(() => Logger.info('sent request error to slack success'))
-      .catch(() => Logger.error('sent request error to slack failed'));
+      .then(() => request.logger.info('sent request error to slack success'))
+      .catch(() => request.logger.error('sent request error to slack failed'));
   }
 
-  let errorMessage = errorObject.message;
   if (errorObject.statusCode === HttpStatusCode.INTERNAL_SERVER_ERROR) {
-    errorMessage = 'errors.internal_server_error';
+    errorObject.message = 'errors.internal_server_error';
   }
 
-  return response.json({
-    name: errorObject.name,
-    code: errorObject.code,
+  errorObject.message = Translation.get(errorObject.message, {
     errorId: errorObject.errorId,
-    statusCode: errorObject.statusCode,
-    message: Translation.get(errorMessage, {
-      errorId: errorObject.errorId,
-      ...errorObject.metadata,
-    }),
+    ...errorObject.metadata,
   });
+
+  return response.status(errorObject.statusCode).json(
+    Env.isLocal()
+      ? errorObject
+      : {
+          name: errorObject.name,
+          code: errorObject.code,
+          errorId: errorObject.errorId,
+          requestId: errorObject.requestId,
+          statusCode: errorObject.statusCode,
+          message: errorObject.message,
+        },
+  );
 };

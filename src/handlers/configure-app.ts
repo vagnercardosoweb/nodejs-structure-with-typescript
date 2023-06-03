@@ -19,8 +19,8 @@ export const configureAppHandler = (
   Translation.setLocale(language);
 
   request.context = makeRequestContext();
-  request.logger = Logger.newInstance(`REQ:${request.context.requestId}`);
   response.setHeader('X-Request-Id', request.context.requestId);
+  request.logger = Logger.newInstance(`REQ:${request.context.requestId}`);
 
   return next();
 };

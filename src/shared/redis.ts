@@ -4,8 +4,8 @@ import { Env } from '@/shared/env';
 import Logger from '@/shared/logger';
 
 export class Redis {
-  private client: IORedis;
   private static instance: Redis | null = null;
+  private client: IORedis;
   private keyPrefix: string | undefined;
   private logger: typeof Logger;
   private connected = false;
@@ -21,7 +21,7 @@ export class Redis {
 
   public async connect(options?: RedisOptions): Promise<Redis> {
     if (this.connected) return this;
-    const prefix = options?.keyPrefix ?? Env.get('REDIS_KEY_PREFIX');
+    const prefix = options?.keyPrefix ?? Env.get('REDIS_KEY_PREFIX', 'app');
     this.keyPrefix = this.normalizeKeyPrefix(prefix);
     this.client = new IORedis({
       port: Env.get('REDIS_PORT', 6379),
@@ -61,7 +61,7 @@ export class Redis {
 
   public async get<T>(
     key: string,
-    defaultValue?: any,
+    defaultValue?: T,
     expired?: number,
   ): Promise<T | null> {
     let result = await this.client.get(key);
@@ -75,7 +75,7 @@ export class Redis {
         return result as T;
       }
     }
-    return result ? JSON.parse(result) : null;
+    return result !== null ? JSON.parse(result) : null;
   }
 
   public async exists(key: string): Promise<boolean> {
@@ -97,10 +97,7 @@ export class Redis {
 
   public async getByPrefix(prefix: string) {
     const keys = await this.client.keys(this.mergePrefix(prefix));
-    const result = await Promise.all(
-      keys.map((key) => this.get(this.removeKeyPrefix(key))),
-    );
-    return result;
+    return Promise.all(keys.map((key) => this.get(this.removeKeyPrefix(key))));
   }
 
   private removeKeyPrefix(prefix: string): string {

@@ -1,9 +1,12 @@
-import childProcess from 'child_process';
-import { randomBytes, randomInt, randomUUID } from 'crypto';
-import { promisify } from 'util';
+import childProcess from 'node:child_process';
+import { randomBytes, randomInt, randomUUID } from 'node:crypto';
+import { promisify } from 'node:util';
 
+import moment from 'moment-timezone';
+
+import { obfuscateKeys } from '@/config/obfuscate-keys';
 import { InternalServerError, parseErrorToObject } from '@/errors';
-import { Logger } from '@/shared';
+import { Env, Logger } from '@/shared';
 
 export class Util {
   public static uuid(): string {
@@ -25,10 +28,7 @@ export class Util {
     while (stringLength < length) {
       const size = length - stringLength;
       const bytes = randomBytes(size);
-      result += Buffer.from(bytes)
-        .toString('base64')
-        .replace(/[^a-zA-Z0-9]/g, '')
-        .slice(0, size);
+      result += Buffer.from(bytes).toString('base64url').slice(0, size);
       stringLength = result.length;
     }
     return result;
@@ -95,6 +95,10 @@ export class Util {
     return value / 100;
   }
 
+  public static roundNumber(value: number, decimals = 2): number {
+    return Math.round(Number(`${value}e${decimals}`)) / 100;
+  }
+
   public static formatMoneyToBrl(
     value: number,
     options?: Omit<Intl.NumberFormatOptions, 'style' | 'currency'>,
@@ -112,18 +116,38 @@ export class Util {
     await promisify(childProcess.exec)(`mkdir -p ${path}`);
   }
 
-  public static obfuscateValueFromObject(
-    immutableData: Record<string, any>,
-    keys: string[] = [],
-  ) {
-    const data = { ...immutableData };
-    const allKeys = [...keys, 'password', 'password_confirm'];
-    Object.entries(data).forEach(([key, value]) => {
-      if (allKeys.includes(key) || String(value).match(/data:image\/(.+);/gm)) {
-        data[key] = '***';
+  public static isStringImageBase64(value: string): boolean {
+    if (!Util.isString(value)) return false;
+    return /data:image\/(.+);/gm.test(value);
+  }
+
+  public static obfuscateValue(data: any, keys: string[] = []) {
+    if (!Env.get('OBFUSCATE_VALUE', true)) return data;
+    if (!Util.isArray(data) && !Util.isObject(data)) return data;
+    const result = Util.isArray(data) ? [...data] : { ...data };
+    const hiddenKeys = [...keys, ...obfuscateKeys];
+    const dataKeys = Object.keys(result);
+    for (const key of dataKeys) {
+      const value = result[key];
+      if (Util.isObject(result[key])) {
+        result[key] = Util.obfuscateValue(result[key]);
+        continue;
       }
-    });
-    return data;
+      if (Util.isArray(result[key])) {
+        let index = 0;
+        for (const row of result[key]) {
+          result[key][index] = !Util.isStringImageBase64(row)
+            ? Util.obfuscateValue(row)
+            : '*';
+          index += 1;
+        }
+        continue;
+      }
+      if (hiddenKeys.includes(key) || Util.isStringImageBase64(value)) {
+        result[key] = '*';
+      }
+    }
+    return result;
   }
 
   public static getFirstAndLastName(value: string): {
@@ -142,11 +166,7 @@ export class Util {
   }
 
   public static formatDateYYYYMMDD(date: Date | number | string): string {
-    const parseDate = Util.parseDate(date);
-    const year = parseDate.getFullYear();
-    const month = (parseDate.getMonth() + 1).toString().padStart(2, '0');
-    const day = parseDate.getDate().toString().padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return moment.tz(Util.parseDate(date), Env.get('TZ')).format('YYYY-MM-DD');
   }
 
   public static parseDate(date: DateParam): Date {
@@ -159,8 +179,6 @@ export class Util {
       const $time = $hour ? ` ${$hour}` : ' 00:00:00';
       if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test($date)) {
         newDateString = `${$date.split('/').reverse().join('/')}${$time}`;
-      } else if (/^\d{4}\/\d{1,2}\/\d{1,2}$/.test($date)) {
-        newDateString = `${$date}${$time}`;
       }
       newDate = new Date(newDateString);
       if (!$hour) newDate.setHours(0, 0, 0, 0);
@@ -207,23 +225,6 @@ export class Util {
     await new Promise((resolve) => {
       setTimeout(resolve, ms);
     });
-  }
-
-  public static parseJson2(
-    json: string | null,
-  ): boolean | Record<string, never> {
-    if (typeof json !== 'string') {
-      json = JSON.stringify(json);
-    }
-    try {
-      json = JSON.parse(json);
-    } catch (e) {
-      return false;
-    }
-    if (typeof json === 'object' && json !== null) {
-      return json;
-    }
-    return false;
   }
 
   public static parseJson<T = any>(json: any, defaultValue?: any): T {
@@ -299,8 +300,20 @@ export class Util {
     });
   }
 
-  public normalizeMoney(value: string): number {
+  public static normalizeMoneyFromString(value: string): number {
     return Number.parseInt(value.replace(/[^0-9-]/g, ''), 10) / 100;
+  }
+
+  public static isUndefined(value: any): boolean {
+    return Object.prototype.toString.call(value) === '[object Undefined]';
+  }
+
+  public static isObject(value: any): boolean {
+    return Object.prototype.toString.call(value) === '[object Object]';
+  }
+
+  public static isArray(value: any): boolean {
+    return Object.prototype.toString.call(value) === '[object Array]';
   }
 }
 

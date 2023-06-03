@@ -8,7 +8,8 @@ export const notFoundHandler = (
   next: NextFunction,
 ) => {
   const errorOptions = {
-    path: request.path,
+    path: request.originalUrl || request.url,
+    requestId: request.context.requestId,
     method: request.method,
   };
   if (

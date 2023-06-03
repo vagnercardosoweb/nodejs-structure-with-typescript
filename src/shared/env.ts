@@ -24,7 +24,7 @@ export class Env {
   }
 
   public static isLocal(): boolean {
-    return Env.get('NODE_ENV') === NodeEnv.LOCAL;
+    return Env.get('NODE_ENV') === NodeEnv.LOCAL || Env.get('IS_LOCAL', false);
   }
 
   public static isProduction(): boolean {

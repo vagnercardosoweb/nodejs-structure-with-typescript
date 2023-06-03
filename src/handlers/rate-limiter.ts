@@ -4,7 +4,7 @@ import { HttpStatusCode } from '@/enums';
 import { parseErrorToObject, RateLimiterError } from '@/errors';
 import { Env, Logger, Redis } from '@/shared';
 
-const DEFAULT_LIMIT = Env.get('RATE_LIMITER_LIMIT', 10);
+const DEFAULT_LIMIT = Env.get('RATE_LIMITER_LIMIT', 50);
 const DEFAULT_EXPIRES_IN_SECONDS = Env.get('RATE_LIMITER_EXPIRES_IN', 86400);
 
 export const rateLimiterHandler =

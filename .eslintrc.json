@@ -19,7 +19,7 @@
   "plugins": ["@typescript-eslint", "prettier", "eslint-plugin-import-helpers"],
   "rules": {
     "camelcase": "off",
-    "import/no-cycle": "off",
+    "no-await-in-loop": "off",
     "no-restricted-globals": "off",
     "no-restricted-syntax": "off",
     "prettier/prettier": "error",
@@ -38,6 +38,7 @@
         "argsIgnorePattern": "^_"
       }
     ],
+    "import/no-cycle": "off",
     "import/prefer-default-export": "off",
     "import/extensions": [
       "error",
@@ -60,7 +61,12 @@
       "warn",
       {
         "newlinesBetween": "always",
-        "groups": ["module", "/^@//", ["parent", "sibling", "index"]],
+        "groups": [
+          "/^node:/",
+          "module",
+          "/^@//",
+          ["parent", "sibling", "index"]
+        ],
         "alphabetize": {
           "order": "asc",
           "ignoreCase": true

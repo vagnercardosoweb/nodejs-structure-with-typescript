@@ -13,9 +13,14 @@ export class CreateOptions {
     return Env.get('DB_ENCODING', 'utf8');
   }
 
+  public static getMaxPool(): number {
+    if (Env.isProduction()) return Env.get('DB_POOL_MAX', 75);
+    return 30;
+  }
+
   public static create(): SequelizeOptions {
     const charset = this.charset();
-    const options = {
+    let options = {
       models: Object.values(models),
       timezone: this.timezone(),
       encoding: charset,
@@ -27,17 +32,16 @@ export class CreateOptions {
       password: Env.required('DB_PASSWORD'),
       database: Env.required('DB_NAME'),
       migrationStorageTableName: Env.get('DB_MIGRATION_NAME', 'migrations'),
-      quoteIdentifiers: false,
       minifyAliases: true,
       schema: Env.get('DB_SCHEMA', 'public'),
       keepDefaultTimezone: true,
       logging: Env.get('DB_LOGGING', false),
       pool: {
         min: Env.get('DB_POOL_MIN', 0),
-        max: Env.get('DB_POOL_MAX', 5),
-        acquire: Env.get('DB_POOL_ACQUIRE', 60000),
-        idle: Env.get('DB_POOL_IDLE', 10000),
-        evict: Env.get('DB_POOL_EVICT', 1000),
+        max: CreateOptions.getMaxPool(),
+        acquire: Env.get('DB_POOL_ACQUIRE', 3_000),
+        idle: Env.get('DB_POOL_IDLE', 30_000),
+        evict: Env.get('DB_POOL_EVICT', 1_000),
       },
       define: {
         charset,
@@ -55,6 +59,19 @@ export class CreateOptions {
     } as SequelizeOptions;
     if (Env.get('NODE_ENV') === NodeEnv.TEST) {
       options.logging = false;
+    }
+    if (Env.get('DB_ENABLED_SSL', false)) {
+      options = {
+        ...options,
+        ssl: true,
+        dialectOptions: {
+          ...options.dialectOptions,
+          ssl: {
+            rejectUnauthorized: false,
+            require: true,
+          },
+        },
+      };
     }
     return options;
   }

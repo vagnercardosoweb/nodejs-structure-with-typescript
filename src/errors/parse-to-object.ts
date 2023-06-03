@@ -9,22 +9,24 @@ export type OutputError = {
   code: string;
   statusCode: number;
   errorId: string;
+  requestId?: string;
   message: string;
   description: string;
   sendToSlack: boolean;
   metadata: Record<string, any>;
   validators: ValidatorError[];
+  logging: boolean;
   originalError: any;
   stack: string[];
 };
 
 export const parseErrorToObject = (error: any): OutputError => {
-  let message = error?.message ?? error?.toString();
+  let message = error?.message ?? error;
   const metadata = error?.metadata ?? {};
   let statusCode = error?.statusCode ?? HttpStatusCode.BAD_REQUEST;
   let validators: ValidatorError[] = [];
   const errorId = error?.errorId ?? AppError.generateErrorId();
-  if (!Util.normalizeValue(error?.code)) error.code = 'api:default';
+  if (!Util.normalizeValue(error?.code)) error.code = 'default';
 
   let sendToSlack = Util.normalizeValue(error?.sendToSlack);
   if (sendToSlack === undefined) sendToSlack = true;
@@ -59,6 +61,7 @@ export const parseErrorToObject = (error: any): OutputError => {
     code: error.code,
     statusCode,
     errorId,
+    requestId: error?.requestId,
     message,
     description: error?.description,
     sendToSlack,
@@ -66,5 +69,6 @@ export const parseErrorToObject = (error: any): OutputError => {
     validators,
     originalError: error?.originalError ?? null,
     stack: error?.stack?.split('\n'),
+    logging: error?.logging ?? true,
   };
 };

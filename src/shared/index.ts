@@ -10,3 +10,5 @@ export { Redis } from './redis';
 export { Util } from './util';
 export { PasswordHash } from './password-hash';
 export { Slack } from './slack';
+export { Cnpj } from './cnpj';
+export { Cpf } from './cpf';

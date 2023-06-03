@@ -11,27 +11,27 @@ services:
       dockerfile: Dockerfile.local
     container_name: app.server
     working_dir: /home/node
-    env_file: .env
-    entrypoint: dockerize -wait tcp://postgres:5432 -wait tcp://redis:6379 -timeout 60s scripts/docker-entrypoint.sh
+    env_file: .env.local
     tty: true
     depends_on:
       - redis
       - postgres
     volumes:
       - .:/home/node
+      - /home/node/node_modules
     networks:
       - app.network
     ports:
-      - "${LOCAL_PORT:-3301}:${PORT:-3333}"
+      - "${DOCKER_PORT:-3301}:${PORT:-3333}"
       - "${DEBUG_PORT:-9229}:9229"
     environment:
       - NODE_ENV=${NODE_ENV:-local}
 
   postgres:
-    image: bitnami/postgresql:14
+    image: bitnami/postgresql:latest
     container_name: app.postgres
     tty: true
-    env_file: .env
+    env_file: .env.local
     volumes:
       - app.volume.postgres:/bitnami/postgresql
     networks:
@@ -47,7 +47,7 @@ services:
     image: bitnami/redis:latest
     container_name: app.redis
     tty: true
-    env_file: .env
+    env_file: .env.local
     volumes:
       - app.volume.redis:/bitnami/redis/data
     networks:

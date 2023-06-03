@@ -1,9 +1,9 @@
 #!/usr/bin/env sh
 
 echo "Checking exist env file..."
-if [ ! -f .env ]; then
+if [ ! -f .env.local ]; then
   echo "Copying env file..."
-  cp .env.example .env
+  cp .env.example .env.local
 fi
 
 directory="$(pwd)/node_modules"

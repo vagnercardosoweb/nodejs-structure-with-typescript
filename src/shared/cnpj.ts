@@ -1,11 +1,9 @@
-import { BadRequestError } from '../errors';
+import { BadRequestError } from '@/errors';
 
 export class Cnpj {
   constructor(private readonly value: string, validateImmediate = true) {
     if (validateImmediate && !this.isValid()) {
-      throw new BadRequestError({
-        message: 'cnpj.invalid',
-      });
+      throw new BadRequestError({ message: 'validate.invalid_cnpj' });
     }
   }
 

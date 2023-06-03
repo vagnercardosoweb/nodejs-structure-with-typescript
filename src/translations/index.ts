@@ -10,9 +10,11 @@ export class Translation {
 
   public static get(path: string, replaces: Record<string, any> = {}): string {
     let result = this.translations?.[this.locale]?.[path] ?? path;
-    Object.entries(replaces).forEach(([key, value]) => {
-      result = result.replace(`{{${key}}}`, value);
-    });
+    const replaceKeys = Object.keys(replaces);
+    if (replaceKeys.length === 0) return result;
+    for (const key of replaceKeys) {
+      result = result.replace(`{{${key}}}`, replaces[key]);
+    }
     return Util.normalizeValue(result);
   }
 
