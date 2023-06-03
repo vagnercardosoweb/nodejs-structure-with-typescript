@@ -18,7 +18,7 @@ after that just run the commands below.
 
 - Clone the repository `git clone git@github.com:vagnercardosoweb/typescript-with-jest.git -b main`
 - Access the folder `cd typescript-with-jest`
-- Copy `.env.example` to `.env` and change the values according to your needs.
+- Copy `.env.example` to `.env.local` and change the values according to your needs.
 - Run server with docker `npm run dev:docker`
 - Run migration with docker `docker exec app.server npm run db:migrate`
 - Run seeders with docker `docker exec app.server npm run db:seed`
