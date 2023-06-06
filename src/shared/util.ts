@@ -174,14 +174,14 @@ export class Util {
     if (typeof date === 'number') return new Date(date);
     let newDate: DateParam | null = null;
     if (typeof date === 'string') {
-      let newDateString = date;
-      const [$date, $hour] = newDateString.split(' ', 2);
+      const [$date, $hour] = date.split(' ', 2);
       const $time = $hour ? ` ${$hour}` : ' 00:00:00';
       if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test($date)) {
-        newDateString = `${$date.split('/').reverse().join('/')}${$time}`;
+        date = `${$date.split('/').reverse().join('/')}${$time}`;
+      } else if (/^\d{4}\/\d{1,2}\/\d{1,2}$/.test($date)) {
+        date = `${$date}${$time}`;
       }
-      newDate = new Date(newDateString);
-      if (!$hour) newDate.setHours(0, 0, 0, 0);
+      newDate = new Date(date);
     }
     if (!newDate || !this.isValidDate(newDate)) {
       throw new InternalServerError({
