@@ -134,13 +134,9 @@ export class Util {
         continue;
       }
       if (Util.isArray(result[key])) {
-        let index = 0;
-        for (const row of result[key]) {
-          result[key][index] = !Util.isStringImageBase64(row)
-            ? Util.obfuscateValue(row)
-            : '*';
-          index += 1;
-        }
+        result[key] = result[key].map((row: any) =>
+          Util.isStringImageBase64(row) ? '*' : Util.obfuscateValue(row),
+        );
         continue;
       }
       if (hiddenKeys.includes(key) || Util.isStringImageBase64(value)) {
