@@ -1,6 +1,9 @@
 import { Request } from 'express';
 
-type Properties = { page: number; limit: number };
+type Properties = {
+  page: number;
+  limit: number;
+};
 
 type Result = {
   totalRows: number;

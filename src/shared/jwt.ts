@@ -8,7 +8,11 @@ import { Env } from '@/shared';
 
 import { Util } from './util';
 
-type EncodePayload = { sub: any; [key: string]: any };
+type EncodePayload = {
+  sub: any;
+  [key: string]: any;
+};
+
 interface DecodePayload extends JwtPayload {
   iat: number;
   exp: number;

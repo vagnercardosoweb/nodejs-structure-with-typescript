@@ -12,7 +12,10 @@ export class MethodNotAllowedError extends AppError {
   constructor({ path, method, ...options }: Options) {
     super({
       code: 'METHOD_NOT_ALLOWED',
-      metadata: { path, method },
+      metadata: {
+        path,
+        method,
+      },
       statusCode: HttpStatusCode.METHOD_NOT_ALLOWED,
       message: 'errors.method_not_allowed',
       sendToSlack: false,

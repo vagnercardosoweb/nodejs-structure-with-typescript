@@ -21,5 +21,9 @@ if (checkEnvFile && !existsSync(envFinalPath)) {
   throw new Error(`File ${envFinalPath} doest not exists.`);
 }
 
-config({ path: envFinalPath, encoding: 'utf-8' });
+config({
+  path: envFinalPath,
+  encoding: 'utf-8',
+});
+
 Logger.info(`environment loaded with ${environment}`);

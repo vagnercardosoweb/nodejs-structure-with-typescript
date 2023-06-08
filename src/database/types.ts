@@ -14,4 +14,8 @@ export interface Timestamp extends CreatedAt, UpdatedAt {}
 
 export interface TimestampWithSoftDelete extends Timestamp, DeletedAt {}
 
-export type BindOrReplacements = { [key: string]: unknown } | unknown[];
+export type BindOrReplacements =
+  | {
+      [key: string]: unknown;
+    }
+  | unknown[];

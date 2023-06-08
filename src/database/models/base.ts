@@ -14,10 +14,15 @@ export class BaseModel<
 
   public static findOrFail<M extends Model = Model>(
     this: ModelStatic<M>,
-    options: FindOptions<M['_attributes']> & { rejectOnEmpty: string | Error },
+    options: FindOptions<M['_attributes']> & {
+      rejectOnEmpty: string | Error;
+    },
   ): Promise<M>;
+
   public static async findOrFail<M extends Model = Model>(
-    options: FindOptions<M['_attributes']> & { rejectOnEmpty: string | Error },
+    options: FindOptions<M['_attributes']> & {
+      rejectOnEmpty: string | Error;
+    },
   ): Promise<Model> {
     const rejectOnEmpty = (
       Util.isString(options.rejectOnEmpty)

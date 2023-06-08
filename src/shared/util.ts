@@ -4,8 +4,8 @@ import { promisify } from 'node:util';
 
 import moment from 'moment-timezone';
 
-import { obfuscateKeys } from '@/config/obfuscate-keys';
-import { InternalServerError, parseErrorToObject } from '@/errors';
+import { HttpStatusCode } from '@/enums';
+import { AppError, parseErrorToObject } from '@/errors';
 import { Env, Logger } from '@/shared';
 
 export class Util {
@@ -22,14 +22,18 @@ export class Util {
     return value.replace(/<[^>]+>/gm, '');
   }
 
+  public static dateNowToSeconds(): number {
+    return Math.floor(Date.now() / 1000);
+  }
+
   public static randomStr(length = 16): string {
     let result = '';
-    let stringLength = result.length;
-    while (stringLength < length) {
-      const size = length - stringLength;
+    let resultSize = result.length;
+    while (resultSize < length) {
+      const size = length - resultSize;
       const bytes = randomBytes(size);
       result += Buffer.from(bytes).toString('base64url').slice(0, size);
-      stringLength = result.length;
+      resultSize = result.length;
     }
     return result;
   }
@@ -52,7 +56,7 @@ export class Util {
   public static toTitleCase(string: string): string {
     if (!string) return '';
     return string.replace(/\w\S*/g, function replace(txt) {
-      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+      return txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase();
     });
   }
 
@@ -63,6 +67,15 @@ export class Util {
         startChar.charCodeAt(0),
       ),
     );
+  }
+
+  public static convertObjectKeyToLowerCase<Params extends Record<string, any>>(
+    object: Params,
+  ): Params {
+    return Object.entries(object).reduce((previousValue, [key, value]) => {
+      previousValue[key.toLowerCase()] = value;
+      return previousValue;
+    }, {} as any);
   }
 
   public static rangeNumbers(size: number, start = 0): Array<number> {
@@ -124,25 +137,28 @@ export class Util {
   public static obfuscateValue(data: any, keys: string[] = []) {
     if (!Env.get('OBFUSCATE_VALUE', true)) return data;
     if (!Util.isArray(data) && !Util.isObject(data)) return data;
+
     const result = Util.isArray(data) ? [...data] : { ...data };
-    const hiddenKeys = [...keys, ...obfuscateKeys];
-    const dataKeys = Object.keys(result);
-    for (const key of dataKeys) {
-      const value = result[key];
+    const uniqueKeys = new Set([...keys, 'password', 'password_confirm']);
+
+    for (const key of Object.keys(result)) {
       if (Util.isObject(result[key])) {
-        result[key] = Util.obfuscateValue(result[key]);
+        result[key] = Util.obfuscateValue(result[key], keys);
         continue;
       }
+
       if (Util.isArray(result[key])) {
         result[key] = result[key].map((row: any) =>
-          Util.isStringImageBase64(row) ? '*' : Util.obfuscateValue(row),
+          Util.isStringImageBase64(row) ? '*' : Util.obfuscateValue(row, keys),
         );
         continue;
       }
-      if (hiddenKeys.includes(key) || Util.isStringImageBase64(value)) {
+
+      if (uniqueKeys.has(key) || Util.isStringImageBase64(result[key])) {
         result[key] = '*';
       }
     }
+
     return result;
   }
 
@@ -178,11 +194,13 @@ export class Util {
         date = `${$date}${$time}`;
       }
       newDate = new Date(date);
+      if (!$hour) newDate.setHours(0, 0, 0, 0);
     }
     if (!newDate || !this.isValidDate(newDate)) {
-      throw new InternalServerError({
+      throw new AppError({
         message: `Util.parseDate('${date}') received invalid date format in parameter.`,
         sendToSlack: true,
+        metadata: { date },
       });
     }
     return newDate;
@@ -190,6 +208,15 @@ export class Util {
 
   public static isValidDate(date: DateParam): boolean {
     return date instanceof Date && !isNaN(date.getTime());
+  }
+
+  public static isValidCompleteName(value: string): boolean {
+    return /[A-Za-zÀ-ÖØ-öø-ÿ]\s[A-Za-zÀ-ÖØ-öø-ÿ]+$/.test(value);
+  }
+
+  public static isValidPhone(value: string): boolean {
+    const phone = Util.onlyNumber(value);
+    return phone.length === 11;
   }
 
   public static calculateAge(birthday: Date): number {
@@ -217,23 +244,39 @@ export class Util {
     return value.substring(0, limit) + end;
   }
 
-  public static async sleep(ms = 0): Promise<void> {
-    await new Promise((resolve) => {
-      setTimeout(resolve, ms);
-    });
+  public static async sleep(ms = 1): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  public static async until(
+    condition: () => boolean | Promise<boolean>,
+    internal = 1,
+  ) {
+    do {
+      if (await condition()) return;
+      await Util.sleep(internal);
+    } while (true);
+  }
+
+  public static hashFromString(str: string): number {
+    let hash = 5381;
+    let i = str.length;
+    while (i) hash = (hash * 33) ^ str.charCodeAt(--i);
+    return hash >>> 0;
   }
 
   public static parseJson<T = any>(json: any, defaultValue?: any): T {
-    const normalizedJson = this.normalizeValue(json);
-    if ([null, undefined].includes(normalizedJson)) return defaultValue;
-    if (typeof normalizedJson !== 'string') return normalizedJson;
+    const result = this.normalizeValue(json);
+    if ([null, undefined].includes(result)) return defaultValue;
+    if (typeof result !== 'string') return result;
     try {
       return {
         ...defaultValue,
-        ...JSON.parse(normalizedJson),
+        ...JSON.parse(result),
       };
     } catch (e: any) {
-      Logger.error('error parsing json', parseErrorToObject(e));
+      if (Util.isUndefined(defaultValue)) throw e;
+      Logger.error('ERROR_PARSE_JSON', parseErrorToObject(e));
       return defaultValue;
     }
   }
@@ -269,19 +312,28 @@ export class Util {
     return value;
   }
 
-  public static base64ToString(value: string): string {
-    return Buffer.from(value, 'base64').toString();
+  public static *generateChunks<T>(
+    array: T[],
+    size: number,
+  ): Generator<T[], void> {
+    for (let i = 0; i < array.length; i += size) {
+      yield array.slice(i, i + size);
+    }
   }
 
-  public static stringToBase64(value: string): string {
-    return Buffer.from(value).toString('base64');
+  public static base64ToString(value: string): string {
+    return Buffer.from(value, 'base64url').toString();
+  }
+
+  public static valueToBase64(value: any): string {
+    return Buffer.from(value).toString('base64url');
   }
 
   public static removeLinesAndSpaceFromSql(sql: string): string {
     return sql.replace(/\n/g, '').replace(/\s+/g, ' ').trim();
   }
 
-  static isString(value: any) {
+  public static isString(value: any) {
     return Object.prototype.toString.call(value) === '[object String]';
   }
 
@@ -300,6 +352,12 @@ export class Util {
     return Number.parseInt(value.replace(/[^0-9-]/g, ''), 10) / 100;
   }
 
+  public static isUuid(uuid: string): boolean {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      uuid,
+    );
+  }
+
   public static isUndefined(value: any): boolean {
     return Object.prototype.toString.call(value) === '[object Undefined]';
   }
@@ -310,6 +368,12 @@ export class Util {
 
   public static isArray(value: any): boolean {
     return Object.prototype.toString.call(value) === '[object Array]';
+  }
+
+  public static checkStatusError(statusCode: number): boolean {
+    return (
+      statusCode < HttpStatusCode.OK || statusCode >= HttpStatusCode.BAD_REQUEST
+    );
   }
 }
 

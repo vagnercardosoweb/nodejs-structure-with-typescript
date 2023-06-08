@@ -4,6 +4,7 @@ import express, { RequestHandler } from 'express';
 import 'express-async-errors';
 import helmet from 'helmet';
 import http from 'http';
+import responseTime from 'response-time';
 
 import { HttpMethod } from '@/enums';
 import {
@@ -36,6 +37,7 @@ export class App {
   }
 
   public registerHandlers(): void {
+    this.app.use(responseTime());
     this.app.use(corsHandler);
     this.app.use(helmet() as RequestHandler);
     this.app.use(compression());

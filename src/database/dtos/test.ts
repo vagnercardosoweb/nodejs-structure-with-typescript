@@ -7,6 +7,7 @@ export namespace TestDto {
 
   export interface Result extends Create, Timestamp {
     id: string;
+
     [key: string]: any;
   }
 }

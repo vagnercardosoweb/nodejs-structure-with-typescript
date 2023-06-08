@@ -5,54 +5,24 @@
     "node": true
   },
   "extends": [
-    "airbnb-base",
-    "plugin:@typescript-eslint/eslint-recommended",
-    "plugin:@typescript-eslint/recommended",
+    "standard",
     "prettier",
+    "plugin:@typescript-eslint/recommended",
     "plugin:prettier/recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "ecmaVersion": 12,
+    "ecmaVersion": "latest",
     "sourceType": "module"
   },
-  "plugins": ["@typescript-eslint", "prettier", "eslint-plugin-import-helpers"],
+  "plugins": ["prettier", "@typescript-eslint", "eslint-plugin-import-helpers"],
   "rules": {
     "camelcase": "off",
-    "no-await-in-loop": "off",
-    "no-restricted-globals": "off",
-    "no-restricted-syntax": "off",
-    "prettier/prettier": "error",
-    "import/no-unresolved": "error",
-    "no-continue": "off",
-    "global-require": "off",
-    "no-shadow": "off",
-    "no-param-reassign": "off",
     "no-use-before-define": "off",
+    "no-prototype-builtins": "off",
     "no-useless-constructor": "off",
-    "class-methods-use-this": "off",
-    "lines-between-class-members": "off",
     "no-unused-vars": [
       "off",
-      {
-        "argsIgnorePattern": "^_"
-      }
-    ],
-    "import/no-cycle": "off",
-    "import/prefer-default-export": "off",
-    "import/extensions": [
-      "error",
-      "ignorePackages",
-      {
-        "ts": "never",
-        "js": "never"
-      }
-    ],
-    "@typescript-eslint/no-empty-function": "off",
-    "@typescript-eslint/no-namespace": "off",
-    "@typescript-eslint/no-explicit-any": "off",
-    "@typescript-eslint/no-unused-vars": [
-      "error",
       {
         "argsIgnorePattern": "^_"
       }
@@ -72,12 +42,23 @@
           "ignoreCase": true
         }
       }
+    ],
+    "@typescript-eslint/ban-types": "off",
+    "@typescript-eslint/no-namespace": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-empty-function": "off",
+    "@typescript-eslint/ban-ts-comment": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_"
+      }
     ]
   },
   "settings": {
-    "import/extensions": [".ts", ".js"],
+    "import/extensions": [".ts", ".js", ".d.ts"],
     "import/parsers": {
-      "@typescript-eslint/parser": [".ts", ".js"]
+      "@typescript-eslint/parser": [".ts", ".js", ".d.ts"]
     },
     "import/resolver": {
       "typescript": {

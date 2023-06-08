@@ -46,7 +46,10 @@ class Logger {
   }
 
   public log(level: LogLevel, message: string, metadata?: Metadata) {
-    this.client.log(level, message, { id: this.id, metadata });
+    this.client.log(level, message, {
+      id: this.id,
+      metadata,
+    });
   }
 
   public error(message: string, metadata?: Metadata) {

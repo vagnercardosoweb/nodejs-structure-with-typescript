@@ -9,8 +9,8 @@ import { InternalServerError } from '@/errors';
 import { Env, Logger, Util } from '@/shared';
 
 export class Database {
-  private logger: typeof Logger;
   private static instance: Database | null = null;
+  private logger: typeof Logger;
   private sequelize: Sequelize;
   private connected = false;
 
@@ -76,7 +76,7 @@ export class Database {
       options.logging = (sql, object) => {
         sql = Util.removeLinesAndSpaceFromSql(sql);
         if (Env.get('DB_LOGGING_BASE64', false)) {
-          sql = Util.stringToBase64(sql);
+          sql = Util.valueToBase64(sql);
         }
         const obj = object as any;
         this.logger.info('query', {

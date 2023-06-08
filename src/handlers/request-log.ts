@@ -40,7 +40,7 @@ export const requestLogHandler = (
         path,
         route_path: routePath,
         status: tokens.status(req, res),
-        time: `${tokens['response-time'](req, res)} ms`,
+        time: `${res.getHeader('X-Response-Time')}`,
         version: tokens['http-version'](req, res),
         length: tokens.res(req, res, 'content-length'),
         referrer: tokens.referrer(req, res),

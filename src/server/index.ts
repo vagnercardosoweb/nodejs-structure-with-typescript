@@ -67,7 +67,10 @@ const onShutdown = (app: App, error?: any) => {
 const sendSlackAlertStartedServer = async (message: string) => {
   if (Env.isLocal()) return;
   try {
-    await Slack.sendMessage({ color: 'info', sections: { message } });
+    await Slack.sendMessage({
+      color: 'info',
+      sections: { message },
+    });
     Logger.info('sent log started to slack');
   } catch (e) {
     Logger.error('sent log started error', parseErrorToObject(e));

@@ -13,10 +13,11 @@ const appRoutes: Route[] = [
     public: true,
     handler: async (request, response) => {
       return response.json({
-        date: new Date().toISOString(),
+        data: null,
+        timestamp: new Date().toISOString(),
         ipAddress: request.ip,
         hostname: HOSTNAME,
-        agent: request.header('User-Agent'),
+        path: `${request.method.toUpperCase()} ${request.originalUrl}`,
       });
     },
   },
