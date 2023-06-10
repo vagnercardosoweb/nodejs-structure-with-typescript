@@ -1,6 +1,5 @@
-import { Utils } from '@/shared';
-import { HttpStatusCode } from '@/shared/enums';
-import { AppError } from '@/shared/errors';
+import { InternalServerError } from '@/shared/errors';
+import { Utils } from '@/shared/utils';
 
 export class Container implements ContainerInterface {
   public items = new Map<string, any>();
@@ -12,11 +11,10 @@ export class Container implements ContainerInterface {
     }
 
     if (!this.items.has(id)) {
-      throw new AppError({
+      throw new InternalServerError({
         code: 'CONTAINER:NOT_EXIST',
         message: 'Container value [{{id}}] has not been defined',
         sendToSlack: true,
-        statusCode: HttpStatusCode.INTERNAL_SERVER_ERROR,
         metadata: { id },
       });
     }

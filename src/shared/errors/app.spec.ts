@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { HttpStatusCode } from '../enums';
-import { AppError } from './app';
+import { AppError, HttpStatusCode } from '@/shared';
 
 describe('AppError', () => {
   it('create error with default properties', () => {

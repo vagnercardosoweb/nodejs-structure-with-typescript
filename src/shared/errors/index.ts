@@ -1,4 +1,4 @@
-export { AppError } from './app';
+export { AppError, Options } from './app';
 export { BadRequestError } from './bad-request';
 export { ConflictError } from './conflict';
 export { ForbiddenError } from './forbidden';

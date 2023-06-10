@@ -1,6 +1,4 @@
-import { HttpStatusCode } from '../enums';
-import { AppError } from '../errors';
-import { Container } from './container';
+import { Container, InternalServerError } from '@/shared';
 
 describe('Container', () => {
   it('should check if a value has been resolved', () => {
@@ -56,11 +54,10 @@ describe('Container', () => {
     const container = new Container();
     const id = 'no_exist_key';
     expect(() => container.get(id)).toThrowError(
-      new AppError({
+      new InternalServerError({
         code: 'CONTAINER:NOT_EXIST',
         message: 'Container value [{{id}}] has not been defined',
         sendToSlack: true,
-        statusCode: HttpStatusCode.INTERNAL_SERVER_ERROR,
         metadata: { id },
       }),
     );

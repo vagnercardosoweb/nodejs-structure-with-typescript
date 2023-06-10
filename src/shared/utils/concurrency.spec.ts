@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { concurrency, go } from './concurrency';
-import { Utils } from './utils';
+import { concurrency, go, Utils } from '@/shared';
 
 test('can execute one function with limit 1', async () => {
   const limit1 = concurrency(1);

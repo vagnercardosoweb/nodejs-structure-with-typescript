@@ -1,6 +1,5 @@
 import { HttpStatusCode } from '@/shared/enums';
-
-import { AppError, Options } from './app';
+import { AppError, Options } from '@/shared/errors';
 
 export class BadRequestError extends AppError {
   constructor(options?: Options) {
