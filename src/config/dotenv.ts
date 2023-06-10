@@ -1,13 +1,12 @@
 import './module-alias';
 
-import { config } from 'dotenv';
-import { existsSync } from 'fs';
-import { resolve } from 'path';
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 
-import { Logger } from '@/shared';
+import { config } from 'dotenv';
 
 const rootPath = process.cwd();
-const environment = process.env.NODE_ENV;
+const environment = process.env.NODE_ENV || 'local';
 const envFileName = `.env.${environment}`;
 
 let envFinalPath = resolve(rootPath, envFileName);
@@ -21,9 +20,4 @@ if (checkEnvFile && !existsSync(envFinalPath)) {
   throw new Error(`File ${envFinalPath} doest not exists.`);
 }
 
-config({
-  path: envFinalPath,
-  encoding: 'utf-8',
-});
-
-Logger.info(`environment loaded with ${environment}`);
+config({ path: envFinalPath, encoding: 'utf-8' });

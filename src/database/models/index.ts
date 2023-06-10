@@ -1,1 +1,0 @@
-export { TestModel } from './test';

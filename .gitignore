@@ -9,3 +9,5 @@ database-compiled
 aws-infra
 core
 .DS_Store
+coverage/
+tmp/

@@ -9,11 +9,8 @@ WORKDIR /app
 
 # Copy files to build
 COPY ./src ./src
-COPY ./database ./database
-COPY ./.sequelizerc ./
-COPY ./scripts ./scripts
+COPY ./migrations ./migrations
 COPY ./tsconfig.json ./
-COPY ./tsconfig-build.json ./
 COPY ./package.json ./
 COPY ./package-lock.json ./
 COPY ./global.d.ts ./
@@ -33,9 +30,7 @@ WORKDIR /app
 
 # Copy files to run application
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/scripts ./scripts
-COPY --from=builder /app/.sequelizerc ./
-COPY --from=builder /app/database-compiled ./database-compiled
+COPY --from=builder /app/migrations ./migrations
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/package-lock.json ./
 
