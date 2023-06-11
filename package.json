@@ -20,7 +20,7 @@
     "test:watch": "cross-env NODE_ENV=test vitest --dir src/",
     "test:coverage": "cross-env NODE_ENV=test vitest run --coverage",
     "test:related": "cross-env NODE_ENV=test vitest related --run",
-    "changelog": "conventional-changelog -i CHANGELOG.md -s -r 0",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
     "generate-tag": "git tag -a --force v$(node -e \"console.log(require('./package.json').version)\") HEAD",
     "prepare": "husky install"
   },
@@ -56,6 +56,7 @@
     "@typescript-eslint/parser": "5.59.9",
     "@vitest/coverage-v8": "0.32.0",
     "commitizen": "4.3.0",
+    "conventional-changelog-cli": "3.0.0",
     "cross-env": "7.0.3",
     "cz-conventional-changelog": "3.3.0",
     "eslint": "8.42.0",
