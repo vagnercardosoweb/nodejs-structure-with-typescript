@@ -1,14 +1,16 @@
-import { Translation } from '@/shared';
-import { ContainerInterface } from '@/shared/container';
-import { LoggerInterface } from '@/shared/logger/logger';
-import { JwtDecoded } from '@/shared/utils/jwt';
+import {
+  ContainerInterface,
+  JwtDecoded,
+  LoggerInterface,
+  TranslationInterface,
+} from '@/shared';
 
 declare global {
   export namespace Express {
     export interface Request {
       logger: LoggerInterface;
       container: ContainerInterface;
-      translation: Translation;
+      translation: TranslationInterface;
       context: {
         requestId: string;
         awsTraceId?: string;

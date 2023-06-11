@@ -1,11 +1,15 @@
 import { Request, Response } from 'express';
 
-import { ContainerInterface, LoggerInterface, Translation } from '@/shared';
+import {
+  ContainerInterface,
+  LoggerInterface,
+  TranslationInterface,
+} from '@/shared';
 
 export abstract class AbstractHandler {
   protected readonly context: Request['context'];
   protected readonly container: ContainerInterface;
-  protected readonly translation: Translation;
+  protected readonly translation: TranslationInterface;
   protected readonly logger: LoggerInterface;
 
   public constructor(
