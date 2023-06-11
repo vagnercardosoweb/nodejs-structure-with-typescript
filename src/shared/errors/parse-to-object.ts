@@ -8,34 +8,35 @@ export const parseErrorToObject = (error: any): AppError => {
     return error;
   }
 
+  if (!error?.statusCode) {
+    error.statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
+  }
+
   const result = new AppError({
     code: error?.code,
-    message: error.message,
-    description: error?.description,
     errorId: error?.errorId,
     metadata: error?.metadata,
-    statusCode: error?.statusCode,
+    description: error?.description,
+    statusCode: error.statusCode,
     sendToSlack: true,
+    original: error,
     logging: true,
     requestId,
   });
 
   result.name = error.name;
-  if (error?.stack) result.stack = error.stack;
+
+  if (error?.stack) {
+    result.stack = error.stack;
+  } else if (error?.message?.trim()) {
+    result.message = error.message;
+  }
 
   // check axios errors
   if (result.name.startsWith('Axios')) {
     const { status, data, config } = error.response;
     result.name = AppError.mapperStatusCodeToName(status);
     result.metadata = { status, data, config };
-  }
-
-  if (
-    error.name.startsWith('Sequelize') &&
-    error.name !== 'SequelizeValidationError'
-  ) {
-    result.statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
-    if (error.original) error.originalError = error.original;
   }
 
   // check YUP errors

@@ -68,10 +68,7 @@ export class PgPoolConnection implements DbConnectionInterface {
   }
 
   public withLoggerId(id: string): DbConnectionInterface {
-    const clone = Object.assign(
-      Object.create(Object.getPrototypeOf(this)),
-      this,
-    );
+    const clone = Utils.cloneObject<PgPoolConnection>(this);
     clone.logger = this.logger.withId(id);
     return clone;
   }
@@ -101,7 +98,7 @@ export class PgPoolConnection implements DbConnectionInterface {
     return transaction;
   }
 
-  public async query<T extends QueryResultRow>(
+  public async query<T extends QueryResultRow = any>(
     query: string,
     bind: any[] = [],
   ): Promise<QueryResult<T>> {
@@ -113,15 +110,19 @@ export class PgPoolConnection implements DbConnectionInterface {
     try {
       const result = await client.query<T>(query, bind);
       return {
+        oid: result.oid,
         rows: result.rows,
         rowCount: result.rowCount,
+        command: result.command,
         query,
+        bind,
+        fields: result.fields,
       };
     } catch (e: any) {
       isError = true;
       throw new InternalServerError({
         message: 'QUERY_ERROR',
-        originalError: e,
+        original: e,
         metadata: {
           query,
           duration: `${Date.now() - now}ms`,

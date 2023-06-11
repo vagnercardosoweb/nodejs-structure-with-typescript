@@ -1,14 +1,19 @@
+import { Request, RequestHandler, Response } from 'express';
+
+import { AbstractHandler } from '@/rest-api/handler';
 import { AuthType, HttpMethod } from '@/shared/enums';
 
-export type RequestHandler = import('express').RequestHandler;
+export type Handler = RequestHandler;
 
 export type Route = {
   path: string;
   method?: HttpMethod;
-  handler: RequestHandler;
-  middlewares?: RequestHandler[];
-  isPublic?: boolean;
+  handler:
+    | Handler
+    | { new (request: Request, response: Response): AbstractHandler };
+  middlewares?: Handler[];
   authType?: AuthType;
+  public?: boolean;
 };
 
 export type OnCloseFn = () => void | Promise<void>;

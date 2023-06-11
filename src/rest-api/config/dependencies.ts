@@ -1,7 +1,6 @@
 import path from 'node:path';
 
 import languagePtbr from '@/languages/pt-br';
-import { RestApi } from '@/rest-api/rest-api';
 import {
   ContainerName,
   Env,
@@ -11,12 +10,18 @@ import {
   Translation,
 } from '@/shared';
 
-export const createDependencies = async (app: RestApi) => {
+import { RestApi } from '../rest-api';
+
+export const makeDependencies = async (api: RestApi) => {
   const dbPool = await PgPoolConnection.fromEnvironment().connect();
-  app.set(ContainerName.DB_CONNECTION, dbPool).addOnClose(() => dbPool.close());
+  api.set(ContainerName.DB_CONNECTION, dbPool).addOnClose(() => dbPool.close());
 
   const cache = await RedisCache.fromEnvironment().connect();
-  app.set(ContainerName.CACHE_CLIENT, cache).addOnClose(() => cache.close());
+  api.set(ContainerName.CACHE_CLIENT, cache).addOnClose(() => cache.close());
+
+  const translation = new Translation();
+  translation.add('pt-br', languagePtbr);
+  api.set(ContainerName.TRANSLATION, translation);
 
   if (Env.get('DB_EXECUTE_MIGRATION_ON_STARTED', true)) {
     await new Migrator(
@@ -24,8 +29,4 @@ export const createDependencies = async (app: RestApi) => {
       path.resolve('migrations'),
     ).up();
   }
-
-  const translation = new Translation();
-  translation.add('pt-br', languagePtbr);
-  app.set(ContainerName.TRANSLATION, translation);
 };

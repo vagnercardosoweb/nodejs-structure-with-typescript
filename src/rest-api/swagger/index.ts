@@ -1,7 +1,7 @@
 import swagger from 'swagger-ui-express';
 
 import { noCache } from '@/rest-api/middlewares';
-import { RestApi } from '@/rest-api/rest-api';
+import { Route } from '@/rest-api/types';
 import { HttpMethod } from '@/shared/enums';
 
 import components from './components';
@@ -10,11 +10,11 @@ import paths from './paths';
 import servers from './servers';
 import tags from './tags';
 
-export const createSwaggerRoute = (api: RestApi) => {
-  api.addRoute({
+export const swaggerRoutes: Route[] = [
+  {
     path: '/api-docs',
     method: HttpMethod.USE,
-    isPublic: true,
+    public: true,
     middlewares: [noCache, ...swagger.serve],
     handler: swagger.setup({
       openapi: '3.0.3',
@@ -26,5 +26,5 @@ export const createSwaggerRoute = (api: RestApi) => {
       servers,
       tags,
     }),
-  });
-};
+  },
+];

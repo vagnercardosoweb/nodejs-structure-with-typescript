@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 import { AuthType } from '@/shared/enums';
 import { InternalServerError } from '@/shared/errors';
 
-export const isAuthenticated =
+export const withAuth =
   (type: AuthType) =>
   (request: Request, _response: Response, next: NextFunction) => {
     if (!request.context.jwt.sub) {

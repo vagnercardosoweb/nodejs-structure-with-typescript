@@ -1,17 +1,17 @@
+import { userRoutes } from '@/modules/users/routes';
+import { swaggerRoutes } from '@/rest-api/swagger';
 import { Route } from '@/rest-api/types';
 import { HttpStatusCode } from '@/shared/enums';
-
-const sendStatusOk = (_: any, r: any) => r.sendStatus(HttpStatusCode.OK);
 
 export const routes: Route[] = [
   {
     path: '/favicon.ico',
-    handler: sendStatusOk,
-    isPublic: true,
+    handler: (_: any, r: any) => r.sendStatus(HttpStatusCode.OK),
+    public: true,
   },
   {
     path: '/',
-    isPublic: true,
+    public: true,
     handler: async (request, response) => {
       const path = `${request.method.toUpperCase()} ${request.originalUrl}`;
       const timestamp = new Date().toISOString();
@@ -23,4 +23,6 @@ export const routes: Route[] = [
       });
     },
   },
+  ...userRoutes,
+  ...swaggerRoutes,
 ];

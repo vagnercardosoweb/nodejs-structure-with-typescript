@@ -1,5 +1,9 @@
-import { InternalServerError } from '@/shared/errors';
-import { Utils } from '@/shared/utils';
+import {
+  ContainerInterface,
+  ContainerValue,
+  InternalServerError,
+  Utils,
+} from '@/shared';
 
 export class Container implements ContainerInterface {
   public items = new Map<string, any>();
@@ -23,34 +27,26 @@ export class Container implements ContainerInterface {
     const resolved = typeof item === 'function' ? item.call(this) : item;
 
     this.resolved.set(id, resolved);
+    this.items.delete(id);
+
     return resolved;
   }
 
+  public clone(): ContainerInterface {
+    const container = new Container();
+    container.items = new Map(this.items);
+    container.resolved = new Map(this.resolved);
+    return container;
+  }
+
   public has(id: string): boolean {
-    if (this.resolved.get(id)) return true;
+    if (this.resolved.has(id)) return true;
     const item = this.items.get(id);
-    if (typeof item !== 'function' && !Utils.isUndefined(item)) {
-      return true;
-    }
-    return false;
+    return typeof item !== 'function' && !Utils.isUndefined(item);
   }
 
   public set(id: string, value: ContainerValue): void {
     this.items.set(id, value);
+    if (this.resolved.has(id)) this.resolved.delete(id);
   }
-}
-
-export type ContainerValue =
-  | ((container: ContainerInterface) => void)
-  | string
-  | number
-  | object
-  | [];
-
-export interface ContainerInterface {
-  get<T>(id: string): T;
-
-  set(id: string, value: ContainerValue): void;
-
-  has(id: string): boolean;
 }

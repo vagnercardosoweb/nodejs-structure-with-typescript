@@ -30,7 +30,7 @@ export const withToken = async (
       code: 'auth.invalid-token',
       message: 'Unable to validate your token, contact support.',
       sendToSlack: false,
-      originalError: e,
+      original: e,
     });
   }
   return next();

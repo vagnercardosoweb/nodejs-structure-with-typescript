@@ -379,6 +379,13 @@ export class Utils {
       statusCode < HttpStatusCode.OK || statusCode >= HttpStatusCode.BAD_REQUEST
     );
   }
+
+  public static cloneObject<T>(original: T): T {
+    return Object.assign(
+      Object.create(Object.getPrototypeOf(original)),
+      original,
+    );
+  }
 }
 
 type DateParam = number | string | Date;

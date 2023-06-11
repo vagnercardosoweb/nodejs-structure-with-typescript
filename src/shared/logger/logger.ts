@@ -7,12 +7,12 @@ import {
   transports,
 } from 'winston';
 
-import { Env, LogLevel } from '@/shared';
+import { Env, LoggerInterface, LoggerMetadata, LogLevel } from '@/shared';
 
 class Logger implements LoggerInterface {
   protected readonly client: WinstonLogger;
 
-  constructor(private id = 'APP') {
+  constructor(private readonly id: string) {
     this.client = createLogger({
       transports: [new transports.Console()],
       format: format.combine(
@@ -38,42 +38,26 @@ class Logger implements LoggerInterface {
     return new Logger(id);
   }
 
-  public log(level: LogLevel, message: string, metadata?: Metadata) {
+  public log(level: LogLevel, message: string, metadata?: LoggerMetadata) {
     if (Env.isTesting()) return;
     this.client.log(level, message, { id: this.id, metadata });
   }
 
-  public error(message: string, metadata?: Metadata) {
+  public error(message: string, metadata?: LoggerMetadata) {
     this.log(LogLevel.ERROR, message, metadata);
   }
 
-  public critical(message: string, metadata?: Metadata) {
+  public critical(message: string, metadata?: LoggerMetadata) {
     this.log(LogLevel.CRITICAL, message, metadata);
   }
 
-  public info(message: string, metadata?: Metadata) {
+  public info(message: string, metadata?: LoggerMetadata) {
     this.log(LogLevel.INFO, message, metadata);
   }
 
-  public warn(message: string, metadata?: Metadata) {
+  public warn(message: string, metadata?: LoggerMetadata) {
     this.log(LogLevel.WARN, message, metadata);
   }
 }
 
-type Metadata = Record<string, any>;
-
-export interface LoggerInterface {
-  withId(id: string): LoggerInterface;
-
-  log(level: LogLevel, message: string, metadata?: Metadata): void;
-
-  error(message: string, metadata?: Metadata): void;
-
-  critical(message: string, metadata?: Metadata): void;
-
-  info(message: string, metadata?: Metadata): void;
-
-  warn(message: string, metadata?: Metadata): void;
-}
-
-export default new Logger();
+export default new Logger('APP');

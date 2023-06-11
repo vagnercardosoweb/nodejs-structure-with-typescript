@@ -1,9 +1,12 @@
-import { QueryResultRow as PgQueryResultRow } from 'pg';
+import {
+  QueryResult as PgQueryResult,
+  QueryResultRow as PgQueryResultRow,
+} from 'pg';
 
 import { TransactionInterface } from '@/shared';
 
 export interface DbConnectionInterface {
-  query<T extends QueryResultRow>(
+  query<T extends QueryResultRow = any>(
     query: string,
     bind?: any[],
   ): Promise<QueryResult<T>>;
@@ -51,8 +54,7 @@ export type PgPoolConnectionOptions = {
 };
 
 export type QueryResultRow = PgQueryResultRow;
-export type QueryResult<T> = {
-  rows: T[];
-  rowCount: number;
+export type QueryResult<T extends QueryResultRow> = PgQueryResult<T> & {
   query: string;
+  bind: any[];
 };

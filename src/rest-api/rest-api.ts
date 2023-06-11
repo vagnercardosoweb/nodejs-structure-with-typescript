@@ -4,7 +4,13 @@ import http from 'node:http';
 
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
-import express, { RequestHandler } from 'express';
+import express, {
+  Application,
+  NextFunction,
+  Request,
+  RequestHandler,
+  Response,
+} from 'express';
 import helmet from 'helmet';
 import httpGraceFullShutdown from 'http-graceful-shutdown';
 import responseTime from 'response-time';
@@ -15,26 +21,28 @@ import {
   ContainerName,
   ContainerValue,
   HttpMethod,
+  HttpStatusCode,
   InternalServerError,
   Utils,
 } from '@/shared';
 
+import { AbstractHandler } from './handler';
 import {
   app,
   cors,
   errorHandler,
   extractToken,
-  isAuthenticated,
   methodOverride,
   notFound,
   requestLog,
+  withAuth,
   withPermission,
   withToken,
 } from './middlewares';
 import { OnCloseFn, Route } from './types';
 
 export class RestApi {
-  private readonly app: express.Application;
+  private readonly app: Application;
   private readonly routes: Route[] = [];
   private readonly container: ContainerInterface;
   private readonly onCloseFn: OnCloseFn[] = [];
@@ -78,7 +86,6 @@ export class RestApi {
       throw new InternalServerError({
         message: 'Route ({routeName}) already exists registered',
         metadata: { routeName: `${route.method} ${route.path}` },
-        sendToSlack: false,
       });
     }
 
@@ -105,7 +112,6 @@ export class RestApi {
   public async start(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
       this.server.on('error', (error: any) => {
-        console.log(error);
         if (error?.code !== 'EADDRINUSE') reject(error);
         setTimeout(() => {
           this.server.close();
@@ -162,23 +168,46 @@ export class RestApi {
 
   private registerRouteHandlers() {
     for (const route of this.routes) {
-      route.method = route.method ?? HttpMethod.GET;
-      if (Utils.isUndefined(route.isPublic)) route.isPublic = false;
+      if (Utils.isUndefined(route.public)) route.public = false;
+      let middlewares: RequestHandler[] = route.middlewares || [];
 
-      const handlers: RequestHandler[] = [];
-
-      if (!route.isPublic) handlers.push(withToken);
       if (route.authType) {
-        handlers.push(isAuthenticated(route.authType));
-        handlers.push(withPermission);
+        middlewares = [
+          withAuth(route.authType),
+          withPermission,
+          ...middlewares,
+        ];
       }
 
-      handlers.push(...(route.middlewares || []));
+      if (!route.public || route.authType) {
+        middlewares = [withToken, ...middlewares];
+      }
 
-      (this.app as any)[route.method.toLowerCase()](
+      const method = (route.method ?? HttpMethod.GET).toLowerCase();
+      (this.app as any)[method](
         route.path,
-        ...handlers,
-        route.handler,
+        ...middlewares,
+        async (request: Request, response: Response, next: NextFunction) => {
+          const prototype = Object.getPrototypeOf(route.handler);
+          if (prototype?.name !== AbstractHandler.name) {
+            return (route.handler as any)(request, response, next);
+          }
+
+          const Handler = route.handler as any;
+          const result = await new Handler(request, response).handle();
+
+          if (!result && response.statusCode === HttpStatusCode.OK) {
+            return response.sendStatus(HttpStatusCode.NO_CONTENT);
+          }
+
+          return response.json({
+            data: result,
+            timestamp: new Date().toISOString(),
+            ipAddress: request.ip,
+            path: `${request.method} ${request.originalUrl}`,
+            duration: '0ms',
+          });
+        },
       );
     }
   }

@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { Env, SlackAlert, Utils } from '@/shared';
+import { Env, Logger, SlackAlert, Utils } from '@/shared';
 import { HttpStatusCode } from '@/shared/enums';
 import { parseErrorToObject } from '@/shared/errors';
 
@@ -11,61 +11,63 @@ export const errorHandler = (
   next: NextFunction,
 ) => {
   if (response.headersSent) return next(error);
-  const errorObject = parseErrorToObject(error);
-  const { requestId } = request.context;
 
-  if (!errorObject.requestId) errorObject.requestId = requestId;
+  error = parseErrorToObject(error);
   const requestUrl = request.originalUrl || request.url;
 
-  if (errorObject.logging) {
+  const requestId = request.context?.requestId;
+  if (!error.requestId) error.requestId = requestId;
+
+  if (!request.logger) request.logger = Logger;
+  if (error.logging) {
     request.logger.error('HTTP_REQUEST_ERROR', {
       path: `${request.method.toUpperCase()} ${requestUrl}`,
       routePath: request.route?.path,
       headers: request.headers,
       body: Utils.obfuscateValue(request.body),
-      error: errorObject,
+      error,
     });
   }
 
-  if (errorObject.sendToSlack) {
+  if (error.sendToSlack) {
     SlackAlert.send({
       color: 'error',
       sections: {
-        message: errorObject.message,
-        description: errorObject?.description,
+        message: error.original?.message ?? error.message,
+        description: requestId ? error?.description : 'Unexpected error',
         requestId,
       },
       fields: {
-        errorId: errorObject.errorId,
-        errorCode: errorObject.code,
+        errorId: error.errorId,
+        errorCode: error.code,
         requestMethod: request.method.toUpperCase(),
         requestPath: requestUrl,
-        statusCode: errorObject.statusCode,
+        statusCode: error.statusCode,
       },
-    })
-      .then(() => request.logger.info('sent request error to slack success'))
-      .catch(() => request.logger.error('sent request error to slack failed'));
+    }).catch(() => {});
   }
 
-  if (errorObject.statusCode === HttpStatusCode.INTERNAL_SERVER_ERROR) {
-    errorObject.message = 'errors.internal_server_error';
+  if (request.translation) {
+    if (error.statusCode === HttpStatusCode.INTERNAL_SERVER_ERROR) {
+      error.message = 'errors.internal_server_error';
+    }
+
+    error.message = request.translation.get(error.message, {
+      errorId: error.errorId,
+      ...error.metadata,
+    });
   }
 
-  errorObject.message = request.translation.get(errorObject.message, {
-    errorId: errorObject.errorId,
-    ...errorObject.metadata,
-  });
-
-  return response.status(errorObject.statusCode).json(
+  return response.status(error.statusCode).json(
     Env.isLocal()
-      ? errorObject
+      ? error
       : {
-          name: errorObject.name,
-          code: errorObject.code,
-          errorId: errorObject.errorId,
-          requestId: errorObject.requestId,
-          statusCode: errorObject.statusCode,
-          message: errorObject.message,
+          name: error.name,
+          code: error.code,
+          errorId: error.errorId,
+          requestId: error.requestId,
+          statusCode: error.statusCode,
+          message: error.message,
         },
   );
 };

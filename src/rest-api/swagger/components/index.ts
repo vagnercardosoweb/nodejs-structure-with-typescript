@@ -29,7 +29,7 @@ export default {
         statusCode: { type: 'number' },
         message: { type: 'string' },
         errorId: { type: 'string' },
-        originalError: {
+        original: {
           type: 'object',
           nullable: true,
           properties: {

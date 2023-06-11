@@ -6,7 +6,7 @@ export { notFound } from './not-found';
 export { noCache } from './no-cache';
 export { withToken } from './with-token';
 export { extractToken } from './extract-token';
-export { isAuthenticated } from './is-authenticated';
+export { withAuth } from './with-auth';
 export { withPermission } from './with-permission';
 export { rateLimiter } from './rate-limiter';
 export { requestLog } from './request-log';

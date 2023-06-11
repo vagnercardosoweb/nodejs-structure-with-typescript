@@ -72,7 +72,7 @@ describe('Container', () => {
     container.get('key');
 
     expect(container.has('key')).toBeTruthy();
-    expect(container.items.get('key')).toStrictEqual(value);
+    expect(container.items.get('key')).toBeUndefined();
     expect(container.resolved.get('key')).toStrictEqual('value');
     expect(container.get('key')).toEqual('value');
   });

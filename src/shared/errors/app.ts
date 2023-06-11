@@ -14,9 +14,9 @@ export interface Options {
   metadata?: Metadata;
   statusCode?: HttpStatusCode;
   sendToSlack?: boolean;
-  originalError?: Error;
-  logging?: boolean;
   requestId?: string;
+  original?: Error;
+  logging?: boolean;
   errorId?: string;
 }
 
@@ -27,7 +27,7 @@ export class AppError extends Error {
   public metadata: Metadata = {};
   public statusCode: HttpStatusCode;
   public sendToSlack: boolean;
-  public originalError?: Error;
+  public original?: Error;
   public logging: boolean;
   public requestId?: string;
   public errorId: string;
@@ -37,7 +37,8 @@ export class AppError extends Error {
     if (!options.statusCode) options.statusCode = HttpStatusCode.BAD_REQUEST;
     if (!options.errorId) options.errorId = AppError.generateErrorId();
     if (!options.message) {
-      options.message = 'An error occurred, contact support';
+      options.message =
+        'An error occurred, contact support and report the code [{{errorId}}]';
     }
 
     if (Utils.isUndefined(options.logging)) options.logging = true;
@@ -46,31 +47,29 @@ export class AppError extends Error {
     super(options.message);
     this.name = AppError.mapperStatusCodeToName(options.statusCode);
 
-    Object.setPrototypeOf(this, AppError.prototype);
-    Error.captureStackTrace(this, this.constructor);
-
-    const { originalError, ...rest } = options;
+    const { original, ...rest } = options;
     Object.entries(rest).forEach(([k, v]) => this.setProperty(k, v));
 
-    if (originalError) {
-      this.setProperty('originalError', {
-        name: originalError.name,
-        message: originalError.message,
-        stack: originalError.stack,
+    const replaces = {
+      ...options.metadata,
+      errorId: this.errorId,
+      requestId: this.requestId,
+      code: this.code,
+    };
+
+    if (original?.message) {
+      this.setProperty('original', {
+        name: original.name,
+        message: this.replaceMessage(original.message, replaces),
+        stack: original.stack,
       });
     }
 
+    this.setProperty('message', this.replaceMessage(this.message, replaces));
     this.setProperty('stack', this.stack);
 
-    this.setProperty(
-      'message',
-      this.replaceMessage({
-        ...options.metadata,
-        errorId: this.errorId,
-        requestId: this.requestId,
-        code: this.code,
-      }),
-    );
+    Object.setPrototypeOf(this, AppError.prototype);
+    Error.captureStackTrace(this, this.constructor);
   }
 
   public static generateErrorId(): string {
@@ -94,8 +93,7 @@ export class AppError extends Error {
     return 'AppError';
   }
 
-  private replaceMessage(metadata: Metadata): string {
-    let message = this.message;
+  private replaceMessage(message: string, metadata: Metadata): string {
     const replaces = dottie.flatten(metadata);
     for (const key in replaces) {
       message = message.replace(`{{${key}}}`, replaces[key]);

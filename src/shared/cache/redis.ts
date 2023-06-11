@@ -1,6 +1,6 @@
 import IORedis from 'ioredis';
 
-import { Env, Logger, LoggerInterface } from '@/shared';
+import { Env, Logger, LoggerInterface, Utils } from '@/shared';
 
 import { CacheDefaultValue, CacheInterface } from './cache';
 
@@ -20,7 +20,7 @@ export class RedisCache implements CacheInterface {
   private logger: LoggerInterface;
 
   public constructor(options: Options) {
-    this.logger = Logger.withId('CACHE');
+    this.logger = Logger.withId('REDIS');
 
     const prefix = options?.keyPrefix ?? this.keyPrefix;
     this.keyPrefix = this.normalizeKeyPrefix(prefix);
@@ -48,10 +48,7 @@ export class RedisCache implements CacheInterface {
   }
 
   public withLoggerId(id: string): CacheInterface {
-    const clone = Object.assign(
-      Object.create(Object.getPrototypeOf(this)),
-      this,
-    );
+    const clone = Utils.cloneObject(this);
     clone.logger = this.logger.withId(id);
     return clone;
   }
@@ -63,7 +60,7 @@ export class RedisCache implements CacheInterface {
 
   public async connect(): Promise<RedisCache> {
     if (this.connected) return this;
-    this.logger.info('CONNECTIONG');
+    this.logger.info('CONNECTING');
     await this.client.connect();
     this.connected = true;
     return this;

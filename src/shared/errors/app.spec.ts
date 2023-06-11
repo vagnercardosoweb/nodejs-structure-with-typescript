@@ -8,11 +8,13 @@ describe('AppError', () => {
 
     expect(sut.code).toBe('DEFAULT');
     expect(sut.name).toBe('BadRequestError');
-    expect(sut.message).toBe('An error occurred, contact support');
+    expect(sut.message).toBe(
+      `An error occurred, contact support and report the code [${sut.errorId}]`,
+    );
     expect(sut.description).toBeUndefined();
     expect(sut.metadata).toEqual({});
     expect(sut.statusCode).toBe(HttpStatusCode.BAD_REQUEST);
-    expect(sut.originalError).toBeUndefined();
+    expect(sut.original).toBeUndefined();
     expect(sut.sendToSlack).toBeTruthy();
     expect(sut.requestId).toBeUndefined();
     expect(sut.errorId).toBeDefined();
@@ -25,14 +27,14 @@ describe('AppError', () => {
   });
 
   it('create error with all properties defined', () => {
-    const originalError = new Error('any');
+    const error = new Error('any');
     const input = {
       code: 'any_code',
       message: 'any_message',
       description: 'any_description',
       statusCode: HttpStatusCode.INTERNAL_SERVER_ERROR,
       sendToSlack: false,
-      originalError,
+      original: error,
       errorId: 'any_error_id',
       logging: true,
       metadata: {
@@ -50,10 +52,10 @@ describe('AppError', () => {
     expect(sut.errorId).toEqual('any_error_id');
     expect(sut.metadata).toBe(input.metadata);
     expect(sut.statusCode).toBe(input.statusCode);
-    expect(sut.originalError).toStrictEqual({
-      name: originalError.name,
-      message: originalError.message,
-      stack: originalError.stack,
+    expect(sut.original).toStrictEqual({
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
     });
     expect(sut.sendToSlack).toBe(input.sendToSlack);
     expect(sut.logging).toBeTruthy();
