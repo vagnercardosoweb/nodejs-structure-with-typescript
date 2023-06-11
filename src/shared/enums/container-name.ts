@@ -4,4 +4,5 @@ export enum ContainerName {
   DB_CONNECTION = '_db_connection_',
   CACHE_CLIENT = '_cache_client_',
   REQUEST_ID = '_request_id_',
+  JWT = '_jwt_',
 }

@@ -4,6 +4,7 @@ import languagePtbr from '@/languages/pt-br';
 import {
   ContainerName,
   Env,
+  Jwt,
   Migrator,
   PgPoolConnection,
   RedisCache,
@@ -19,9 +20,10 @@ export const makeDependencies = async (api: RestApi) => {
   const cache = await RedisCache.fromEnvironment().connect();
   api.set(ContainerName.CACHE_CLIENT, cache).addOnClose(() => cache.close());
 
-  const translation = new Translation();
-  translation.add('pt-br', languagePtbr);
+  const translation = new Translation().add('pt-br', languagePtbr);
+
   api.set(ContainerName.TRANSLATION, translation);
+  api.set(ContainerName.JWT, new Jwt());
 
   if (Env.get('DB_EXECUTE_MIGRATION_ON_STARTED', true)) {
     await new Migrator(

@@ -36,6 +36,7 @@ export class AppError extends Error {
     if (!options.code) options.code = 'DEFAULT';
     if (!options.statusCode) options.statusCode = HttpStatusCode.BAD_REQUEST;
     if (!options.errorId) options.errorId = AppError.generateErrorId();
+
     if (!options.message) {
       options.message =
         'An error occurred, contact support and report the code [{{errorId}}]';
@@ -46,6 +47,9 @@ export class AppError extends Error {
 
     super(options.message);
     this.name = AppError.mapperStatusCodeToName(options.statusCode);
+
+    Object.setPrototypeOf(this, AppError.prototype);
+    Error.captureStackTrace(this, this.constructor);
 
     const { original, ...rest } = options;
     Object.entries(rest).forEach(([k, v]) => this.setProperty(k, v));
@@ -67,9 +71,6 @@ export class AppError extends Error {
 
     this.setProperty('message', this.replaceMessage(this.message, replaces));
     this.setProperty('stack', this.stack);
-
-    Object.setPrototypeOf(this, AppError.prototype);
-    Error.captureStackTrace(this, this.constructor);
   }
 
   public static generateErrorId(): string {

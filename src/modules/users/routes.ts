@@ -5,8 +5,7 @@ import { HttpMethod } from '@/shared';
 export const userRoutes: Route[] = [
   {
     path: '/users',
-    method: HttpMethod.GET,
     handler: ListUserHandler,
-    public: true,
+    method: HttpMethod.GET,
   },
 ];
