@@ -2,7 +2,7 @@ import { QueryResultRow } from 'pg';
 
 import { InternalServerError, NotFoundError, Utils } from '@/shared';
 
-import { DbConnectionInterface } from './types';
+import { PgPoolInterface } from './types';
 
 type Where = string[];
 type Binding = any[];
@@ -35,7 +35,7 @@ export class Repository<TRow extends QueryResultRow = any> {
   protected tableName = 'table_name';
   protected primaryKey = 'id';
 
-  public constructor(protected readonly connection: DbConnectionInterface) {}
+  public constructor(protected readonly pool: PgPoolInterface) {}
 
   public async findAll<TResult extends QueryResultRow = TRow>(
     params?: FindParams,
@@ -62,7 +62,7 @@ export class Repository<TRow extends QueryResultRow = any> {
       query += `LIMIT ${limit} `;
       if (offset !== -1) query += `OFFSET ${offset}`;
     }
-    const result = await this.connection.query<TResult>(query.trim(), binding);
+    const result = await this.pool.query<TResult>(query.trim(), binding);
     return result.rows;
   }
 
@@ -126,9 +126,10 @@ export class Repository<TRow extends QueryResultRow = any> {
     const record = Utils.removeUndefined(data);
     const columns = Object.keys(record);
     const bindings = columns.map((_, index) => `$${index + 1}`);
-    const { rows } = await this.connection.query<TRow>(
+    const { rows } = await this.pool.query<TRow>(
       `INSERT INTO ${this.getTableName()} (${columns})
-       VALUES (${bindings}) RETURNING *;`,
+       VALUES (${bindings})
+       RETURNING *;`,
       Object.values(record),
     );
     return rows[0];
@@ -154,10 +155,11 @@ export class Repository<TRow extends QueryResultRow = any> {
       bindings[index + length] = bind;
     });
 
-    const { rows } = await this.connection.query<TRow>(
+    const { rows } = await this.pool.query<TRow>(
       `UPDATE ${this.getTableName()}
        SET ${set}
-       WHERE ${parseWhere} RETURNING *;`,
+       WHERE ${parseWhere}
+       RETURNING *;`,
       bindings,
     );
 
@@ -166,10 +168,11 @@ export class Repository<TRow extends QueryResultRow = any> {
 
   public async delete({ where, binding }: DeleteParams): Promise<TRow> {
     const tableName = this.getTableName();
-    const { rows } = await this.connection.query<TRow>(
+    const { rows } = await this.pool.query<TRow>(
       `DELETE
        FROM ${tableName}
-       WHERE ${this.makeWhere(where)} RETURNING *;`,
+       WHERE ${this.makeWhere(where)}
+       RETURNING *;`,
       binding,
     );
     return rows[0];

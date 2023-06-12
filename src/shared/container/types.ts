@@ -1,12 +1,7 @@
-export type ContainerValue =
-  | ((container: ContainerInterface) => void)
-  | string
-  | number
-  | object
-  | [];
+export type ContainerValue = ((container: ContainerInterface) => void) | any;
 
 export interface ContainerInterface {
-  get<T>(id: string): T;
+  get<T = any>(id: string): T;
 
   set(id: string, value: ContainerValue): void;
 

@@ -2,12 +2,7 @@ import { randomUUID } from 'node:crypto';
 
 import { NextFunction, Request, Response } from 'express';
 
-import {
-  ContainerName,
-  DbConnectionInterface,
-  Logger,
-  Translation,
-} from '@/shared';
+import { ContainerName, Logger, PgPoolInterface, Translation } from '@/shared';
 import { ContainerInterface } from '@/shared/container';
 
 export const app =
@@ -38,9 +33,9 @@ export const app =
     request.container.set(ContainerName.TRANSLATION, request.translation);
     request.container.set(ContainerName.REQUEST_ID, requestId);
     request.container.set(
-      ContainerName.DB_CONNECTION,
+      ContainerName.PG_POOL,
       request.container
-        .get<DbConnectionInterface>(ContainerName.DB_CONNECTION)
+        .get<PgPoolInterface>(ContainerName.PG_POOL)
         .withLoggerId(requestId),
     );
 

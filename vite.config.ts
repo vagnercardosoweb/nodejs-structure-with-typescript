@@ -6,7 +6,7 @@ export default defineConfig({
   test: {
     globals: true,
     clearMocks: true,
-    setupFiles: ['./vite.setup.ts'],
+    setupFiles: ['./src/config/dotenv'],
     passWithNoTests: true,
     environment: 'node',
   },

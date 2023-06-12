@@ -1,16 +1,16 @@
 import { InternalServerError } from '@/shared';
 
-import { DbConnectionInterface } from './types';
+import { PgPoolInterface } from './types';
 
 export class Transaction {
   protected started = false;
   protected handlers: Handlers[] = [];
 
-  public constructor(protected readonly connection: DbConnectionInterface) {}
+  public constructor(protected readonly client: PgPoolInterface) {}
 
   public async begin() {
     if (this.started) return;
-    await this.connection.query('BEGIN TRANSACTION;', []);
+    await this.client.query('BEGIN TRANSACTION;', []);
     this.started = true;
   }
 
@@ -43,7 +43,7 @@ export class Transaction {
       });
     }
 
-    await this.connection.query(query, []);
+    await this.client.query(query, []);
 
     const operator = query.split(' ')[0].toLowerCase() as Operator;
     await Promise.all(

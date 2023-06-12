@@ -3,7 +3,7 @@ import path from 'node:path';
 
 import { LoggerInterface } from '@/shared';
 
-import { DbConnectionInterface } from './types';
+import { PgPoolInterface } from './types';
 
 enum Prefix {
   UP = 'up',
@@ -15,16 +15,16 @@ export class Migrator {
   protected logger: LoggerInterface;
 
   constructor(
-    protected readonly db: DbConnectionInterface,
+    protected readonly db: PgPoolInterface,
     protected readonly path: string,
   ) {}
 
   public async up(): Promise<void> {
     this.prefix = Prefix.UP;
 
-    await this.db.createTransactionManaged(async (connection) => {
-      await this.checkAndCreateTableMigrations(connection as any);
-      await this.runMigrations(connection as any);
+    await this.db.createTransactionManaged(async (pool) => {
+      await this.checkAndCreateTableMigrations(pool as any);
+      await this.runMigrations(pool as any);
     });
   }
 
@@ -37,14 +37,12 @@ export class Migrator {
     });
   }
 
-  protected async runMigrations(
-    connection: DbConnectionInterface,
-  ): Promise<void> {
+  protected async runMigrations(pool: PgPoolInterface): Promise<void> {
     const fileNames = await this.getFileNames();
-    const migrationsFromDb = await this.getMigrations(connection);
+    const migrationsFromDb = await this.getMigrations(pool);
     for await (const fileName of fileNames) {
       if (migrationsFromDb?.[fileName]) continue;
-      await this.executeSql(connection, fileName);
+      await this.executeSql(pool, fileName);
     }
   }
 
@@ -55,10 +53,8 @@ export class Migrator {
       .sort((a: string, b: string) => a.localeCompare(b));
   }
 
-  private async checkAndCreateTableMigrations(
-    connection: DbConnectionInterface,
-  ) {
-    const result = await connection.query(
+  private async checkAndCreateTableMigrations(pool: PgPoolInterface) {
+    const result = await pool.query(
       `
         SELECT table_name
         FROM information_schema.tables
@@ -66,7 +62,7 @@ export class Migrator {
       `,
     );
     if (result.rows.length === 0) {
-      await connection.query(`
+      await pool.query(`
         CREATE TABLE IF NOT EXISTS db_migrations
         (
           file_name  VARCHAR                   NOT NULL,
@@ -81,12 +77,9 @@ export class Migrator {
     }
   }
 
-  private async executeSql(
-    connection: DbConnectionInterface,
-    fileName: string,
-  ) {
+  private async executeSql(pool: PgPoolInterface, fileName: string) {
     const sql = await fs.promises.readFile(path.resolve(this.path, fileName));
-    await connection.query(sql.toString());
+    await pool.query(sql.toString());
 
     const afterQuery =
       this.prefix === Prefix.UP
@@ -100,16 +93,16 @@ export class Migrator {
           WHERE file_name = '${fileName}';
         `;
 
-    await connection.query(afterQuery);
+    await pool.query(afterQuery);
   }
 
-  private async getMigrations(connection: DbConnectionInterface) {
+  private async getMigrations(pool: PgPoolInterface) {
     const sqlMigrations = `
       SELECT file_name
       FROM db_migrations
       ORDER BY file_name ASC;
     `;
-    const queryResult = await connection.query(sqlMigrations);
+    const queryResult = await pool.query(sqlMigrations);
     return queryResult.rows.reduce((previous, current) => {
       previous[current.file_name] = true;
       return previous;

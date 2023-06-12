@@ -1,8 +1,8 @@
 export enum ContainerName {
+  JWT = '_jwt_',
   LOGGER = '_logger_',
   TRANSLATION = '_translation_',
-  DB_CONNECTION = '_db_connection_',
   CACHE_CLIENT = '_cache_client_',
   REQUEST_ID = '_request_id_',
-  JWT = '_jwt_',
+  PG_POOL = '_pg_pool_',
 }

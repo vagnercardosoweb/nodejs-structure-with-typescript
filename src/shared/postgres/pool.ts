@@ -12,14 +12,14 @@ import {
 } from '@/shared';
 
 import {
-  DbConnectionInterface,
   FnTransaction,
   PgPoolConnectionOptions,
+  PgPoolInterface,
   QueryResult,
   QueryResultRow,
 } from './types';
 
-export class PgPoolConnection implements DbConnectionInterface {
+export class PgPool implements PgPoolInterface {
   protected logger: LoggerInterface;
   protected client: PoolClient | null = null;
   protected readonly pool: Pool;
@@ -44,8 +44,8 @@ export class PgPoolConnection implements DbConnectionInterface {
     });
   }
 
-  public static fromEnvironment(): PgPoolConnection {
-    return new PgPoolConnection({
+  public static fromEnvironment(): PgPool {
+    return new PgPool({
       appName: Env.get('DB_APP_NAME', 'typescript-structure'),
       charset: Env.get('DB_CHARSET', 'utf8'),
       database: Env.required('DB_NAME'),
@@ -67,8 +67,8 @@ export class PgPoolConnection implements DbConnectionInterface {
     });
   }
 
-  public withLoggerId(id: string): DbConnectionInterface {
-    const clone = Utils.cloneObject<PgPoolConnection>(this);
+  public withLoggerId(id: string): PgPool {
+    const clone = Utils.cloneObject(this);
     clone.logger = this.logger.withId(id);
     return clone;
   }
@@ -80,7 +80,7 @@ export class PgPoolConnection implements DbConnectionInterface {
     this.closed = true;
   }
 
-  public async connect(): Promise<DbConnectionInterface> {
+  public async connect(): Promise<PgPoolInterface> {
     this.logger.info('CONNECTION');
     await this.query('SELECT 1 + 1;');
     return this;

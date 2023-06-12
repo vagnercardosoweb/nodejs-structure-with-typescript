@@ -22,11 +22,11 @@ export class RedisCache implements CacheInterface {
   public constructor(options: Options) {
     this.logger = Logger.withId('REDIS');
 
-    const prefix = options?.keyPrefix ?? this.keyPrefix;
+    const prefix = options?.keyPrefix?.trim() ?? this.keyPrefix;
     this.keyPrefix = this.normalizeKeyPrefix(prefix);
 
     this.client = new IORedis({
-      port: options.port ?? 6379,
+      port: options.port,
       host: options.host,
       password: options.password,
       db: options.db,
@@ -38,8 +38,8 @@ export class RedisCache implements CacheInterface {
 
   public static fromEnvironment(): RedisCache {
     return new RedisCache({
-      port: Env.required('REDIS_PORT', 6379),
-      host: Env.required('REDIS_HOST', 'localhost'),
+      port: Env.required('REDIS_PORT'),
+      host: Env.required('REDIS_HOST'),
       password: Env.get('REDIS_PASSWORD'),
       username: Env.get('REDIS_USERNAME'),
       keyPrefix: Env.get('REDIS_KEY_PREFIX'),
@@ -122,7 +122,6 @@ export class RedisCache implements CacheInterface {
   }
 
   private removeKeyPrefix(prefix: string): string {
-    if (!this.keyPrefix?.length) return prefix;
     return prefix.replace(this.keyPrefix, '');
   }
 

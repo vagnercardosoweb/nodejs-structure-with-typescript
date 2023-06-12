@@ -2,7 +2,6 @@ import {
   ContainerInterface,
   ContainerValue,
   InternalServerError,
-  Utils,
 } from '@/shared';
 
 export class Container implements ContainerInterface {
@@ -32,7 +31,7 @@ export class Container implements ContainerInterface {
     return resolved;
   }
 
-  public clone(): ContainerInterface {
+  public clone(): Container {
     const container = new Container();
     container.items = new Map(this.items);
     container.resolved = new Map(this.resolved);
@@ -41,8 +40,8 @@ export class Container implements ContainerInterface {
 
   public has(id: string): boolean {
     if (this.resolved.has(id)) return true;
-    const item = this.items.get(id);
-    return typeof item !== 'function' && !Utils.isUndefined(item);
+    if (this.items.has(id)) return true;
+    return false;
   }
 
   public set(id: string, value: ContainerValue): void {

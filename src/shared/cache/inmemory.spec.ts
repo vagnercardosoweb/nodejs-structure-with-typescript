@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { InMemoryCache } from './inmemory';
+import { InMemoryCache } from '@/shared';
 
 describe('InMemoryCache', () => {
   let inMemoryCache: InMemoryCache;
@@ -13,6 +13,14 @@ describe('InMemoryCache', () => {
     ['1', '2', '3'],
     { key: 'value' },
     [{ key: 'value' }],
+    new (class Test {})(),
+    () => 'fn',
+    Symbol('test'),
+    new Set(['t', 'u', 'd']),
+    new Map([
+      ['a', 1],
+      ['b', 2],
+    ]),
   ];
 
   beforeEach(() => {
@@ -28,6 +36,10 @@ describe('InMemoryCache', () => {
 
   it('deveria criar uma instância do cache vazia', () => {
     expect((inMemoryCache as any).cached.size).toBe(0);
+  });
+
+  it('deveria criar uma instância do cache com outro logger id', () => {
+    expect(inMemoryCache.withLoggerId('test')).toStrictEqual(inMemoryCache);
   });
 
   it('deveria limpar todo cache', async () => {
@@ -108,11 +120,12 @@ describe('InMemoryCache', () => {
     await expect(inMemoryCache.remove('not_exist_key')).resolves.toBeFalsy();
   });
 
-  for (const testValue of testValues) {
+  for (let testValue of testValues) {
     const valueType = Object.prototype.toString.call(testValue);
 
     it(`deveria recuperar um cache com uma chave que não existe com tipo de dados: ${valueType}`, async () => {
       const result = await inMemoryCache.get('any_key', testValue);
+      if (typeof testValue === 'function') testValue = testValue();
       expect(result).toStrictEqual(testValue);
     });
 

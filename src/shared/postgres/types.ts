@@ -5,26 +5,26 @@ import {
 
 import { TransactionInterface } from '@/shared';
 
-export interface DbConnectionInterface {
+export interface PgPoolInterface {
   query<T extends QueryResultRow = any>(
     query: string,
     bind?: any[],
   ): Promise<QueryResult<T>>;
 
-  withLoggerId(requestId: string): DbConnectionInterface;
+  withLoggerId(requestId: string): PgPoolInterface;
 
   createTransaction(): Promise<TransactionInterface>;
 
   createTransactionManaged<T>(fn: FnTransaction<T>): Promise<T>;
 
-  connect(): Promise<DbConnectionInterface>;
+  connect(): Promise<PgPoolInterface>;
 
   close(): Promise<void>;
 }
 
 export type FnTransaction<T> = (
   connection: Omit<
-    DbConnectionInterface,
+    PgPoolInterface,
     'createTransaction' | 'createTransactionManaged'
   >,
 ) => Promise<T>;

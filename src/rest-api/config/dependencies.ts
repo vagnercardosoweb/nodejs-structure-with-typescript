@@ -6,7 +6,7 @@ import {
   Env,
   Jwt,
   Migrator,
-  PgPoolConnection,
+  PgPool,
   RedisCache,
   Translation,
 } from '@/shared';
@@ -14,8 +14,8 @@ import {
 import { RestApi } from '../rest-api';
 
 export const makeDependencies = async (api: RestApi) => {
-  const dbPool = await PgPoolConnection.fromEnvironment().connect();
-  api.set(ContainerName.DB_CONNECTION, dbPool).addOnClose(() => dbPool.close());
+  const pgPool = await PgPool.fromEnvironment().connect();
+  api.set(ContainerName.PG_POOL, pgPool).addOnClose(() => pgPool.close());
 
   const cache = await RedisCache.fromEnvironment().connect();
   api.set(ContainerName.CACHE_CLIENT, cache).addOnClose(() => cache.close());
@@ -27,7 +27,7 @@ export const makeDependencies = async (api: RestApi) => {
 
   if (Env.get('DB_EXECUTE_MIGRATION_ON_STARTED', true)) {
     await new Migrator(
-      dbPool.withLoggerId('MIGRATOR'),
+      pgPool.withLoggerId('MIGRATOR'),
       path.resolve('migrations'),
     ).up();
   }
