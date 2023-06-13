@@ -44,7 +44,7 @@ export class Utils {
   }
 
   public static toCamelCase(value: string): string {
-    return value.toLowerCase().replace(/^([A-Z])|[\s-_](\w)/g, (_, p1, p2) => {
+    return value.replace(/^([A-Z])|[\s-_](\w)/g, (_, p1, p2) => {
       if (p2) {
         return p2.toUpperCase();
       }
