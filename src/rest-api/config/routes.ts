@@ -1,4 +1,4 @@
-import { userRoutes } from '@/modules/users/routes';
+import { userRoutes } from '@/modules/users';
 import { swaggerRoutes } from '@/rest-api/swagger';
 import { Route } from '@/rest-api/types';
 import { HttpStatusCode } from '@/shared/enums';
@@ -13,7 +13,7 @@ export const routes: Route[] = [
     path: '/',
     public: true,
     handler: async (request, response) => {
-      const path = `${request.method.toUpperCase()} ${request.originalUrl}`;
+      const path = `${request.method} ${request.originalUrl}`;
       const timestamp = new Date().toISOString();
       return response.json({
         data: '🚀',

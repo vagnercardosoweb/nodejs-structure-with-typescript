@@ -4,36 +4,9 @@ import { InternalServerError, NotFoundError, Utils } from '@/shared';
 
 import { PgPoolInterface } from './types';
 
-type Where = string[];
-type Binding = any[];
-type FindParams = {
-  where?: Where;
-  binding?: Binding;
-  columns?: string[];
-  orderBy?: string[];
-  joins?: string[];
-  limit?: number;
-  offset?: number;
-  groupBy?: string[];
-};
-type DeleteParams = {
-  where: Where;
-  binding: Binding;
-};
-type UpdateParams<Data extends QueryResultRow = any> = {
-  where: Where;
-  binding: Binding;
-  data: Partial<Data>;
-};
-
-type FindOneParams = Omit<FindParams, 'limit' | 'offset'>;
-type FindOneWithRejectParams = {
-  rejectOnEmpty: boolean | string | Error;
-} & FindOneParams;
-
 export class Repository<TRow extends QueryResultRow = any> {
-  protected tableName = 'table_name';
-  protected primaryKey = 'id';
+  protected readonly tableName: string = 'table';
+  protected readonly primaryKey: string = 'id';
 
   public constructor(protected readonly pool: PgPoolInterface) {}
 
@@ -62,7 +35,10 @@ export class Repository<TRow extends QueryResultRow = any> {
       query += `LIMIT ${limit} `;
       if (offset !== -1) query += `OFFSET ${offset}`;
     }
-    const result = await this.pool.query<TResult>(query.trim(), binding);
+    const result = await this.pool.query(
+      Utils.removeLinesAndSpaceFromSql(query),
+      binding,
+    );
     return result.rows;
   }
 
@@ -97,7 +73,7 @@ export class Repository<TRow extends QueryResultRow = any> {
     ) {
       const rejectOnEmpty = (<any>params).rejectOnEmpty;
       if (typeof rejectOnEmpty === 'object') throw rejectOnEmpty;
-      let message = 'No results found for';
+      let message = 'No results found';
       if (typeof rejectOnEmpty === 'string') message = rejectOnEmpty;
       throw new NotFoundError({ message });
     }
@@ -112,14 +88,11 @@ export class Repository<TRow extends QueryResultRow = any> {
         metadata: { constructorName: this.constructor.name },
       });
     }
-
-    const result = await this.findOne<T>({
+    return this.findOne<T>({
       columns,
       where: [`${this.primaryKey} = $1`],
       binding: [id],
     });
-
-    return result;
   }
 
   public async create(data: Omit<TRow, 'id'>): Promise<TRow> {
@@ -195,3 +168,30 @@ export class Repository<TRow extends QueryResultRow = any> {
       });
   }
 }
+
+type Where = string[];
+type Binding = any[];
+type FindParams = {
+  where?: Where;
+  binding?: Binding;
+  columns?: string[];
+  orderBy?: string[];
+  joins?: string[];
+  limit?: number;
+  offset?: number;
+  groupBy?: string[];
+};
+type DeleteParams = {
+  where: Where;
+  binding: Binding;
+};
+type UpdateParams<Data extends QueryResultRow = any> = {
+  where: Where;
+  binding: Binding;
+  data: Partial<Data>;
+};
+
+type FindOneParams = Omit<FindParams, 'limit' | 'offset'>;
+type FindOneWithRejectParams = {
+  rejectOnEmpty: boolean | string | Error;
+} & FindOneParams;
