@@ -374,10 +374,8 @@ export class Utils {
     return Object.prototype.toString.call(value) === '[object Array]';
   }
 
-  public static checkStatusError(statusCode: number): boolean {
-    return (
-      statusCode < HttpStatusCode.OK || statusCode >= HttpStatusCode.BAD_REQUEST
-    );
+  public static isStatusError(status: HttpStatusCode): boolean {
+    return status < HttpStatusCode.OK || status >= HttpStatusCode.BAD_REQUEST;
   }
 
   public static cloneObject<T>(original: T): T {

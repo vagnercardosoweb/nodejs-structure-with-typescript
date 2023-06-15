@@ -8,7 +8,11 @@ import { Utils } from './utils';
 
 vi.mock('node:crypto', async () => {
   const actual = (await vi.importActual('node:crypto')) as any;
-  return { ...actual, randomInt: vi.fn().mockResolvedValue(0) };
+  return {
+    ...actual,
+    randomInt: vi.fn().mockResolvedValue(0),
+    randomBytes: vi.fn().mockReturnValue('a'),
+  };
 });
 
 const createObjectObfuscate = () => {
@@ -192,9 +196,8 @@ describe('shared/utils/utils.ts', () => {
   });
 
   it('getFirstAndLastName', () => {
-    const { firstName, lastName } = Utils.getFirstAndLastName(
-      'Vagner dos Santos Cardoso',
-    );
+    const fullName = 'Vagner dos Santos Cardoso';
+    const { firstName, lastName } = Utils.getFirstAndLastName(fullName);
     expect(firstName).toEqual('Vagner');
     expect(lastName).toEqual('dos Santos Cardoso');
   });
@@ -213,6 +216,90 @@ describe('shared/utils/utils.ts', () => {
     ].forEach(([value, test]) => {
       expect(Utils.normalizeMoneyFromString(value as string)).toBe(test);
     });
+  });
+
+  it('toDecimal', () => {
+    [
+      [111, 1.11],
+      [2928, 29.28],
+      [198221, 1982.21],
+      [871029728, 8710297.28],
+      [99976121, 999761.21],
+    ].forEach(([value, test]) => {
+      expect(Utils.toDecimal(value)).toStrictEqual(test);
+    });
+  });
+
+  it('toCents', () => {
+    [
+      [1.11, 111],
+      [29.28, 2928],
+      [1982.21, 198221],
+      [8710297.28, 871029728],
+      [999761.21, 99976121],
+    ].forEach(([value, test]) => {
+      expect(Utils.toCents(value)).toStrictEqual(test);
+    });
+  });
+
+  it('isUndefined', () => {
+    expect(Utils.isUndefined(undefined)).toBeTruthy();
+    expect(Utils.isUndefined('1')).toBeFalsy();
+  });
+
+  it('roundNumber', () => {
+    expect(Utils.roundNumber(1982.8712, 2)).toStrictEqual(1982.87);
+    expect(Utils.roundNumber(1982.8712, 4)).toStrictEqual(198287.12);
+  });
+
+  it('randomStr', () => {
+    const randomStr = Utils.randomStr(32);
+    expect(randomStr).toStrictEqual('YQYQYQYQYQYQYQYQYQYQYQYQYQYQYQYQ');
+    expect(randomStr).toHaveLength(32);
+  });
+
+  it('convertObjectKeyToLowerCase', () => {
+    const input = {
+      'Name': '*',
+      'X-ID-Token': '*',
+      'Authorization': '*',
+      'X-Api-Key': '*',
+    };
+    const output = {
+      'name': '*',
+      'x-id-token': '*',
+      'authorization': '*',
+      'x-api-key': '*',
+    };
+    expect(Utils.convertObjectKeyToLowerCase(input)).toStrictEqual(output);
+    expect(Utils.convertObjectKeyToLowerCase(input)).not.deep.equal(input);
+  });
+
+  it('rangeCharacters', () => {
+    let characters = Utils.rangeCharacters('a', 'z');
+    expect(characters).toStrictEqual('abcdefghijklmnopqrstuvwxyz');
+    characters = Utils.rangeCharacters('g', 'i');
+    expect(characters).toStrictEqual('ghi');
+    characters = Utils.rangeCharacters('a', 'g');
+    expect(characters).toStrictEqual('abcdefg');
+  });
+
+  it('hashFromString', () => {
+    expect(Utils.hashFromString('a')).toStrictEqual(177604);
+    expect(Utils.hashFromString('texto mais longo')).toStrictEqual(2826721860);
+    expect(Utils.hashFromString('js,ts,golang')).toStrictEqual(1177950551);
+    expect(Utils.hashFromString('c')).toStrictEqual(177606);
+  });
+
+  it('isStatusError valida com os que retorna true', () => {
+    const statusErrors = Utils.rangeNumbers(199, 0);
+    statusErrors.concat(Utils.rangeNumbers(200, 400));
+    statusErrors.forEach((s) => expect(Utils.isStatusError(s)).toBeTruthy());
+  });
+
+  it('isStatusError valida os que returna false', () => {
+    const statusErrors = Utils.rangeNumbers(200, 200);
+    statusErrors.forEach((s) => expect(Utils.isStatusError(s)).toBeFalsy());
   });
 
   it('cloneObject', () => {
