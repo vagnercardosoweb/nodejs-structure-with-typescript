@@ -10,9 +10,9 @@ export class Repository<TRow extends QueryResultRow = any> {
 
   public constructor(protected readonly pool: PgPoolInterface) {}
 
-  public async findAll<TResult extends QueryResultRow = TRow>(
+  public async findAll<T extends QueryResultRow = TRow>(
     params?: FindParams,
-  ): Promise<TResult[]> {
+  ): Promise<T[]> {
     const {
       columns = [`${this.tableName}.*`],
       where = [],
@@ -23,22 +23,17 @@ export class Repository<TRow extends QueryResultRow = any> {
       offset = -1,
       groupBy = [],
     } = params || {};
-    let query = `SELECT ${columns.join(', ')}
-                 FROM ${this.getTableName()} `;
+    let query = `SELECT ${columns.join(', ')} `;
+    query += `FROM ${this.tableName} `;
     if (joins.length > 0) query += `${joins.join(' ')} `;
-    if (where.length > 0) {
-      query += `WHERE ${this.makeWhere(where)} `;
-    }
+    if (where.length > 0) query += `WHERE ${this.makeWhere(where)} `;
     if (groupBy.length > 0) query += `GROUP BY ${groupBy.join(', ')} `;
     if (orderBy.length > 0) query += `ORDER BY ${orderBy.join(', ')} `;
     if (limit !== -1) {
       query += `LIMIT ${limit} `;
       if (offset !== -1) query += `OFFSET ${offset}`;
     }
-    const result = await this.pool.query(
-      Utils.removeLinesAndSpaceFromSql(query),
-      binding,
-    );
+    const result = await this.pool.query(query.trim(), binding);
     return result.rows;
   }
 
@@ -57,14 +52,8 @@ export class Repository<TRow extends QueryResultRow = any> {
     return { count, rows };
   }
 
-  public async findOne<TResult = TRow>(
-    params: FindOneWithRejectParams,
-  ): Promise<TResult>;
-
-  public async findOne<TResult = TRow>(
-    params: FindOneParams,
-  ): Promise<TResult | null>;
-
+  public async findOne<T = TRow>(params: FindOneWithRejectParams): Promise<T>;
+  public async findOne<T = TRow>(params: FindOneParams): Promise<T | null>;
   public async findOne(params: FindOneParams) {
     const result = await this.findAll({ ...params, limit: 1 });
     if (
@@ -80,19 +69,32 @@ export class Repository<TRow extends QueryResultRow = any> {
     return result.at(0) ?? null;
   }
 
-  public async findById<T = TRow>(id: string, columns = ['*']) {
-    if (!this.primaryKey.trim()) {
-      throw new InternalServerError({
-        code: 'BASE_REPOSITORY:EMPTY_PRIMARY_KEY',
-        message: 'Repository [{{constructorName}}] no primary key defined',
-        metadata: { constructorName: this.constructor.name },
-      });
+  public async findById<T = TRow>(params: FindByIdParams) {
+    if (!params.where) params.where = [];
+    if (!params.binding) params.binding = [];
+    const bindingLength = params.binding.length;
+    if (params.where.length > 0) {
+      const totalWhereBinding = params.where.reduce((total, current) => {
+        if (current.match(/\$\d+/)) total += 1;
+        return total;
+      }, 0);
+      if (totalWhereBinding !== bindingLength) {
+        if (params.rejectOnEmpty) params.rejectOnEmpty = undefined as any;
+        throw new InternalServerError({
+          code: 'BASE_REPOSITORY:DIFERENCE_BINDING',
+          message:
+            'The query bind is incorrect, needs to have {{totalWhereBinding}} values and received {{bindingLength}}.',
+          metadata: {
+            totalWhereBinding,
+            bindingLength,
+            params,
+          },
+        });
+      }
     }
-    return this.findOne<T>({
-      columns,
-      where: [`${this.primaryKey} = $1`],
-      binding: [id],
-    });
+    params.where.push(`${this.primaryKey} = $${bindingLength + 1}`);
+    params.binding.push(params.primaryValue);
+    return this.findOne<T>(params);
   }
 
   public async create(data: Omit<TRow, 'id'>): Promise<TRow> {
@@ -100,7 +102,7 @@ export class Repository<TRow extends QueryResultRow = any> {
     const columns = Object.keys(record);
     const bindings = columns.map((_, index) => `$${index + 1}`);
     const { rows } = await this.pool.query<TRow>(
-      `INSERT INTO ${this.getTableName()} (${columns})
+      `INSERT INTO ${this.tableName} (${columns})
        VALUES (${bindings})
        RETURNING *;`,
       Object.values(record),
@@ -129,7 +131,7 @@ export class Repository<TRow extends QueryResultRow = any> {
     });
 
     const { rows } = await this.pool.query<TRow>(
-      `UPDATE ${this.getTableName()}
+      `UPDATE ${this.tableName}
        SET ${set}
        WHERE ${parseWhere}
        RETURNING *;`,
@@ -140,7 +142,7 @@ export class Repository<TRow extends QueryResultRow = any> {
   }
 
   public async delete({ where, binding }: DeleteParams): Promise<TRow> {
-    const tableName = this.getTableName();
+    const tableName = this.tableName;
     const { rows } = await this.pool.query<TRow>(
       `DELETE
        FROM ${tableName}
@@ -149,11 +151,6 @@ export class Repository<TRow extends QueryResultRow = any> {
       binding,
     );
     return rows[0];
-  }
-
-  protected getTableName() {
-    if (!this.tableName?.trim()) throw new Error('Table name is required');
-    return this.tableName;
   }
 
   private makeWhere(where: string[], initialIndex = 0): string {
@@ -171,6 +168,7 @@ export class Repository<TRow extends QueryResultRow = any> {
 
 type Where = string[];
 type Binding = any[];
+
 type FindParams = {
   where?: Where;
   binding?: Binding;
@@ -180,11 +178,14 @@ type FindParams = {
   limit?: number;
   offset?: number;
   groupBy?: string[];
+  nest?: boolean;
 };
+
 type DeleteParams = {
   where: Where;
   binding: Binding;
 };
+
 type UpdateParams<Data extends QueryResultRow = any> = {
   where: Where;
   binding: Binding;
@@ -192,6 +193,12 @@ type UpdateParams<Data extends QueryResultRow = any> = {
 };
 
 type FindOneParams = Omit<FindParams, 'limit' | 'offset'>;
+
 type FindOneWithRejectParams = {
   rejectOnEmpty: boolean | string | Error;
 } & FindOneParams;
+
+type FindByIdParams = { primaryValue: any } & Omit<
+  FindOneWithRejectParams,
+  'groupBy' | 'orderBy'
+>;

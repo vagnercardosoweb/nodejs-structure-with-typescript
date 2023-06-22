@@ -11,8 +11,9 @@ enum Prefix {
 }
 
 export class Migrator {
-  protected prefix: Prefix = Prefix.UP;
   protected logger: LoggerInterface;
+  protected readonly tableName = 'migrations';
+  protected prefix: Prefix = Prefix.UP;
 
   constructor(
     protected readonly db: PgPoolInterface,
@@ -55,24 +56,23 @@ export class Migrator {
 
   private async checkAndCreateTableMigrations(pool: PgPoolInterface) {
     const result = await pool.query(
-      `
-        SELECT table_name
-        FROM information_schema.tables
-        WHERE table_name = 'db_migrations';
+      `SELECT
+         table_name
+       FROM information_schema.tables
+       WHERE table_name = '${this.tableName}';
       `,
     );
     if (result.rows.length === 0) {
       await pool.query(`
-        CREATE TABLE IF NOT EXISTS db_migrations
-        (
-          file_name  VARCHAR                   NOT NULL,
+        CREATE TABLE IF NOT EXISTS ${this.tableName} (
+          name VARCHAR NOT NULL,
           created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
         );
-        CREATE INDEX IF NOT EXISTS db_migrations_name_index ON db_migrations (file_name);
-        CREATE UNIQUE INDEX IF NOT EXISTS db_migrations_name_uidx ON db_migrations (file_name);
-        ALTER TABLE db_migrations
-          DROP CONSTRAINT IF EXISTS db_migrations_file_name_pk,
-          ADD CONSTRAINT db_migrations_file_name_pk PRIMARY KEY (file_name);
+        CREATE INDEX IF NOT EXISTS ${this.tableName}_name_index ON ${this.tableName} (name);
+        CREATE UNIQUE INDEX IF NOT EXISTS ${this.tableName}_name_uidx ON ${this.tableName} (name);
+        ALTER TABLE ${this.tableName}
+          DROP CONSTRAINT IF EXISTS ${this.tableName}_name_pk,
+          ADD CONSTRAINT ${this.tableName}_name_pk PRIMARY KEY (name);
       `);
     }
   }
@@ -80,31 +80,25 @@ export class Migrator {
   private async executeSql(pool: PgPoolInterface, fileName: string) {
     const sql = await fs.promises.readFile(path.resolve(this.path, fileName));
     await pool.query(sql.toString());
-
-    const afterQuery =
+    await pool.query(
       this.prefix === Prefix.UP
-        ? `
-          INSERT INTO db_migrations (file_name, created_at)
-          VALUES ('${fileName}', NOW());
-        `
-        : `
-          DELETE
-          FROM db_migrations
-          WHERE file_name = '${fileName}';
-        `;
-
-    await pool.query(afterQuery);
+        ? `INSERT INTO ${this.tableName} (name, created_at)
+           VALUES ('${fileName}', NOW());`
+        : `DELETE
+           FROM ${this.tableName}
+           WHERE name = '${fileName}';`,
+    );
   }
 
   private async getMigrations(pool: PgPoolInterface) {
-    const sqlMigrations = `
-      SELECT file_name
-      FROM db_migrations
-      ORDER BY file_name ASC;
-    `;
-    const queryResult = await pool.query(sqlMigrations);
+    const queryResult = await pool.query(`
+      SELECT
+        name
+      FROM ${this.tableName}
+      ORDER BY name ASC;
+    `);
     return queryResult.rows.reduce((previous, current) => {
-      previous[current.file_name] = true;
+      previous[current.name] = true;
       return previous;
     }, {} as Record<string, true>);
   }
