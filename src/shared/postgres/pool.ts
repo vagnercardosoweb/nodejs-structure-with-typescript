@@ -11,6 +11,7 @@ import {
   Utils,
 } from '@/shared';
 
+import { QueryMensure } from './query-mensure';
 import {
   FnTransaction,
   PgPoolConnectionOptions,
@@ -22,6 +23,7 @@ import {
 export class PgPool implements PgPoolInterface {
   protected logger: LoggerInterface;
   protected client: PoolClient | null = null;
+  protected configured = false;
   protected readonly pool: Pool;
   protected closed = false;
 
@@ -81,7 +83,7 @@ export class PgPool implements PgPoolInterface {
   }
 
   public async connect(): Promise<PgPoolInterface> {
-    this.logger.info('CONNECTION');
+    this.logger.info('CONNECTING');
     await this.query('SELECT 1 + 1;');
     return this;
   }
@@ -90,8 +92,8 @@ export class PgPool implements PgPoolInterface {
     this.client = await this.pool.connect();
     const transaction = new Transaction(this);
     transaction.onFinish(() => {
-      this.logger.info('DB_RELEASE_CLIENT');
-      this.client?.release(true);
+      this.logger.info('RELEASING');
+      this.client?.release();
       this.client = null;
     });
     await transaction.begin();
@@ -102,8 +104,9 @@ export class PgPool implements PgPoolInterface {
     query: string,
     bind: any[] = [],
   ): Promise<QueryResult<T>> {
-    const now = Date.now();
     query = Utils.removeLinesAndSpaceFromSql(query);
+
+    const mensure = new QueryMensure();
     const client = await this.getClient();
     let isError = false;
 
@@ -125,12 +128,12 @@ export class PgPool implements PgPoolInterface {
         original: e,
         metadata: {
           query,
-          duration: `${Date.now() - now}ms`,
+          duration: mensure.format(),
           bind,
         },
       });
     } finally {
-      this.logQuery(now, query, bind, isError);
+      this.logQuery(mensure.format(), query, bind, isError);
     }
   }
 
@@ -149,32 +152,36 @@ export class PgPool implements PgPoolInterface {
   protected async getClient() {
     const client = this.client ?? this.pool;
 
-    if (this.options?.timezone) {
-      await client.query(`SET timezone TO '${this.options.timezone}';`);
-    }
+    if (!this.configured) {
+      this.logger.info('setting timezone, encoding and search path', {
+        schema: this.options.schema,
+        timezone: this.options.timezone,
+        charset: this.options.charset,
+      });
 
-    if (this.options?.charset) {
-      await client.query(`SET client_encoding TO '${this.options.charset}';`);
-    }
+      await client.query(`
+        SET timezone TO '${this.options.timezone}';
+        SET client_encoding TO '${this.options.charset}';
+        SET search_path TO '${this.options.schema}';
+      `);
 
-    if (this.options?.schema) {
-      await client.query(`SET search_path TO '${this.options.schema}';`);
+      this.configured = true;
     }
 
     return client;
   }
 
   protected logQuery(
-    now: number,
+    duration: string,
     query: string,
     bind: any[],
     isError: boolean,
   ) {
     if (!this.options.logging) return;
-    this.logger.log(isError ? LogLevel.ERROR : LogLevel.INFO, 'DB_QUERY', {
+    this.logger.log(isError ? LogLevel.ERROR : LogLevel.INFO, 'QUERY', {
       name: this.options.appName.toLowerCase(),
       type: this.client !== null ? 'client' : 'pool',
-      duration: `${Date.now() - now}ms`,
+      duration,
       query,
       bind,
     });
