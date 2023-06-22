@@ -10,16 +10,16 @@ export class Transaction {
 
   public async begin() {
     if (this.started) return;
-    await this.client.query('BEGIN TRANSACTION;', []);
+    await this.client.query('BEGIN', []);
     this.started = true;
   }
 
   public async commit() {
-    await this.runCommitOrRollback('COMMIT TRANSACTION;');
+    await this.runCommitOrRollback('COMMIT');
   }
 
   public async rollback() {
-    await this.runCommitOrRollback('ROLLBACK TRANSACTION;');
+    await this.runCommitOrRollback('ROLLBACK');
   }
 
   public onCommit(handle: Handle): void {
@@ -43,14 +43,16 @@ export class Transaction {
       });
     }
 
-    await this.client.query(query, []);
-
-    const operator = query.split(' ')[0].toLowerCase() as Operator;
-    await Promise.all(
-      this.handlers
-        .filter((handler) => [operator, 'finish'].includes(handler.operator))
-        .map((handler) => handler.handle()),
-    );
+    try {
+      await this.client.query(query, []);
+    } finally {
+      const operator = query.toLowerCase() as Operator;
+      await Promise.all(
+        this.handlers
+          .filter((handler) => [operator, 'finish'].includes(handler.operator))
+          .map((handler) => handler.handle()),
+      );
+    }
   }
 }
 
