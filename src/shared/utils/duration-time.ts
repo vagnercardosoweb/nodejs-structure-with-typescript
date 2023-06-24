@@ -1,4 +1,4 @@
-export class QueryMensure {
+export class DurationTime {
   protected startTime: [number, number];
   protected durationInMs = 0;
 
@@ -6,7 +6,7 @@ export class QueryMensure {
     this.startTime = process.hrtime();
   }
 
-  public duration() {
+  public toMs() {
     if (this.durationInMs > 0) return this.durationInMs;
     const endTime = process.hrtime(this.startTime);
     this.durationInMs = endTime[0] * 1e3 + endTime[1] * 1e-6;
@@ -14,6 +14,6 @@ export class QueryMensure {
   }
 
   public format() {
-    return `${this.duration().toFixed(4)}ms`;
+    return `${this.toMs().toFixed(3)}ms`;
   }
 }

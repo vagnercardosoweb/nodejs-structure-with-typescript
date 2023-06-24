@@ -61,18 +61,18 @@ export class SlackAlert {
                 type: 'section',
                 text: {
                   type: 'mrkdwn',
-                  text: util.format(
-                    'Log from context `%s`, environment `%s`.',
-                    options.username,
-                    Env.get('NODE_ENV'),
-                  ),
+                  text: util
+                    .format(
+                      '%s log from `%s` in `%s`.',
+                      checkerUsers.map((user) => `<@${user}>`).join(', '),
+                      options.username,
+                      Env.get('NODE_ENV'),
+                    )
+                    .trim(),
                 },
                 fields: Object.entries(
                   Utils.removeUndefined({
                     'Date': new Date().toISOString(),
-                    'Checker': checkerUsers
-                      .map((user) => `<@${user}>`)
-                      .join(', '),
                     'Hostname/PID': util.format(
                       '%s/%s',
                       os.hostname(),

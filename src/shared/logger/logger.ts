@@ -1,37 +1,14 @@
 import os from 'node:os';
 
-import {
-  createLogger,
-  format,
-  Logger as WinstonLogger,
-  transports,
-} from 'winston';
-
 import { Env, LoggerInterface, LoggerMetadata, LogLevel } from '@/shared';
 
 class Logger implements LoggerInterface {
-  protected readonly client: WinstonLogger;
+  protected readonly pid: number;
+  protected readonly hostname: string;
 
   constructor(private readonly id: string) {
-    this.client = createLogger({
-      transports: [new transports.Console()],
-      format: format.combine(
-        ...[
-          format.timestamp(),
-          format.printf(({ level, message, timestamp, id, metadata }) => {
-            return JSON.stringify({
-              id,
-              level: level.toUpperCase(),
-              message,
-              pid: process.pid,
-              hostname: os.hostname(),
-              timestamp,
-              metadata,
-            });
-          }),
-        ],
-      ),
-    });
+    this.pid = process.pid;
+    this.hostname = os.hostname();
   }
 
   public withId(id: string) {
@@ -40,7 +17,18 @@ class Logger implements LoggerInterface {
 
   public log(level: LogLevel, message: string, metadata?: LoggerMetadata) {
     if (Env.isTesting()) return;
-    this.client.log(level, message, { id: this.id, metadata });
+    const timestamp = new Date().toISOString();
+    process.stdout.write(
+      JSON.stringify({
+        id: this.id,
+        level: level.toUpperCase(),
+        message,
+        pid: this.pid,
+        hostname: this.hostname,
+        timestamp,
+        metadata,
+      }) + '\n',
+    );
   }
 
   public error(message: string, metadata?: LoggerMetadata) {

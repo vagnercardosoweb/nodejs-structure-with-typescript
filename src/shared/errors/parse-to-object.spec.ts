@@ -19,7 +19,7 @@ describe('AppError', () => {
     const sut = parseErrorToObject(new AppError({ message: 'any_message' }));
     expect(sut.message).toBe('any_message');
     expect(sut.original).toBeUndefined();
-    expect(sut.name).toBe('BadRequestError');
+    expect(sut.name).toBe('AppError');
   });
 
   it('should check for an axios error', () => {
@@ -40,7 +40,7 @@ describe('AppError', () => {
     const sut = parseErrorToObject(axiosErrorMock);
     expect(sut.original?.message).toBe('any_error');
     expect(sut.metadata).toStrictEqual(mockResponse);
-    expect(sut.name).toBe('BadRequestError');
+    expect(sut.name).toBe('AxiosXxx');
   });
 
   it('should create a standard error and perform the replace {{errorId}}', () => {

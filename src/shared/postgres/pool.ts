@@ -1,6 +1,7 @@
 import { Pool, PoolClient } from 'pg';
 
 import {
+  DurationTime,
   Env,
   InternalServerError,
   Logger,
@@ -11,7 +12,6 @@ import {
   Utils,
 } from '@/shared';
 
-import { QueryMensure } from './query-mensure';
 import {
   FnTransaction,
   PgPoolConnectionOptions,
@@ -21,14 +21,15 @@ import {
 } from './types';
 
 export class PgPool implements PgPoolInterface {
-  protected logger: LoggerInterface;
   protected client: PoolClient | null = null;
   protected configured = false;
   protected readonly pool: Pool;
   protected closed = false;
 
-  public constructor(protected readonly options: PgPoolConnectionOptions) {
-    this.logger = Logger.withId('DATABASE');
+  public constructor(
+    protected logger: LoggerInterface,
+    protected readonly options: PgPoolConnectionOptions,
+  ) {
     this.pool = new Pool({
       host: this.options.host,
       port: this.options?.port ?? 5432,
@@ -47,8 +48,8 @@ export class PgPool implements PgPoolInterface {
   }
 
   public static fromEnvironment(): PgPool {
-    return new PgPool({
-      appName: Env.get('DB_APP_NAME', 'typescript-structure'),
+    return new PgPool(Logger.withId('DB_POOL'), {
+      appName: Env.get('DB_APP_NAME', 'api'),
       charset: Env.get('DB_CHARSET', 'utf8'),
       database: Env.required('DB_NAME'),
       enabledSsl: Env.get('DB_ENABLED_SSL', false),
@@ -83,7 +84,6 @@ export class PgPool implements PgPoolInterface {
   }
 
   public async connect(): Promise<PgPoolInterface> {
-    this.logger.info('CONNECTING');
     await this.query('SELECT 1 + 1;');
     return this;
   }
@@ -104,11 +104,18 @@ export class PgPool implements PgPoolInterface {
     query: string,
     bind: any[] = [],
   ): Promise<QueryResult<T>> {
+    let isError = false;
     query = Utils.removeLinesAndSpaceFromSql(query);
 
-    const mensure = new QueryMensure();
+    const duration = new DurationTime();
     const client = await this.getClient();
-    let isError = false;
+    const metadata = {
+      name: this.options.appName.toLowerCase(),
+      type: this.client !== null ? 'transaction' : 'pool',
+      duration: '',
+      query,
+      bind,
+    };
 
     try {
       const result = await client.query<T>(query, bind);
@@ -123,17 +130,21 @@ export class PgPool implements PgPoolInterface {
       };
     } catch (e: any) {
       isError = true;
+      metadata.duration = duration.format();
       throw new InternalServerError({
-        message: 'QUERY_ERROR',
+        message: 'DB_QUERY',
         original: e,
-        metadata: {
-          query,
-          duration: mensure.format(),
-          bind,
-        },
+        metadata,
       });
     } finally {
-      this.logQuery(mensure.format(), query, bind, isError);
+      if (this.options.logging) {
+        metadata.duration = duration.format();
+        this.logger.log(
+          isError ? LogLevel.ERROR : LogLevel.INFO,
+          'DB_QUERY',
+          metadata,
+        );
+      }
     }
   }
 
@@ -153,37 +164,15 @@ export class PgPool implements PgPoolInterface {
     const client = this.client ?? this.pool;
 
     if (!this.configured) {
-      this.logger.info('setting timezone, encoding and search path', {
-        schema: this.options.schema,
-        timezone: this.options.timezone,
-        charset: this.options.charset,
-      });
-
-      await client.query(`
-        SET timezone TO '${this.options.timezone}';
-        SET client_encoding TO '${this.options.charset}';
-        SET search_path TO '${this.options.schema}';
-      `);
-
+      const query = [
+        `SET timezone TO '${this.options.timezone}';`,
+        `SET client_encoding TO '${this.options.charset}';`,
+        `SET search_path TO '${this.options.schema}';`,
+      ];
+      await client.query(query.join(''));
       this.configured = true;
     }
 
     return client;
-  }
-
-  protected logQuery(
-    duration: string,
-    query: string,
-    bind: any[],
-    isError: boolean,
-  ) {
-    if (!this.options.logging) return;
-    this.logger.log(isError ? LogLevel.ERROR : LogLevel.INFO, 'QUERY', {
-      name: this.options.appName.toLowerCase(),
-      type: this.client !== null ? 'client' : 'pool',
-      duration,
-      query,
-      bind,
-    });
   }
 }

@@ -35,7 +35,6 @@ export const parseErrorToObject = (error: any): AppError => {
   // check axios errors
   if (result.name.startsWith('Axios')) {
     const { status, data, config } = error.response;
-    result.name = AppError.mapperStatusCodeToName(status);
     result.metadata = { status, data, config };
   }
 

@@ -8,7 +8,7 @@ export class Repository<TRow extends QueryResultRow = any> {
   protected readonly tableName: string = 'table';
   protected readonly primaryKey: string = 'id';
 
-  public constructor(protected readonly pool: PgPoolInterface) {}
+  public constructor(protected readonly pgPool: PgPoolInterface) {}
 
   public async findAll<T extends QueryResultRow = TRow>(
     params?: FindParams,
@@ -33,7 +33,7 @@ export class Repository<TRow extends QueryResultRow = any> {
       query += `LIMIT ${limit} `;
       if (offset !== -1) query += `OFFSET ${offset}`;
     }
-    const result = await this.pool.query(query.trim(), binding);
+    const result = await this.pgPool.query(query.trim(), binding);
     return result.rows;
   }
 
@@ -101,7 +101,7 @@ export class Repository<TRow extends QueryResultRow = any> {
     const record = Utils.removeUndefined(data);
     const columns = Object.keys(record);
     const bindings = columns.map((_, index) => `$${index + 1}`);
-    const { rows } = await this.pool.query<TRow>(
+    const { rows } = await this.pgPool.query<TRow>(
       `INSERT INTO ${this.tableName} (${columns})
        VALUES (${bindings})
        RETURNING *;`,
@@ -130,7 +130,7 @@ export class Repository<TRow extends QueryResultRow = any> {
       bindings[index + length] = bind;
     });
 
-    const { rows } = await this.pool.query<TRow>(
+    const { rows } = await this.pgPool.query<TRow>(
       `UPDATE ${this.tableName}
        SET ${set}
        WHERE ${parseWhere}
@@ -143,7 +143,7 @@ export class Repository<TRow extends QueryResultRow = any> {
 
   public async delete({ where, binding }: DeleteParams): Promise<TRow> {
     const tableName = this.tableName;
-    const { rows } = await this.pool.query<TRow>(
+    const { rows } = await this.pgPool.query<TRow>(
       `DELETE
        FROM ${tableName}
        WHERE ${this.makeWhere(where)}

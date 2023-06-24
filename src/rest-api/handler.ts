@@ -12,7 +12,7 @@ export abstract class AbstractHandler {
   protected readonly translation: TranslationInterface;
   protected readonly logger: LoggerInterface;
 
-  protected constructor(
+  public constructor(
     protected readonly request: Request,
     protected readonly response: Response,
   ) {

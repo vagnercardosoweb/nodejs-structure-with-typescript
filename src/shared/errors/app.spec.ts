@@ -7,7 +7,7 @@ describe('AppError', () => {
     const sut = new AppError();
 
     expect(sut.code).toBe('DEFAULT');
-    expect(sut.name).toBe('BadRequestError');
+    expect(sut.name).toBe('AppError');
     expect(sut.message).toBe(
       `An error occurred, contact support and report the code [${sut.errorId}]`,
     );
@@ -46,7 +46,6 @@ describe('AppError', () => {
     const sut = new AppError(input);
 
     expect(sut.code).toBe(input.code);
-    expect(sut.name).toBe('InternalServerError');
     expect(sut.message).toBe(input.message);
     expect(sut.description).toBe(input.description);
     expect(sut.errorId).toEqual('any_error_id');

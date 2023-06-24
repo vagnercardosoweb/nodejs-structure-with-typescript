@@ -23,27 +23,27 @@ export class Migrator {
   public async up(): Promise<void> {
     this.prefix = Prefix.UP;
 
-    await this.db.createTransactionManaged(async (pool) => {
-      await this.checkAndCreateTableMigrations(pool as any);
-      await this.runMigrations(pool as any);
+    await this.db.createTransactionManaged(async () => {
+      await this.checkAndCreateTableMigrations();
+      await this.runMigrations();
     });
   }
 
   public async down(): Promise<void> {
     this.prefix = Prefix.DOWN;
 
-    await this.db.createTransactionManaged(async (connection) => {
-      await this.checkAndCreateTableMigrations(connection as any);
-      await this.runMigrations(connection as any);
+    await this.db.createTransactionManaged(async () => {
+      await this.checkAndCreateTableMigrations();
+      await this.runMigrations();
     });
   }
 
-  protected async runMigrations(pool: PgPoolInterface): Promise<void> {
+  protected async runMigrations(): Promise<void> {
     const fileNames = await this.getFileNames();
-    const migrationsFromDb = await this.getMigrations(pool);
+    const migrationsFromDb = await this.getMigrations();
     for await (const fileName of fileNames) {
       if (migrationsFromDb?.[fileName]) continue;
-      await this.executeSql(pool, fileName);
+      await this.executeSql(fileName);
     }
   }
 
@@ -54,8 +54,8 @@ export class Migrator {
       .sort((a: string, b: string) => a.localeCompare(b));
   }
 
-  private async checkAndCreateTableMigrations(pool: PgPoolInterface) {
-    const result = await pool.query(
+  private async checkAndCreateTableMigrations() {
+    const result = await this.db.query(
       `SELECT
          table_name
        FROM information_schema.tables
@@ -63,7 +63,7 @@ export class Migrator {
       `,
     );
     if (result.rows.length === 0) {
-      await pool.query(`
+      await this.db.query(`
         CREATE TABLE IF NOT EXISTS ${this.tableName} (
           name VARCHAR NOT NULL,
           created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
@@ -77,10 +77,10 @@ export class Migrator {
     }
   }
 
-  private async executeSql(pool: PgPoolInterface, fileName: string) {
+  private async executeSql(fileName: string) {
     const sql = await fs.promises.readFile(path.resolve(this.path, fileName));
-    await pool.query(sql.toString());
-    await pool.query(
+    await this.db.query(sql.toString());
+    await this.db.query(
       this.prefix === Prefix.UP
         ? `INSERT INTO ${this.tableName} (name, created_at)
            VALUES ('${fileName}', NOW());`
@@ -90,8 +90,8 @@ export class Migrator {
     );
   }
 
-  private async getMigrations(pool: PgPoolInterface) {
-    const queryResult = await pool.query(`
+  private async getMigrations() {
+    const queryResult = await this.db.query(`
       SELECT
         name
       FROM ${this.tableName}

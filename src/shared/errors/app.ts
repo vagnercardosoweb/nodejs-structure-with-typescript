@@ -22,6 +22,7 @@ export interface Options {
 
 export class AppError extends Error {
   public code: string;
+  public name = 'AppError';
   public message: string;
   public description?: string;
   public metadata: Metadata = {};
@@ -37,16 +38,15 @@ export class AppError extends Error {
     if (!options.statusCode) options.statusCode = HttpStatusCode.BAD_REQUEST;
     if (!options.errorId) options.errorId = AppError.generateErrorId();
 
+    if (Utils.isUndefined(options.logging)) options.logging = true;
+    if (Utils.isUndefined(options.sendToSlack)) options.sendToSlack = true;
+
     if (!options.message) {
       options.message =
         'An error occurred, contact support and report the code [{{errorId}}]';
     }
 
-    if (Utils.isUndefined(options.logging)) options.logging = true;
-    if (Utils.isUndefined(options.sendToSlack)) options.sendToSlack = true;
-
     super(options.message);
-    this.name = AppError.mapperStatusCodeToName(options.statusCode);
 
     Object.setPrototypeOf(this, AppError.prototype);
     Error.captureStackTrace(this, this.constructor);
@@ -75,23 +75,6 @@ export class AppError extends Error {
 
   public static generateErrorId(): string {
     return `V${randomInt(1_000_000_000, 9_999_999_999).toString()}C`;
-  }
-
-  public static mapperStatusCodeToName(statusCode: number): string {
-    const names: Record<number, string> = {
-      [HttpStatusCode.CONFLICT]: 'ConflictError',
-      [HttpStatusCode.BAD_REQUEST]: 'BadRequestError',
-      [HttpStatusCode.FORBIDDEN]: 'ForbiddenError',
-      [HttpStatusCode.INTERNAL_SERVER_ERROR]: 'InternalServerError',
-      [HttpStatusCode.METHOD_NOT_ALLOWED]: 'MethodNotAllowedError',
-      [HttpStatusCode.NOT_ACCEPTABLE]: 'NotAcceptableError',
-      [HttpStatusCode.NOT_FOUND]: 'NotFoundError',
-      [HttpStatusCode.MANY_REQUEST]: 'RateLimiterError',
-      [HttpStatusCode.SERVICE_UNAVAILABLE]: 'ServiceUnavailableError',
-      [HttpStatusCode.UNAUTHORIZED]: 'UnauthorizedError',
-    };
-    if (names?.[statusCode]) return names[statusCode];
-    return 'AppError';
   }
 
   private replaceMessage(message: string, metadata: Metadata): string {

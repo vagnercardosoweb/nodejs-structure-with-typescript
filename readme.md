@@ -23,4 +23,4 @@ after that just run the commands below.
 - Run server with docker `npm run dev:docker`
 
 after step up your server will be online on
-host [http://localhost:3333](http://localhost:3333)
+host [http://localhost:3000](http://localhost:3000)

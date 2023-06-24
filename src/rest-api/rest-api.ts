@@ -1,7 +1,6 @@
 import 'express-async-errors';
 
 import http from 'node:http';
-import process from 'node:process';
 
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
@@ -21,6 +20,7 @@ import {
   ContainerInterface,
   ContainerName,
   ContainerValue,
+  DurationTime,
   HttpMethod,
   HttpStatusCode,
   InternalServerError,
@@ -195,10 +195,8 @@ export class RestApi {
           }
 
           const Handler = route.handler as any;
-          const startTime = process.hrtime();
+          const duration = new DurationTime();
           const result = await new Handler(request, response).handle();
-          const endTime = process.hrtime(startTime);
-          const durationMs = endTime[0] * 1e3 + endTime[1] * 1e-6;
 
           if (!result && response.statusCode === HttpStatusCode.OK) {
             return response.sendStatus(HttpStatusCode.NO_CONTENT);
@@ -208,7 +206,7 @@ export class RestApi {
             data: result,
             path: `${request.method} ${request.originalUrl}`,
             timestamp: new Date().toISOString(),
-            duration: `${durationMs.toFixed(3)}ms`,
+            duration: duration.format(),
             ipAddress: request.ip,
           });
         },
