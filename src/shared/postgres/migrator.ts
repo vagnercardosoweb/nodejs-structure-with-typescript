@@ -1,105 +1,112 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { LoggerInterface } from '@/shared';
-
-import { PgPoolInterface } from './types';
+import { PgPoolInterface } from '@/shared';
 
 enum Prefix {
-  UP = 'up',
   DOWN = 'down',
+  UP = 'up',
 }
 
 export class Migrator {
-  protected logger: LoggerInterface;
-  protected readonly tableName = 'migrations';
-  protected prefix: Prefix = Prefix.UP;
+  protected prefix = Prefix.UP;
 
   constructor(
-    protected readonly db: PgPoolInterface,
+    protected readonly pgPool: PgPoolInterface,
     protected readonly path: string,
   ) {}
 
-  public async up(): Promise<void> {
-    this.prefix = Prefix.UP;
-
-    await this.db.createTransactionManaged(async () => {
-      await this.checkAndCreateTableMigrations();
-      await this.runMigrations();
-    });
+  public async run(): Promise<void> {
+    if (this.prefix === Prefix.UP) {
+      await this.up();
+    } else {
+      await this.down();
+    }
   }
 
   public async down(): Promise<void> {
     this.prefix = Prefix.DOWN;
-
-    await this.db.createTransactionManaged(async () => {
-      await this.checkAndCreateTableMigrations();
-      await this.runMigrations();
-    });
-  }
-
-  protected async runMigrations(): Promise<void> {
-    const fileNames = await this.getFileNames();
-    const migrationsFromDb = await this.getMigrations();
-    for await (const fileName of fileNames) {
-      if (migrationsFromDb?.[fileName]) continue;
-      await this.executeSql(fileName);
+    await this.checkOrCreateMigrationTable();
+    const {
+      rows: [row],
+    } = await this.pgPool.query(
+      'SELECT file_name FROM migrations ORDER BY file_name DESC LIMIT 1',
+    );
+    if (row?.file_name) {
+      await this.pgPool.createTransactionManaged(async () =>
+        this.executeSql(row.file_name),
+      );
     }
   }
 
-  protected async getFileNames(): Promise<string[]> {
+  public async up(): Promise<void> {
+    this.prefix = Prefix.UP;
+    const files = await this.getMigrationsFilesToUp();
+    if (files.length === 0) return;
+    await this.checkOrCreateMigrationTable();
+    const migrations = await this.getMigrationFromDb();
+    await this.pgPool.createTransactionManaged(async () => {
+      for await (const file of files) {
+        if (migrations?.[file]) continue;
+        await this.executeSql(file);
+      }
+    });
+  }
+
+  protected async getMigrationsFilesToUp(): Promise<string[]> {
     const files = await fs.promises.readdir(this.path);
     return files
       .filter((path) => path.endsWith(`${this.prefix}.sql`))
+      .map((path) => path.replace(/\.(up|down)\.sql/gm, ''))
       .sort((a: string, b: string) => a.localeCompare(b));
   }
 
-  private async checkAndCreateTableMigrations() {
-    const result = await this.db.query(
-      `SELECT
-         table_name
-       FROM information_schema.tables
-       WHERE table_name = '${this.tableName}';
-      `,
+  private async checkOrCreateMigrationTable() {
+    const result = await this.pgPool.query(
+      `SELECT table_name FROM information_schema.tables WHERE table_schema = $1 AND table_name = $2;`,
+      [(this.pgPool as any).options.schema, 'migrations'],
     );
     if (result.rows.length === 0) {
-      await this.db.query(`
-        CREATE TABLE IF NOT EXISTS ${this.tableName} (
-          name VARCHAR NOT NULL,
+      await this.pgPool.query(`
+        CREATE TABLE IF NOT EXISTS migrations (
+          file_name VARCHAR NOT NULL,
           created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
         );
-        CREATE INDEX IF NOT EXISTS ${this.tableName}_name_index ON ${this.tableName} (name);
-        CREATE UNIQUE INDEX IF NOT EXISTS ${this.tableName}_name_uidx ON ${this.tableName} (name);
-        ALTER TABLE ${this.tableName}
-          DROP CONSTRAINT IF EXISTS ${this.tableName}_name_pk,
-          ADD CONSTRAINT ${this.tableName}_name_pk PRIMARY KEY (name);
+        CREATE INDEX IF NOT EXISTS migrations_file_name_idx ON migrations (file_name);
+        ALTER TABLE migrations
+          DROP CONSTRAINT IF EXISTS migrations_file_name_uk,
+          ADD CONSTRAINT migrations_file_name_uk UNIQUE (file_name);
+        ALTER TABLE migrations
+          DROP CONSTRAINT IF EXISTS migrations_file_name_pk,
+          ADD CONSTRAINT migrations_file_name_pk PRIMARY KEY (file_name);
       `);
     }
   }
 
   private async executeSql(fileName: string) {
-    const sql = await fs.promises.readFile(path.resolve(this.path, fileName));
-    await this.db.query(sql.toString());
-    await this.db.query(
+    await this.pgPool.query(await this.getContentSql(fileName));
+    await this.pgPool.query(
       this.prefix === Prefix.UP
-        ? `INSERT INTO ${this.tableName} (name, created_at)
-           VALUES ('${fileName}', NOW());`
-        : `DELETE
-           FROM ${this.tableName}
-           WHERE name = '${fileName}';`,
+        ? `INSERT INTO migrations (file_name, created_at) VALUES ($1, NOW());`
+        : `DELETE FROM migrations WHERE file_name = $1;`,
+      [fileName],
     );
   }
 
-  private async getMigrations() {
-    const queryResult = await this.db.query(`
-      SELECT
-        name
-      FROM ${this.tableName}
-      ORDER BY name ASC;
-    `);
-    return queryResult.rows.reduce((previous, current) => {
-      previous[current.name] = true;
+  private async getContentSql(fileName: string) {
+    fileName = `${fileName}.${this.prefix}.sql`;
+    const filePath = path.resolve(this.path, fileName);
+    const content = await fs.promises.readFile(filePath);
+    return content.toString();
+  }
+
+  private async getMigrationFromDb(): Promise<Record<string, boolean>> {
+    const { rows } = await this.pgPool.query(
+      `SELECT file_name FROM migrations;`,
+    );
+    return rows.reduce((previous, current) => {
+      previous[current.file_name] = true;
       return previous;
-    }, {} as Record<string, true>);
+    }, {});
   }
 }
