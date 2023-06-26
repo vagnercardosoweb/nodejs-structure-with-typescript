@@ -27,16 +27,15 @@ export class Migrator {
   public async down(): Promise<void> {
     this.prefix = Prefix.DOWN;
     await this.checkOrCreateMigrationTable();
-    const {
-      rows: [row],
-    } = await this.pgPool.query(
-      'SELECT file_name FROM migrations ORDER BY file_name DESC LIMIT 1',
-    );
-    if (row?.file_name) {
-      await this.pgPool.createTransactionManaged(async () =>
-        this.executeSql(row.file_name),
-      );
-    }
+    let query = 'SELECT file_name FROM migrations ORDER BY file_name DESC';
+    if (process.argv?.[3] !== 'all') query += ' LIMIT 1';
+    const { rows } = await this.pgPool.query(query);
+    if (rows.length === 0) return;
+    await this.pgPool.createTransactionManaged(async () => {
+      for await (const row of rows) {
+        await this.executeSql(row.file_name);
+      }
+    });
   }
 
   public async up(): Promise<void> {
@@ -63,7 +62,10 @@ export class Migrator {
 
   private async checkOrCreateMigrationTable() {
     const result = await this.pgPool.query(
-      `SELECT table_name FROM information_schema.tables WHERE table_schema = $1 AND table_name = $2;`,
+      `SELECT table_name
+       FROM information_schema.tables
+       WHERE table_schema = $1
+         AND table_name = $2;`,
       [(this.pgPool as any).options.schema, 'migrations'],
     );
     if (result.rows.length === 0) {
@@ -87,8 +89,8 @@ export class Migrator {
     await this.pgPool.query(await this.getContentSql(fileName));
     await this.pgPool.query(
       this.prefix === Prefix.UP
-        ? `INSERT INTO migrations (file_name, created_at) VALUES ($1, NOW());`
-        : `DELETE FROM migrations WHERE file_name = $1;`,
+        ? 'INSERT INTO migrations (file_name, created_at) VALUES ($1, NOW());'
+        : 'DELETE FROM migrations WHERE file_name = $1;',
       [fileName],
     );
   }
@@ -101,9 +103,8 @@ export class Migrator {
   }
 
   private async getMigrationFromDb(): Promise<Record<string, boolean>> {
-    const { rows } = await this.pgPool.query(
-      `SELECT file_name FROM migrations;`,
-    );
+    const query = 'SELECT file_name FROM migrations;';
+    const { rows } = await this.pgPool.query(query);
     return rows.reduce((previous, current) => {
       previous[current.file_name] = true;
       return previous;
