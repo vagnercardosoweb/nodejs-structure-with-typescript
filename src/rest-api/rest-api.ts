@@ -207,6 +207,7 @@ export class RestApi {
             path: `${request.method} ${request.originalUrl}`,
             timestamp: new Date().toISOString(),
             duration: duration.format(),
+            requestId: request.context.requestId,
             ipAddress: request.ip,
           });
         },

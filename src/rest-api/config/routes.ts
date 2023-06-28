@@ -19,6 +19,7 @@ export const routes: Route[] = [
         data: '🚀',
         timestamp,
         ipAddress: request.ip,
+        requestId: request.context.requestId,
         path,
       });
     },
