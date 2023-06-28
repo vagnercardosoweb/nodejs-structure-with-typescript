@@ -29,9 +29,9 @@ const makeError = (externalError: any, metadata: any) => {
           code: 'HTTP_REQUEST:ERROR',
           message: externalError.message,
           original: externalError,
-          metadata,
         });
   error.stack = externalError.stack;
+  error.metadata = metadata;
   return error;
 };
 
