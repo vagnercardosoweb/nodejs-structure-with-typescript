@@ -8,10 +8,6 @@ export const parseErrorToObject = (error: any): AppError => {
     return error;
   }
 
-  if (!error?.statusCode) {
-    error.statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
-  }
-
   const result = new AppError({
     code: error?.code,
     errorId: error?.errorId,
@@ -23,8 +19,6 @@ export const parseErrorToObject = (error: any): AppError => {
     logging: true,
     requestId,
   });
-
-  result.name = error.name;
 
   if (error?.stack) {
     result.stack = error.stack;
@@ -42,6 +36,7 @@ export const parseErrorToObject = (error: any): AppError => {
   if (error?.errors?.length > 0) {
     result.message = error.errors[0] as string;
     (result as any).validators = error.inner;
+    result.statusCode = HttpStatusCode.BAD_REQUEST;
     result.sendToSlack = false;
   }
 
@@ -49,6 +44,7 @@ export const parseErrorToObject = (error: any): AppError => {
   if (error?.issues?.length > 0) {
     result.message = error.issues[0].message as string;
     (result as any).validators = error.issues;
+    result.statusCode = HttpStatusCode.BAD_REQUEST;
     result.sendToSlack = false;
   }
 

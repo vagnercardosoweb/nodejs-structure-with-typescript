@@ -35,7 +35,9 @@ export class AppError extends Error {
 
   constructor(options: Options = {}) {
     if (!options.code) options.code = 'DEFAULT';
-    if (!options.statusCode) options.statusCode = HttpStatusCode.BAD_REQUEST;
+    if (!options.statusCode) {
+      options.statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
+    }
     if (!options.errorId) options.errorId = AppError.generateErrorId();
 
     if (Utils.isUndefined(options.logging)) options.logging = true;

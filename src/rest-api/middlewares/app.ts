@@ -8,6 +8,13 @@ import { ContainerInterface } from '@/shared/container';
 export const app =
   (container: ContainerInterface) =>
   (request: Request, response: Response, next: NextFunction) => {
+    let language =
+      request
+        .acceptsLanguages()
+        .map((language) => language.toLowerCase())
+        .at(0) ?? '*';
+    if (language === '*') language = 'pt-br';
+
     request.container = container.clone();
 
     const requestId = randomUUID();
@@ -19,12 +26,6 @@ export const app =
       requestId,
     };
 
-    let language =
-      request
-        .acceptsLanguages()
-        .map((language) => language.toLowerCase())
-        .at(0) ?? '*';
-    if (language === '*') language = 'pt-br';
     request.translation = container
       .get<Translation>(ContainerName.TRANSLATION)
       .withLocale(language);

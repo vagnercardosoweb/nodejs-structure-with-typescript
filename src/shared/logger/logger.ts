@@ -12,6 +12,7 @@ class Logger implements LoggerInterface {
   }
 
   public withId(id: string) {
+    if (id === undefined) id = 'APP';
     return new Logger(id);
   }
 
@@ -19,7 +20,7 @@ class Logger implements LoggerInterface {
     if (Env.isTesting()) return;
     const timestamp = new Date().toISOString();
     process.stdout.write(
-      JSON.stringify({
+      `${JSON.stringify({
         id: this.id,
         level: level.toUpperCase(),
         message,
@@ -27,7 +28,7 @@ class Logger implements LoggerInterface {
         hostname: this.hostname,
         timestamp,
         metadata,
-      }) + '\n',
+      })}\n`,
     );
   }
 

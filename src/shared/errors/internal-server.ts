@@ -7,6 +7,7 @@ export class InternalServerError extends AppError {
     super({
       code: 'INTERNAL_SERVER_ERROR',
       statusCode: HttpStatusCode.INTERNAL_SERVER_ERROR,
+      sendToSlack: true,
       message: 'errors.internal_server_error',
       ...options,
     });

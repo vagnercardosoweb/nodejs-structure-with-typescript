@@ -13,7 +13,7 @@ export const extractToken = (
     const [, authToken] = authorization.split(' ');
     if (!authToken?.trim()) {
       throw new UnauthorizedError({
-        description: 'Header with [Bearer] but without token.',
+        description: 'Header with BEARER but without TOKEN.',
         sendToSlack: false,
       });
     }

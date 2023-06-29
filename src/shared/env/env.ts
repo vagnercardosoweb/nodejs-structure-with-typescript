@@ -1,4 +1,4 @@
-import { AppError, HttpStatusCode, NodeEnv, Utils } from '@/shared';
+import { InternalServerError, NodeEnv, Utils } from '@/shared';
 
 export class Env {
   public static get(key: string, defaultValue?: any) {
@@ -18,10 +18,8 @@ export class Env {
   public static required(key: string, defaultValue?: any) {
     const value = this.get(key, defaultValue);
     if (!value) {
-      throw new AppError({
+      throw new InternalServerError({
         message: 'Missing environment variable: {{key}}',
-        statusCode: HttpStatusCode.INTERNAL_SERVER_ERROR,
-        sendToSlack: true,
         metadata: { key },
       });
     }

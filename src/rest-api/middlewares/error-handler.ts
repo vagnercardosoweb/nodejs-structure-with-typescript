@@ -14,14 +14,15 @@ export const errorHandler = (
 
   error = parseErrorToObject(error);
   const requestUrl = request.originalUrl || request.url;
+  const requestMethod = request.method.toUpperCase();
 
   const requestId = request.context?.requestId;
   if (!error.requestId) error.requestId = requestId;
 
-  if (!request.logger) request.logger = Logger;
+  if (!request.logger) request.logger = Logger.withId(requestId);
   if (error.logging) {
     request.logger.error('HTTP_REQUEST_ERROR', {
-      path: `${request.method.toUpperCase()} ${requestUrl}`,
+      path: `${requestMethod} ${requestUrl}`,
       routePath: request.route?.path,
       headers: request.headers,
       body: Utils.obfuscateValue(request.body),
@@ -40,7 +41,7 @@ export const errorHandler = (
       fields: {
         errorId: error.errorId,
         errorCode: error.code,
-        requestMethod: request.method.toUpperCase(),
+        requestMethod,
         requestPath: requestUrl,
         statusCode: error.statusCode,
       },
