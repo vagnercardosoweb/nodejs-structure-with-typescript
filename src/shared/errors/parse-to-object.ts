@@ -20,6 +20,7 @@ export const parseErrorToObject = (error: any): AppError => {
     requestId,
   });
 
+  if (error?.name) result.name = error.name;
   if (error?.stack) {
     result.stack = error.stack;
   } else if (error?.message?.trim()) {

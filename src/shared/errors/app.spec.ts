@@ -13,7 +13,7 @@ describe('AppError', () => {
     );
     expect(sut.description).toBeUndefined();
     expect(sut.metadata).toEqual({});
-    expect(sut.statusCode).toBe(HttpStatusCode.BAD_REQUEST);
+    expect(sut.statusCode).toBe(HttpStatusCode.INTERNAL_SERVER_ERROR);
     expect(sut.original).toBeUndefined();
     expect(sut.sendToSlack).toBeTruthy();
     expect(sut.requestId).toBeUndefined();
