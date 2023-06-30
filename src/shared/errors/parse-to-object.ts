@@ -13,7 +13,7 @@ export const parseErrorToObject = (error: any): AppError => {
     errorId: error?.errorId,
     metadata: error?.metadata,
     description: error?.description,
-    statusCode: error.statusCode,
+    statusCode: error?.statusCode,
     sendToSlack: true,
     original: error,
     logging: true,
