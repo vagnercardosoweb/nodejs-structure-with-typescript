@@ -10,7 +10,7 @@ export class Transaction {
 
   public async begin() {
     if (this.started) return;
-    await this.client.query('BEGIN', []);
+    await this.client.query('BEGIN');
     this.started = true;
   }
 
@@ -23,15 +23,15 @@ export class Transaction {
   }
 
   public onCommit(handle: Handle): void {
-    this.handlers.push({ operator: 'commit', handle });
+    this.handlers.push({ kind: 'COMMIT', handle });
   }
 
   public onRollback(handle: Handle): void {
-    this.handlers.push({ operator: 'rollback', handle });
+    this.handlers.push({ kind: 'ROLLBACK', handle });
   }
 
   public onFinish(handle: Handle) {
-    this.handlers.push({ operator: 'finish', handle });
+    this.handlers.push({ kind: 'FINISH', handle });
   }
 
   private async runCommitOrRollback(query: string) {
@@ -44,37 +44,31 @@ export class Transaction {
     }
 
     try {
-      await this.client.query(query, []);
+      await this.client.query(query);
     } finally {
-      const operator = query.toLowerCase() as Operator;
+      const kind = query as Kind;
       await Promise.all(
         this.handlers
-          .filter((handler) => [operator, 'finish'].includes(handler.operator))
+          .filter((handler) => [kind, 'FINISH'].includes(handler.kind))
           .map((handler) => handler.handle()),
-      );
+      ).catch(() => {});
     }
   }
 }
 
-export type Handle = () => void;
+type Kind = 'COMMIT' | 'ROLLBACK' | 'FINISH';
+
+export type Handle = () => Promise<void> | void;
+type Handlers = {
+  handle: Handle;
+  kind: Kind;
+};
 
 export interface TransactionInterface {
   begin(): Promise<void>;
-
   commit(): Promise<void>;
-
   rollback(): Promise<void>;
-
   onCommit(handle: Handle): void;
-
   onRollback(handle: Handle): void;
-
   onFinish(handle: Handle): void;
 }
-
-type Operator = 'commit' | 'rollback' | 'finish';
-
-type Handlers = {
-  operator: Operator;
-  handle: Handle;
-};

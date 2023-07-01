@@ -32,18 +32,18 @@ export class PgPool implements PgPoolInterface {
   ) {
     this.pool = new Pool({
       host: this.options.host,
-      port: this.options?.port ?? 5432,
+      port: this.options.port,
       database: this.options.database,
       user: this.options.username,
       password: this.options.password,
       application_name: this.options.appName,
-      min: this.options?.minPool ?? 0,
-      max: this.options?.maxPool ?? 35,
-      query_timeout: options.timeout?.query ?? 3_000,
-      connectionTimeoutMillis: options.timeout?.connection ?? 2_000,
-      idleTimeoutMillis: options.timeout?.idle ?? 30_000,
-      allowExitOnIdle: true,
+      min: this.options.minPool,
+      max: this.options.maxPool,
       ssl: this.options.enabledSsl ? { rejectUnauthorized: false } : undefined,
+      query_timeout: options.timeout.query,
+      connectionTimeoutMillis: options.timeout.connection,
+      idleTimeoutMillis: options.timeout.idle,
+      allowExitOnIdle: true,
     });
   }
 
@@ -91,11 +91,7 @@ export class PgPool implements PgPoolInterface {
   public async createTransaction(): Promise<TransactionInterface> {
     this.client = await this.pool.connect();
     const transaction = new Transaction(this);
-    transaction.onFinish(() => {
-      this.logger.info('RELEASING');
-      this.client?.release();
-      this.client = null;
-    });
+    transaction.onFinish(() => this.release());
     await transaction.begin();
     return transaction;
   }
@@ -111,8 +107,8 @@ export class PgPool implements PgPoolInterface {
     const client = await this.getClient();
     const metadata = {
       name: this.options.appName.toLowerCase(),
-      type: this.client !== null ? 'transaction' : 'pool',
-      duration: '',
+      type: this.client !== null ? 'TX' : 'POOL',
+      duration: '0ms',
       query,
       bind,
     };
@@ -124,9 +120,9 @@ export class PgPool implements PgPoolInterface {
         rows: result.rows,
         rowCount: result.rowCount,
         command: result.command,
+        fields: result.fields,
         query,
         bind,
-        fields: result.fields,
       };
     } catch (e: any) {
       isError = true;
@@ -158,6 +154,13 @@ export class PgPool implements PgPoolInterface {
       await transaction.rollback();
       throw e;
     }
+  }
+
+  protected release() {
+    if (this.client === null) return;
+    this.logger.info('DB_RELEASING');
+    this.client.release();
+    this.client = null;
   }
 
   protected async getClient() {

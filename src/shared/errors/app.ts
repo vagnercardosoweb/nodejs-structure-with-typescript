@@ -56,12 +56,12 @@ export class AppError extends Error {
     const { original, ...rest } = options;
     Object.entries(rest).forEach(([k, v]) => this.setProperty(k, v));
 
-    const replaces = {
+    const replaces = dottie.flatten({
       ...options.metadata,
       errorId: this.errorId,
       requestId: this.requestId,
       code: this.code,
-    };
+    });
 
     if (original?.message) {
       this.setProperty('original', {
@@ -80,9 +80,8 @@ export class AppError extends Error {
   }
 
   private replaceMessage(message: string, metadata: Metadata): string {
-    const replaces = dottie.flatten(metadata);
-    for (const key in replaces) {
-      message = message.replace(`{{${key}}}`, replaces[key]);
+    for (const key in metadata) {
+      message = message.replace(`{{${key}}}`, metadata[key]);
     }
     return message;
   }

@@ -10,15 +10,10 @@ export interface PgPoolInterface {
     query: string,
     bind?: any[],
   ): Promise<QueryResult<T>>;
-
   withLoggerId(requestId: string): PgPoolInterface;
-
   createTransaction(): Promise<TransactionInterface>;
-
   createTransactionManaged<T>(fn: FnTransaction<T>): Promise<T>;
-
   connect(): Promise<PgPoolInterface>;
-
   close(): Promise<void>;
 }
 
@@ -31,25 +26,25 @@ export type FnTransaction<T> = (
 
 export type PgPoolConnectionOptions = {
   host: string;
-  port?: number;
-  schema?: string;
+  port: number;
+  schema: string;
   database: string;
   username: string;
   password: string;
-  timezone?: string;
-  charset?: string;
-  minPool?: number;
-  maxPool?: number;
-  appName: string;
-  logging: boolean;
+  timezone: string;
+  charset: string;
   enabledSsl: boolean;
+  maxPool: number;
+  minPool: number;
+  logging: boolean;
+  appName: string;
   /**
    * Timeout in ms
    */
-  timeout?: {
-    idle?: number;
-    connection?: number;
-    query?: number;
+  timeout: {
+    idle: number;
+    connection: number;
+    query: number;
   };
 };
 
