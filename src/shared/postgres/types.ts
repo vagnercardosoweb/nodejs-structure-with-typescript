@@ -50,6 +50,7 @@ export type PgPoolConnectionOptions = {
 
 export type QueryResultRow = PgQueryResultRow;
 export type QueryResult<T extends QueryResultRow> = PgQueryResult<T> & {
-  query: string;
   bind: any[];
+  duration: string;
+  query: string;
 };

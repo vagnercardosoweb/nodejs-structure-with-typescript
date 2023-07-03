@@ -6,7 +6,6 @@ import {
   InternalServerError,
   Logger,
   LoggerInterface,
-  LogLevel,
   Transaction,
   TransactionInterface,
   Utils,
@@ -22,7 +21,6 @@ import {
 
 export class PgPool implements PgPoolInterface {
   protected client: PoolClient | null = null;
-  protected configured = false;
   protected readonly pool: Pool;
   protected closed = false;
 
@@ -78,7 +76,7 @@ export class PgPool implements PgPoolInterface {
 
   public async close(): Promise<void> {
     if (this.closed) return;
-    this.logger.info('CLOSING');
+    this.logger.info('DB_CLOSING');
     await this.pool.end();
     this.closed = true;
   }
@@ -100,47 +98,36 @@ export class PgPool implements PgPoolInterface {
     query: string,
     bind: any[] = [],
   ): Promise<QueryResult<T>> {
-    let isError = false;
+    const client = this.getClient();
     query = Utils.removeLinesAndSpaceFromSql(query);
-
-    const duration = new DurationTime();
-    const client = await this.getClient();
     const metadata = {
-      name: this.options.appName.toLowerCase(),
+      name: this.options.appName,
       type: this.client !== null ? 'TX' : 'POOL',
       duration: '0ms',
       query,
       bind,
     };
-
+    const duration = new DurationTime();
     try {
       const result = await client.query<T>(query, bind);
+      metadata.duration = duration.format();
+      if (this.options.logging) this.logger.info('DB_QUERY', metadata);
       return {
         oid: result.oid,
         rows: result.rows,
         rowCount: result.rowCount,
         command: result.command,
+        duration: metadata.duration,
         fields: result.fields,
         query,
         bind,
       };
     } catch (e: any) {
-      isError = true;
       metadata.duration = duration.format();
       throw new InternalServerError({
-        message: 'DB_QUERY',
         original: e,
         metadata,
       });
-    } finally {
-      if (this.options.logging) {
-        metadata.duration = duration.format();
-        this.logger.log(
-          isError ? LogLevel.ERROR : LogLevel.INFO,
-          'DB_QUERY',
-          metadata,
-        );
-      }
     }
   }
 
@@ -163,19 +150,7 @@ export class PgPool implements PgPoolInterface {
     this.client = null;
   }
 
-  protected async getClient() {
-    const client = this.client ?? this.pool;
-
-    if (!this.configured) {
-      const query = [
-        `SET timezone TO '${this.options.timezone}';`,
-        `SET client_encoding TO '${this.options.charset}';`,
-        `SET search_path TO '${this.options.schema}';`,
-      ];
-      await client.query(query.join(''));
-      this.configured = true;
-    }
-
-    return client;
+  protected getClient() {
+    return this.client ?? this.pool;
   }
 }

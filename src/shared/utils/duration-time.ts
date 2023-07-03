@@ -1,19 +1,20 @@
 export class DurationTime {
-  protected startTime: [number, number];
-  protected durationInMs = 0;
+  public start: [number, number];
+  public finish: [number, number] = [0, 0];
+  public ms = 0;
 
   public constructor() {
-    this.startTime = process.hrtime();
+    this.start = process.hrtime();
   }
 
-  public toMs() {
-    if (this.durationInMs > 0) return this.durationInMs;
-    const endTime = process.hrtime(this.startTime);
-    this.durationInMs = endTime[0] * 1e3 + endTime[1] * 1e-6;
-    return this.durationInMs;
+  public milliseconds() {
+    if (this.ms > 0) return this.ms;
+    this.finish = process.hrtime(this.start);
+    this.ms = this.finish[0] * 1e3 + this.finish[1] * 1e-6;
+    return this.ms;
   }
 
   public format() {
-    return `${this.toMs().toFixed(3)}ms`;
+    return `${this.milliseconds().toFixed(6)}ms`;
   }
 }
