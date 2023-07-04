@@ -190,9 +190,25 @@ describe('shared/utils/utils.ts', () => {
   });
 
   it('formatDateYYYYMMDD', () => {
-    const date = new Date(2023, 2, 1);
-    const formatDate = Utils.formatDateYYYYMMDD(date);
-    expect(formatDate).toEqual('2023-03-01');
+    const validDates: Record<string, Date> = {
+      '2023-06-01': new Date(2023, 5, 1),
+      '2023-06-05': new Date(2023, 5, 5, 2, 59, 59, 0),
+      '2023-06-15': Utils.parseDateFromStringWithoutTime('2023-06-15'),
+      '2023-06-18': new Date('2023-06-18T20:59:59'),
+      '2023-06-29': new Date('2023-06-30T02:59:59Z'),
+      '2023-06-30': new Date('2023-07-01T02:59:59Z'),
+      '2023-07-01': new Date('2023-07-01T21:00:01Z'),
+      '2023-07-02': new Date('2023-07-02T03:00:01Z'),
+      '2023-07-03': new Date('2023-07-04T02:59:59Z'),
+      '2023-07-04': new Date('2023-07-04'),
+      '2023-02-28': new Date(2023, 1, 28, 0, 0, 0, 0),
+      '2016-02-29': new Date('2016-02-29'),
+    };
+
+    for (const key in validDates) {
+      const value = Utils.formatDateYYYYMMDD(validDates[key]);
+      expect(value).toStrictEqual(key);
+    }
   });
 
   it('getFirstAndLastName', () => {
@@ -322,6 +338,26 @@ describe('shared/utils/utils.ts', () => {
     for (let i = 0; i < 50; i += 1) {
       const cnpj = Cnpj.generate();
       expect(Utils.onlyNumber(cnpj.format())).toEqual(cnpj.toString());
+    }
+  });
+
+  it('parseDate', () => {
+    const validDates: Record<string, Date> = {
+      '01/01/2023': new Date(2023, 0, 1, 3, 0, 0, 0),
+      '07-02-2023': new Date(2023, 1, 7, 3, 0, 0, 0),
+      '2023-07-02': new Date(2023, 6, 2, 3, 0, 0, 0),
+      '2023-02-28': new Date(2023, 1, 28, 3, 0, 0, 0),
+      '2016-02-29': new Date(2016, 1, 29, 3, 0, 0, 0),
+    };
+
+    for (const key in validDates) {
+      const value = Utils.parseDateFromStringWithoutTime(key);
+      expect(value).toStrictEqual(validDates[key]);
+    }
+
+    const invalidDates = ['invalid', '2023-02-29'];
+    for (const date of invalidDates) {
+      expect(() => Utils.parseDateFromStringWithoutTime(date)).toThrowError();
     }
   });
 

@@ -3,9 +3,9 @@ import { randomBytes, randomInt, randomUUID } from 'node:crypto';
 import { promisify } from 'node:util';
 
 import { obfuscateKeys } from '@/config/obfuscate-keys';
-import { Env, Logger } from '@/shared';
+import { BadRequestError, Env, Logger } from '@/shared';
 import { HttpStatusCode } from '@/shared/enums';
-import { AppError, parseErrorToObject } from '@/shared/errors';
+import { parseErrorToObject } from '@/shared/errors';
 
 export class Utils {
   public static uuid(): string {
@@ -177,37 +177,56 @@ export class Utils {
     };
   }
 
-  public static formatDateYYYYMMDD(date: Date | number | string): string {
-    const parseDate = Utils.parseDate(date);
-    const year = parseDate.getFullYear();
-    const month = (parseDate.getMonth() + 1).toString().padStart(2, '0');
-    const day = parseDate.getDate().toString().padStart(2, '0');
+  public static formatDateYYYYMMDD(date: Date): string {
+    const newDate = new Date(date.getTime());
+    if (date.getUTCHours() === 0) newDate.setUTCHours(3);
+
+    const year = newDate.getFullYear();
+    const month = (newDate.getMonth() + 1).toString().padStart(2, '0');
+    const day = newDate.getDate().toString().padStart(2, '0');
+
     return `${year}-${month}-${day}`;
   }
 
-  public static parseDate(date: DateParam): Date {
-    if (this.isValidDate(date)) return date as Date;
-    if (typeof date === 'number') return new Date(date);
-    let newDate: DateParam | null = null;
-    if (typeof date === 'string') {
-      const [$date, $hour] = date.split(' ', 2);
-      const $time = $hour ? ` ${$hour}` : ' 00:00:00';
-      if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test($date)) {
-        date = `${$date.split('/').reverse().join('/')}${$time}`;
-      } else if (/^\d{4}\/\d{1,2}\/\d{1,2}$/.test($date)) {
-        date = `${$date}${$time}`;
-      }
-      newDate = new Date(date);
-      if (!$hour) newDate.setHours(0, 0, 0, 0);
+  public static parseDateFromStringWithoutTime(dateAsString: string): Date {
+    dateAsString = dateAsString as string; // type casting
+
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateAsString)) {
+      dateAsString = dateAsString.split('/').reverse().join('-');
+    } else if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(dateAsString)) {
+      dateAsString = dateAsString.split('-').reverse().join('-');
     }
-    if (!newDate || !this.isValidDate(newDate)) {
-      throw new AppError({
-        message: `Util.parseDate('${date}') received invalid date format in parameter.`,
+
+    let date: Date | undefined;
+    const match = dateAsString.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    const [y, m, d] = match?.slice(1, 4).map((n) => Number(n)) ?? [0, 0, 0];
+    if (match !== null) date = new Date(y, m - 1, d, 3, 0, 0, 0);
+
+    if (!date || !this.isValidDate(date)) {
+      throw new BadRequestError({
+        message:
+          'Invalid date "{{dateAsString}}", only "{{allowed}}" formats are accepted.',
+        metadata: {
+          dateAsString,
+          allowed: ['DD/MM/YYYY', 'DD-MM-YYYY', 'YYYY-MM-DD'],
+        },
         sendToSlack: true,
-        metadata: { date },
       });
     }
-    return newDate;
+
+    if (date.getDate() !== d) {
+      throw new BadRequestError({
+        message:
+          'The date "{{dateAsString}}" entered is not valid, please check.',
+        sendToSlack: false,
+        metadata: {
+          dateAsString,
+          dateToIsoString: date.toISOString(),
+        },
+      });
+    }
+
+    return date;
   }
 
   public static isValidDate(date: DateParam): boolean {
