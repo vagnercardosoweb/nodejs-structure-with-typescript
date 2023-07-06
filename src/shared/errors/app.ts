@@ -80,6 +80,7 @@ export class AppError extends Error {
   }
 
   private replaceMessage(message: string, metadata: Metadata): string {
+    if (message.indexOf('{{') === -1) return message;
     for (const key in metadata) {
       message = message.replace(`{{${key}}}`, metadata[key]);
     }

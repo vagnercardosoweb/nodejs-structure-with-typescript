@@ -1,4 +1,4 @@
-import { AppError, HttpStatusCode } from '@/shared';
+import { AppError } from '@/shared';
 
 export const parseErrorToObject = (error: any): AppError => {
   const requestId = error?.requestId;
@@ -31,22 +31,6 @@ export const parseErrorToObject = (error: any): AppError => {
   if (result.name.startsWith('Axios')) {
     const { status, data, config } = error.response;
     result.metadata = { status, data, config };
-  }
-
-  // check YUP errors
-  if (error?.errors?.length > 0) {
-    result.message = error.errors[0] as string;
-    (result as any).validators = error.inner;
-    result.statusCode = HttpStatusCode.BAD_REQUEST;
-    result.sendToSlack = false;
-  }
-
-  // check ZOD errors
-  if (error?.issues?.length > 0) {
-    result.message = error.issues[0].message as string;
-    (result as any).validators = error.issues;
-    result.statusCode = HttpStatusCode.BAD_REQUEST;
-    result.sendToSlack = false;
   }
 
   return result;
