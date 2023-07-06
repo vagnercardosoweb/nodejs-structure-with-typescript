@@ -1,5 +1,6 @@
 import { randomInt } from 'node:crypto';
 
+import * as console from 'console';
 import { describe, expect, it, vi } from 'vitest';
 
 import { Cnpj, Cpf } from '@/shared';
@@ -206,6 +207,9 @@ describe('shared/utils/utils.ts', () => {
     };
 
     for (const key in validDates) {
+      console.log('key=%s, date=%s', key, validDates[key]);
+      console.log(validDates[key]);
+
       const value = Utils.formatDateYYYYMMDD(validDates[key]);
       expect(value).toStrictEqual(key);
     }
