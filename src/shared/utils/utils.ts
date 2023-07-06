@@ -179,7 +179,7 @@ export class Utils {
 
   public static formatDateYYYYMMDD(date: Date): string {
     const newDate = new Date(date.getTime());
-    if (date.getUTCHours() === 0) newDate.setUTCHours(3);
+    if (date.getUTCHours() === 0) newDate.setUTCHours(3, 0, 0, 0);
 
     const year = newDate.getFullYear();
     const month = (newDate.getMonth() + 1).toString().padStart(2, '0');
