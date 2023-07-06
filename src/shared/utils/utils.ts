@@ -2,6 +2,8 @@ import childProcess from 'node:child_process';
 import { randomBytes, randomInt, randomUUID } from 'node:crypto';
 import { promisify } from 'node:util';
 
+import * as console from 'console';
+
 import { obfuscateKeys } from '@/config/obfuscate-keys';
 import { BadRequestError, Env, Logger } from '@/shared';
 import { HttpStatusCode } from '@/shared/enums';
@@ -178,6 +180,8 @@ export class Utils {
   }
 
   public static formatDateYYYYMMDD(date: Date): string {
+    console.log(Intl.DateTimeFormat().resolvedOptions().timeZone);
+
     const newDate = new Date(date.getTime());
     if (date.getUTCHours() === 0) newDate.setUTCHours(3, 0, 0, 0);
 
