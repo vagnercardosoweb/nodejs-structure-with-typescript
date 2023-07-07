@@ -302,12 +302,7 @@ export class Utils {
   }
 
   public static removeUndefined(value: Record<string, any>) {
-    Object.keys(value).forEach((key) => {
-      if (Object.prototype.toString.call(value[key]) === '[object Undefined]') {
-        delete value[key];
-      }
-    });
-    return value;
+    return JSON.parse(JSON.stringify(value));
   }
 
   public static normalizeValue(value: any) {

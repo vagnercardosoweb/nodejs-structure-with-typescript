@@ -226,6 +226,43 @@ describe('shared/utils/utils.ts', () => {
     expect(Utils.isUndefined('1')).toBeFalsy();
   });
 
+  it('removeUndefined', () => {
+    const object = {
+      number: 0,
+      string: 'string',
+      nullable: null,
+      keyAsUndefined: undefined,
+      nested: {
+        number: 0,
+        string: 'string',
+        keyAsUndefined: undefined,
+        arrayAsUndefined: [undefined, undefined],
+        array: [1, 2],
+        nested: {
+          name: 'Name',
+          keyAsUndefined: undefined,
+        },
+      },
+    };
+
+    const expected = {
+      number: 0,
+      string: 'string',
+      nullable: null,
+      nested: {
+        number: 0,
+        string: 'string',
+        arrayAsUndefined: [null, null],
+        array: [1, 2],
+        nested: {
+          name: 'Name',
+        },
+      },
+    };
+
+    expect(Utils.removeUndefined(object)).toStrictEqual(expected);
+  });
+
   it('normalizeMoneyFromString', () => {
     [
       ['R$ 1.11', 1.11],
