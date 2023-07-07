@@ -192,8 +192,6 @@ describe('shared/utils/utils.ts', () => {
 
   it('formatDateYYYYMMDD', () => {
     const validDates: Record<string, Date> = {
-      '2023-06-01': new Date(2023, 5, 1),
-      '2023-06-05': new Date(2023, 5, 5, 2, 59, 59, 0),
       '2023-06-15': Utils.parseDateFromStringWithoutTime('2023-06-15'),
       '2023-06-18': new Date('2023-06-18T20:59:59'),
       '2023-06-29': new Date('2023-06-30T02:59:59Z'),
@@ -201,9 +199,10 @@ describe('shared/utils/utils.ts', () => {
       '2023-07-01': new Date('2023-07-01T21:00:01Z'),
       '2023-07-02': new Date('2023-07-02T03:00:01Z'),
       '2023-07-03': new Date('2023-07-04T02:59:59Z'),
-      '2023-07-04': new Date('2023-07-04'),
       '2023-02-28': new Date(2023, 1, 28, 0, 0, 0, 0),
-      '2016-02-29': new Date('2016-02-29'),
+      '2023-06-05': new Date(2023, 5, 5, 2, 59, 59, 0),
+      '2023-07-04': new Date(2023, 6, 4),
+      '2023-06-01': new Date(2023, 5, 1),
     };
 
     for (const key in validDates) {

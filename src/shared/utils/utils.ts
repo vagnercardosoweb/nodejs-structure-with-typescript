@@ -178,18 +178,11 @@ export class Utils {
   }
 
   public static formatDateYYYYMMDD(date: Date): string {
-    const newDate = new Date(date.getTime());
-    if (date.getUTCHours() === 0) {
-      const offset = date.getTimezoneOffset();
-      if (offset < 0) newDate.setUTCHours(-offset / 60);
-      if (offset > 0) newDate.setUTCHours(offset / 60);
-    }
-
-    const year = newDate.getFullYear();
-    const month = (newDate.getMonth() + 1).toString().padStart(2, '0');
-    const day = newDate.getDate().toString().padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
+    return Intl.DateTimeFormat('fr-CA', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(date);
   }
 
   public static parseDateFromStringWithoutTime(dateAsString: string): Date {
@@ -211,8 +204,8 @@ export class Utils {
         message:
           'Invalid date "{{dateAsString}}", only "{{allowed}}" formats are accepted.',
         metadata: {
-          dateAsString,
           allowed: ['DD/MM/YYYY', 'DD-MM-YYYY', 'YYYY-MM-DD'],
+          dateAsString,
         },
         sendToSlack: true,
       });
@@ -224,8 +217,8 @@ export class Utils {
           'The date "{{dateAsString}}" entered is not valid, please check.',
         sendToSlack: false,
         metadata: {
-          dateAsString,
           dateToIsoString: date.toISOString(),
+          dateAsString,
         },
       });
     }
