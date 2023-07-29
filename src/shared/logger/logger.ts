@@ -16,6 +16,10 @@ class Logger implements LoggerInterface {
     return new Logger(id);
   }
 
+  public getId(): string {
+    return this.id;
+  }
+
   public log(level: LogLevel, message: string, metadata?: LoggerMetadata) {
     if (Env.isTesting()) return;
     const timestamp = new Date().toISOString();

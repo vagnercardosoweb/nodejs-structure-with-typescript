@@ -16,19 +16,11 @@ export class Migrator {
     protected readonly path: string,
   ) {}
 
-  public async run(): Promise<void> {
-    if (this.prefix === Prefix.UP) {
-      await this.up();
-    } else {
-      await this.down();
-    }
-  }
-
-  public async down(): Promise<void> {
+  public async down(limit = 1): Promise<void> {
     this.prefix = Prefix.DOWN;
     await this.checkOrCreateMigrationTable();
     let query = 'SELECT file_name FROM migrations ORDER BY file_name DESC';
-    if (process.argv?.[3] !== 'all') query += ' LIMIT 1';
+    if (limit !== -1) query += ` LIMIT ${limit}`;
     const { rows } = await this.pgPool.query(query);
     if (rows.length === 0) return;
     await this.pgPool.createTransactionManaged(async () => {

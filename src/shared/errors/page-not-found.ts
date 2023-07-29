@@ -9,20 +9,17 @@ interface Options extends Omit<AppOptions, 'message'> {
 }
 
 export class PageNotFoundError extends AppError {
+  public name = 'PageNotFoundError';
+
   constructor({ path, method, ...options }: Options) {
     super({
       code: 'PAGE_NOT_FOUND',
-      metadata: {
-        path,
-        method,
-      },
+      metadata: { path, method },
       statusCode: HttpStatusCode.NOT_FOUND,
       message: 'errors.page_not_found',
       sendToSlack: false,
       logging: false,
       ...options,
     });
-
-    this.name = 'PageNotFoundError';
   }
 }

@@ -14,7 +14,7 @@ describe('AppError', () => {
     expect(sut.description).toBeUndefined();
     expect(sut.metadata).toEqual({});
     expect(sut.statusCode).toBe(HttpStatusCode.INTERNAL_SERVER_ERROR);
-    expect(sut.original).toBeUndefined();
+    expect(sut.originalError).toBeUndefined();
     expect(sut.sendToSlack).toBeTruthy();
     expect(sut.requestId).toBeUndefined();
     expect(sut.errorId).toBeDefined();
@@ -51,7 +51,7 @@ describe('AppError', () => {
     expect(sut.errorId).toEqual('any_error_id');
     expect(sut.metadata).toBe(input.metadata);
     expect(sut.statusCode).toBe(input.statusCode);
-    expect(sut.original).toStrictEqual({
+    expect(sut.originalError).toStrictEqual({
       name: error.name,
       message: error.message,
       stack: error.stack,

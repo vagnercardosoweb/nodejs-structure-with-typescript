@@ -1,24 +1,8 @@
 import { randomInt } from 'node:crypto';
 
-import dottie from 'dottie';
-
+import { INTERNAL_SERVER_ERROR_MESSAGE } from '@/shared';
 import { HttpStatusCode } from '@/shared/enums';
 import { Utils } from '@/shared/utils';
-
-type Metadata = Record<string, any>;
-
-export interface Options {
-  code?: string;
-  message?: string;
-  description?: string;
-  metadata?: Metadata;
-  statusCode?: HttpStatusCode;
-  sendToSlack?: boolean;
-  requestId?: string;
-  original?: Error;
-  logging?: boolean;
-  errorId?: string;
-}
 
 export class AppError extends Error {
   public code: string;
@@ -28,63 +12,53 @@ export class AppError extends Error {
   public metadata: Metadata = {};
   public statusCode: HttpStatusCode;
   public sendToSlack: boolean;
-  public original?: Error;
+  public originalError?: Error | { name?: string; message: string };
   public logging: boolean;
   public requestId?: string;
   public errorId: string;
 
   constructor(options: Options = {}) {
     if (!options.code) options.code = 'DEFAULT';
+    if (!options.errorId) options.errorId = AppError.generateErrorId();
     if (!options.statusCode) {
       options.statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
     }
-    if (!options.errorId) options.errorId = AppError.generateErrorId();
 
-    if (Utils.isUndefined(options.logging)) options.logging = true;
     if (Utils.isUndefined(options.sendToSlack)) options.sendToSlack = true;
+    if (Utils.isUndefined(options.logging)) options.logging = true;
 
-    if (!options.message) {
-      options.message =
-        'An error occurred, contact support and report the code [{{errorId}}]';
-    }
-
-    super(options.message);
-
+    super(options.message ?? INTERNAL_SERVER_ERROR_MESSAGE);
     Object.setPrototypeOf(this, AppError.prototype);
     Error.captureStackTrace(this, this.constructor);
 
-    const { original, ...rest } = options;
+    const { originalError, ...rest } = options;
     Object.entries(rest).forEach(([k, v]) => this.setProperty(k, v));
 
-    const replaces = dottie.flatten({
+    const replaces = {
       ...options.metadata,
       errorId: this.errorId,
       requestId: this.requestId,
       code: this.code,
-    });
+    };
 
-    if (original?.message) {
+    if (originalError?.message) {
       this.setProperty('original', {
-        name: original.name,
-        message: this.replaceMessage(original.message, replaces),
-        stack: original.stack,
+        name: originalError.name,
+        message: Utils.replaceKeysInString(originalError.message, replaces),
+        stack: originalError.stack,
       });
     }
 
-    this.setProperty('message', this.replaceMessage(this.message, replaces));
+    this.setProperty(
+      'message',
+      Utils.replaceKeysInString(this.message, replaces),
+    );
+
     this.setProperty('stack', this.stack);
   }
 
   public static generateErrorId(): string {
     return `V${randomInt(1_000_000_000, 9_999_999_999).toString()}C`;
-  }
-
-  private replaceMessage(message: string, metadata: Metadata): string {
-    if (message.indexOf('{{') === -1) return message;
-    for (const key in metadata) {
-      message = message.replace(`{{${key}}}`, metadata[key]);
-    }
-    return message;
   }
 
   private setProperty(key: string, value: any) {
@@ -97,3 +71,17 @@ export class AppError extends Error {
     });
   }
 }
+
+type Metadata = Record<string, any>;
+export type Options = {
+  code?: string;
+  message?: string;
+  description?: string;
+  metadata?: Metadata;
+  statusCode?: HttpStatusCode;
+  sendToSlack?: boolean;
+  originalError?: Error;
+  requestId?: string;
+  logging?: boolean;
+  errorId?: string;
+};

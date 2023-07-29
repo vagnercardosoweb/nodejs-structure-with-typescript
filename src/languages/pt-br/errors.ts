@@ -3,7 +3,6 @@ export const errors = {
   method_not_allowed: 'Método ({{method}} {{path}}) não permitido',
   internal_server_error:
     'Ocorreu um erro, tente novamente, se o problema persistir entre em contato com nosso suporte e informe o código [{{errorId}}].',
-
   unauthorized: 'unauthorized',
   unprocessable_entity: 'unprocessable_entity',
   rate_limiter: 'rate_limiter',

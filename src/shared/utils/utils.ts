@@ -25,7 +25,7 @@ export class Utils {
     return Math.floor(Date.now() / 1000);
   }
 
-  public static randomStr(length = 16): string {
+  public static generateRandomString(length = 16): string {
     let result = '';
     let resultSize = result.length;
     while (resultSize < length) {
@@ -110,16 +110,12 @@ export class Utils {
     return Math.round(Number(`${value}e${decimals}`)) / 100;
   }
 
-  public static formatMoneyToBrl(
-    value: number,
-    options?: Omit<Intl.NumberFormatOptions, 'style' | 'currency'>,
-  ): string {
+  public static formatMoneyToBrl(value: number): string {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-      ...options,
     }).format(value);
   }
 
@@ -127,12 +123,12 @@ export class Utils {
     await promisify(childProcess.exec)(`mkdir -p ${path}`);
   }
 
-  public static isStringImageBase64(value: string): boolean {
+  public static isImageBase64(value: string): boolean {
     if (!Utils.isString(value)) return false;
     return /data:image\/(.+);/gm.test(value);
   }
 
-  public static obfuscateValue(data: any, keys: string[] = []) {
+  public static obfuscateValues(data: any, keys: string[] = []) {
     if (!Env.get('OBFUSCATE_VALUE', true)) return data;
     if (!Utils.isArray(data) && !Utils.isObject(data)) return data;
 
@@ -140,21 +136,24 @@ export class Utils {
     const uniqueKeys = new Set([...keys, ...obfuscateKeys]);
 
     for (const key of Object.keys(result)) {
+      const keyAsLower = key.toLowerCase();
+
       if (Utils.isObject(result[key])) {
-        result[key] = Utils.obfuscateValue(result[key], keys);
+        result[key] = Utils.obfuscateValues(result[key], keys);
         continue;
       }
 
       if (Utils.isArray(result[key])) {
-        result[key] = result[key].map((row: any) =>
-          Utils.isStringImageBase64(row)
-            ? '*'
-            : Utils.obfuscateValue(row, keys),
-        );
+        result[key] = result[key].map((row: any) => {
+          if (Utils.isImageBase64(row) || uniqueKeys.has(keyAsLower)) {
+            return '*';
+          }
+          return Utils.obfuscateValues(row, keys);
+        });
         continue;
       }
 
-      if (uniqueKeys.has(key) || Utils.isStringImageBase64(result[key])) {
+      if (uniqueKeys.has(keyAsLower) || Utils.isImageBase64(result[key])) {
         result[key] = '*';
       }
     }
@@ -177,11 +176,12 @@ export class Utils {
     };
   }
 
-  public static formatDateYYYYMMDD(date: Date): string {
+  public static formatDateYYYYMMDD(date: Date, timeZone?: string): string {
     return Intl.DateTimeFormat('fr-CA', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
+      timeZone,
     }).format(date);
   }
 
@@ -285,7 +285,7 @@ export class Utils {
     return hash >>> 0;
   }
 
-  public static parseJson<T = any>(json: any, defaultValue?: any): T {
+  public static parseStringToJson<T = any>(json: any, defaultValue?: any): T {
     const result = this.normalizeValue(json);
     if ([null, undefined, ''].includes(result)) return defaultValue;
     if (typeof result !== 'string') return result;
@@ -344,7 +344,7 @@ export class Utils {
     return Buffer.from(value).toString('base64url');
   }
 
-  public static removeLinesAndSpaceFromSql(sql: string): string {
+  public static normalizeSqlQuery(sql: string): string {
     return sql.replace(/\n/g, '').replace(/\s+/g, ' ').trim();
   }
 
@@ -394,6 +394,51 @@ export class Utils {
       Object.create(Object.getPrototypeOf(original)),
       original,
     );
+  }
+
+  public static replaceKeysInString(
+    message: string,
+    metadata: Record<string, any>,
+  ): string {
+    if (message.indexOf('{{') === -1) return message;
+    for (const key in metadata) {
+      message = message.replace(`{{${key}}}`, metadata[key]);
+    }
+    return message;
+  }
+
+  public static createDateWithTimezone(date: Date, timeZone: string): Date {
+    return new Date(
+      new Intl.DateTimeFormat('en-US', {
+        day: '2-digit',
+        year: 'numeric',
+        month: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour: '2-digit',
+        timeZone,
+      }).format(date),
+    );
+  }
+
+  public static createBrlDate(date?: Date): Date {
+    if (!date) date = new Date();
+    return Utils.createDateWithTimezone(date, Env.get('TZ_BRL'));
+  }
+
+  public static createUtcDate(date?: Date): Date {
+    if (!date) date = new Date();
+    return Utils.createDateWithTimezone(date, Env.get('TZ'));
+  }
+
+  public static generateSlug(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9]/g, '-')
+      .replace(/-{2,}/g, '-')
+      .replace(/^-|-$/g, '')
+      .toLowerCase();
   }
 }
 

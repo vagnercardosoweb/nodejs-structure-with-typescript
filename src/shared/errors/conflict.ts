@@ -3,6 +3,8 @@ import { HttpStatusCode } from '@/shared/enums';
 import { AppError, Options } from './app';
 
 export class ConflictError extends AppError {
+  public name = 'ConflictError';
+
   constructor(options?: Options) {
     super({
       code: 'CONFLICT',
@@ -10,7 +12,5 @@ export class ConflictError extends AppError {
       message: 'errors.conflict',
       ...options,
     });
-
-    this.name = 'ConflictError';
   }
 }

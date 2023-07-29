@@ -17,7 +17,6 @@
     "forceConsistentCasingInFileNames": true,
     "strictPropertyInitialization": false,
     "resolveJsonModule": true,
-    "types": ["vitest/globals"],
     "typeRoots": ["node_modules/@types"],
     "baseUrl": ".",
     "outDir": "./dist",
@@ -28,5 +27,5 @@
     }
   },
   "exclude": ["./node_modules"],
-  "include": ["./src/**/*", "global.d.ts"]
+  "include": ["./src/**/*", "global.d.ts", "./migrations/index.ts"]
 }

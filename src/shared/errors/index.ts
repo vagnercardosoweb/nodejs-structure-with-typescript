@@ -12,3 +12,5 @@ export { UnauthorizedError } from './unauthorized';
 export { UnprocessableEntityError } from './unprocessable-entity';
 export { GatewayTimeoutError } from './gateway-timeout';
 export { parseErrorToObject } from './parse-to-object';
+
+export const INTERNAL_SERVER_ERROR_MESSAGE = 'errors.internal_server_error';

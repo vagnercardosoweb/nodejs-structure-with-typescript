@@ -17,7 +17,7 @@ describe('Ecryption', () => {
 
   it('should create an encryption and validate the payload', async () => {
     const encrypted = await encryption.encrypt('any_value');
-    const payload = Utils.parseJson(Utils.base64ToValue(encrypted));
+    const payload = Utils.parseStringToJson(Utils.base64ToValue(encrypted));
     expect(payload.iv).toBeDefined();
     expect(payload.salt).toBeDefined();
     expect(payload.encrypted).toBeDefined();

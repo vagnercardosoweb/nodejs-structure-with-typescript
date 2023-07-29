@@ -10,7 +10,7 @@ export class Repository<TRow extends QueryResultRow = any> {
 
   public constructor(protected readonly pgPool: PgPoolInterface) {}
 
-  public async findAll<T extends QueryResultRow = TRow>(
+  protected async findAll<T extends QueryResultRow = TRow>(
     params?: FindParams,
   ): Promise<T[]> {
     const {
@@ -37,7 +37,7 @@ export class Repository<TRow extends QueryResultRow = any> {
     return result.rows;
   }
 
-  public async findAndCountAll(
+  protected async findAndCountAll(
     params?: FindParams,
   ): Promise<{ count: number; rows: TRow[] }> {
     const [countResult] = await this.findAll({
@@ -52,9 +52,12 @@ export class Repository<TRow extends QueryResultRow = any> {
     return { count, rows };
   }
 
-  public async findOne<T = TRow>(params: FindOneWithRejectParams): Promise<T>;
-  public async findOne<T = TRow>(params: FindOneParams): Promise<T | null>;
-  public async findOne(params: FindOneParams) {
+  protected async findOne<T = TRow>(
+    params: FindOneWithRejectParams,
+  ): Promise<T>;
+
+  protected async findOne<T = TRow>(params: FindOneParams): Promise<T | null>;
+  protected async findOne(params: FindOneParams) {
     const result = await this.findAll({ ...params, limit: 1 });
     if (
       result.length === 0 &&
@@ -69,7 +72,7 @@ export class Repository<TRow extends QueryResultRow = any> {
     return result.at(0) ?? null;
   }
 
-  public async findById<T = TRow>(params: FindByIdParams) {
+  protected async findById<T = TRow>(params: FindByIdParams) {
     if (!params.where) params.where = [];
     if (!params.binding) params.binding = [];
     const bindingLength = params.binding.length;
@@ -97,7 +100,7 @@ export class Repository<TRow extends QueryResultRow = any> {
     return this.findOne<T>(params);
   }
 
-  public async create(data: Omit<TRow, 'id'>): Promise<TRow> {
+  protected async create(data: Omit<TRow, 'id'>): Promise<TRow> {
     const record = Utils.removeUndefined(data);
     const columns = Object.keys(record);
     const bindings = columns.map((_, index) => `$${index + 1}`);
@@ -110,7 +113,7 @@ export class Repository<TRow extends QueryResultRow = any> {
     return rows[0];
   }
 
-  public async update({
+  protected async update({
     data,
     where,
     binding,
@@ -141,7 +144,7 @@ export class Repository<TRow extends QueryResultRow = any> {
     return rows[0];
   }
 
-  public async delete({ where, binding }: DeleteParams): Promise<TRow> {
+  protected async delete({ where, binding }: DeleteParams): Promise<TRow> {
     const tableName = this.tableName;
     const { rows } = await this.pgPool.query<TRow>(
       `DELETE
@@ -178,7 +181,6 @@ type FindParams = {
   limit?: number;
   offset?: number;
   groupBy?: string[];
-  nest?: boolean;
 };
 
 type DeleteParams = {

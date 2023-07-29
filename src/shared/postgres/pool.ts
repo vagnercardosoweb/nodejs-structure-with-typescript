@@ -1,4 +1,4 @@
-import { Pool, PoolClient } from 'pg';
+import { Pool, PoolClient, types } from 'pg';
 
 import {
   DurationTime,
@@ -43,10 +43,12 @@ export class PgPool implements PgPoolInterface {
       idleTimeoutMillis: options.timeout.idle,
       allowExitOnIdle: true,
     });
+
+    types.setTypeParser(1082, (value) => value);
   }
 
-  public static fromEnvironment(): PgPool {
-    return new PgPool(Logger.withId('DB_POOL'), {
+  public static fromEnvironment(logger?: LoggerInterface): PgPool {
+    return new PgPool(logger ?? Logger.withId('DB_POOL'), {
       appName: Env.get('DB_APP_NAME', 'api'),
       charset: Env.get('DB_CHARSET', 'utf8'),
       database: Env.required('DB_NAME'),
@@ -99,7 +101,7 @@ export class PgPool implements PgPoolInterface {
     bind: any[] = [],
   ): Promise<QueryResult<T>> {
     const client = this.getClient();
-    query = Utils.removeLinesAndSpaceFromSql(query);
+    query = Utils.normalizeSqlQuery(query);
     const metadata = {
       name: this.options.appName,
       type: this.client !== null ? 'TX' : 'POOL',
@@ -125,7 +127,7 @@ export class PgPool implements PgPoolInterface {
     } catch (e: any) {
       metadata.duration = duration.format();
       throw new InternalServerError({
-        original: e,
+        originalError: e,
         metadata,
       });
     }

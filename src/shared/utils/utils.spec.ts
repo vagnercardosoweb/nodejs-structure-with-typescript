@@ -1,6 +1,5 @@
 import { randomInt } from 'node:crypto';
 
-import * as console from 'console';
 import { describe, expect, it, vi } from 'vitest';
 
 import { Cnpj, Cpf } from '@/shared';
@@ -184,7 +183,7 @@ describe('shared/utils/utils.ts', () => {
 
   it('removeLinesAndSpaceFromSql', () => {
     expect(
-      Utils.removeLinesAndSpaceFromSql(`SELECT *
+      Utils.normalizeSqlQuery(`SELECT *
                                         FROM users
                                         WHERE 1 = 1`),
     ).toStrictEqual('SELECT * FROM users WHERE 1 = 1');
@@ -206,9 +205,6 @@ describe('shared/utils/utils.ts', () => {
     };
 
     for (const key in validDates) {
-      console.log('key=%s, date=%s', key, validDates[key]);
-      console.log(validDates[key]);
-
       const value = Utils.formatDateYYYYMMDD(validDates[key]);
       expect(value).toStrictEqual(key);
     }
@@ -309,7 +305,7 @@ describe('shared/utils/utils.ts', () => {
   });
 
   it('randomStr', () => {
-    const randomStr = Utils.randomStr(32);
+    const randomStr = Utils.generateRandomString(32);
     expect(randomStr).toStrictEqual('YQYQYQYQYQYQYQYQYQYQYQYQYQYQYQYQ');
     expect(randomStr).toHaveLength(32);
   });
@@ -405,7 +401,7 @@ describe('shared/utils/utils.ts', () => {
     it('deveria retornar o objeto modificado e manter o original', () => {
       const value = createObjectObfuscate();
       const expected = createObjectModifiedObfuscate();
-      const obfuscateValue = Utils.obfuscateValue(value);
+      const obfuscateValue = Utils.obfuscateValues(value);
       expect(obfuscateValue).deep.equal(expected);
       expect(value).not.deep.equal(expected);
     });
@@ -424,21 +420,21 @@ describe('shared/utils/utils.ts', () => {
           password: '*',
         },
       ];
-      expect(Utils.obfuscateValue(value.arrayAsObject)).deep.equal(expected);
+      expect(Utils.obfuscateValues(value.arrayAsObject)).deep.equal(expected);
       expect(value).not.deep.equal(expected);
     });
 
     it('deveria retornar o array de imageBase64 modificado e manter o original', () => {
       const value = createObjectObfuscate();
       const expected = ['*', '*', '*'];
-      expect(Utils.obfuscateValue(value.images.liveness)).deep.equal(expected);
+      expect(Utils.obfuscateValues(value.images.liveness)).deep.equal(expected);
       expect(value).not.deep.equal(expected);
     });
 
     it('deveria não modificar o objeto passado com env[OBFUSCATE_VALUE=false]', () => {
       process.env.OBFUSCATE_VALUE = 'false';
       const value = createObjectObfuscate();
-      expect(Utils.obfuscateValue(value)).deep.equal(value);
+      expect(Utils.obfuscateValues(value)).deep.equal(value);
     });
   });
 });

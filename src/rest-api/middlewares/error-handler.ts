@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 
 import { Env, Logger, SlackAlert, Utils } from '@/shared';
-import { HttpStatusCode } from '@/shared/enums';
 import { parseErrorToObject } from '@/shared/errors';
 
 export const errorHandler = (
@@ -25,7 +24,7 @@ export const errorHandler = (
       path: `${requestMethod} ${requestUrl}`,
       routePath: request.route?.path,
       headers: request.headers,
-      body: Utils.obfuscateValue(request.body),
+      body: Utils.obfuscateValues(request.body),
       error,
     });
   }
@@ -34,25 +33,21 @@ export const errorHandler = (
     SlackAlert.send({
       color: 'error',
       sections: {
-        message: error.original?.message ?? error.message,
-        description: requestId ? error?.description : 'Unexpected error',
-        requestId,
+        'Request': `[${error.statusCode}] ${requestMethod} ${requestUrl}`,
+        'ErrorId / ErrorCode': `${error.errorId} / ${error.code}`,
+        'RequestId': requestId,
+        'Description': requestId ? error?.description : 'Unexpected error',
+        'Message': error.originalError?.message ?? error.message,
       },
-      fields: {
-        errorId: error.errorId,
-        errorCode: error.code,
-        requestMethod,
-        requestPath: requestUrl,
-        statusCode: error.statusCode,
-      },
-    }).catch(() => {});
+    }).catch((e) => {
+      request.logger.error('SEND_ALERT_SLACK', {
+        slackError: parseErrorToObject(e),
+        originalError: error,
+      });
+    });
   }
 
   if (request.translation) {
-    if (error.statusCode === HttpStatusCode.INTERNAL_SERVER_ERROR) {
-      error.message = 'errors.internal_server_error';
-    }
-
     error.message = request.translation.get(error.message, {
       errorId: error.errorId,
       ...error.metadata,

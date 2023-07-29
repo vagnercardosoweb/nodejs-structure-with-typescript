@@ -2,6 +2,8 @@ import { HttpStatusCode } from '@/shared/enums';
 import { AppError, Options } from '@/shared/errors';
 
 export class BadRequestError extends AppError {
+  public name = 'BadRequestError';
+
   constructor(options?: Options) {
     super({
       code: 'BAD_REQUEST',
@@ -10,7 +12,5 @@ export class BadRequestError extends AppError {
       sendToSlack: false,
       ...options,
     });
-
-    this.name = 'BadRequestError';
   }
 }

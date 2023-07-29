@@ -18,29 +18,32 @@ export const app =
     request.container = container.clone();
 
     const requestId = randomUUID();
+    request.container.set(ContainerName.REQUEST_ID, requestId);
+    response.setHeader('X-Request-Id', requestId);
+
     request.logger = Logger.withId(requestId);
+    request.container.set(ContainerName.LOGGER, request.logger);
+
     request.context = {
       jwt: {} as Request['context']['jwt'],
       awsTraceId: request.header('x-amzn-trace-id'),
       awsRequestId: request.header('x-amzn-requestid'),
       requestId,
+      language,
     };
 
     request.translation = container
       .get<Translation>(ContainerName.TRANSLATION)
       .withLocale(language);
 
-    request.container.set(ContainerName.LOGGER, request.logger);
     request.container.set(ContainerName.TRANSLATION, request.translation);
-    request.container.set(ContainerName.REQUEST_ID, requestId);
+
     request.container.set(
       ContainerName.PG_POOL,
       request.container
         .get<PgPoolInterface>(ContainerName.PG_POOL)
         .withLoggerId(requestId),
     );
-
-    response.setHeader('X-Request-Id', requestId);
 
     return next();
   };

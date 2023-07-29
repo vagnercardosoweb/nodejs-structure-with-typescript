@@ -3,6 +3,8 @@ import { HttpStatusCode } from '@/shared/enums';
 import { AppError, Options } from './app';
 
 export class NotFoundError extends AppError {
+  public name = 'NotFoundError';
+
   constructor(options?: Options) {
     super({
       code: 'NOT_FOUND',
@@ -10,7 +12,5 @@ export class NotFoundError extends AppError {
       message: 'errors.not_found',
       ...options,
     });
-
-    this.name = 'NotFoundError';
   }
 }

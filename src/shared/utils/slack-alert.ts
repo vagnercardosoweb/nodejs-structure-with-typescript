@@ -10,11 +10,7 @@ import { httpRequest } from '@/shared/utils/http-request';
 type Input = {
   color?: 'error' | 'warning' | 'info' | 'success' | string;
   checkerUsers?: string[];
-  sections: {
-    message: string;
-    description?: string;
-    [key: string]: any;
-  };
+  sections: Record<string, any>;
   fields?: Record<string, any>;
   options?: {
     token?: string;
@@ -70,30 +66,26 @@ export class SlackAlert {
                     )
                     .trim(),
                 },
-                fields: Object.entries(
-                  Utils.removeUndefined({
-                    'Date': new Date().toISOString(),
-                    'Hostname/PID': util.format(
-                      '%s/%s',
-                      os.hostname(),
-                      process.pid,
-                    ),
-                    ...fields,
-                  }),
-                ).map(([title, value]) => ({
+                fields: Object.entries({
+                  'Date': new Date().toISOString(),
+                  'Hostname / PID': util.format(
+                    '%s / %s',
+                    os.hostname(),
+                    process.pid,
+                  ),
+                  ...fields,
+                }).map(([title, value]) => ({
                   type: 'mrkdwn',
                   text: util.format('*%s*\n%s', Utils.ucFirst(title), value),
                 })),
               },
-              ...Object.entries(Utils.removeUndefined(sections)).map(
-                ([title, value]) => ({
-                  type: 'section',
-                  text: {
-                    type: 'mrkdwn',
-                    text: `*${Utils.ucFirst(title)}*\n${value}`,
-                  },
-                }),
-              ),
+              ...Object.entries(sections).map(([title, value]) => ({
+                type: 'section',
+                text: {
+                  type: 'mrkdwn',
+                  text: `*${Utils.ucFirst(title)}*\n${value}`,
+                },
+              })),
             ],
           },
         ],

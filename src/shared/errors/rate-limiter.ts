@@ -3,6 +3,8 @@ import { HttpStatusCode } from '@/shared/enums';
 import { AppError, Options } from './app';
 
 export class RateLimiterError extends AppError {
+  public name = 'RateLimiterError';
+
   constructor(options?: Partial<Options>) {
     super({
       code: 'RATE_LIMITER',
@@ -11,7 +13,5 @@ export class RateLimiterError extends AppError {
       sendToSlack: false,
       ...options,
     });
-
-    this.name = 'RateLimiterError';
   }
 }

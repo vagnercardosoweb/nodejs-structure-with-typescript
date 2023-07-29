@@ -1,3 +1,5 @@
+import 'vitest/globals';
+
 import {
   ContainerInterface,
   JwtDecoded,
@@ -12,6 +14,7 @@ declare global {
       container: ContainerInterface;
       translation: TranslationInterface;
       context: {
+        language: string;
         requestId: string;
         awsTraceId?: string;
         awsRequestId?: string;

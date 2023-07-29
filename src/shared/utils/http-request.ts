@@ -28,7 +28,7 @@ const makeError = (externalError: any, metadata: any) => {
       : new InternalServerError({
           code: 'HTTP_REQUEST:ERROR',
           message: externalError.message,
-          original: externalError,
+          originalError: externalError,
         });
   error.stack = externalError.stack;
   error.metadata = metadata;
@@ -50,7 +50,7 @@ export const httpRequest = async <T = any>(
         const data = Buffer.concat(chunks).toString().trim();
         const { statusCode = HttpStatusCode.OK, headers } = res;
         resolve({
-          body: Utils.parseJson(data),
+          body: Utils.parseStringToJson(data),
           statusCode: Number(statusCode),
           headers,
         });
