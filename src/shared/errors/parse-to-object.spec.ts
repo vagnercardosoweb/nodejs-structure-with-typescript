@@ -1,3 +1,4 @@
+import * as console from 'console';
 import { describe, expect, it, vi } from 'vitest';
 
 import { parseErrorToObject } from '@/shared';
@@ -47,9 +48,8 @@ describe('AppError', () => {
     vi.spyOn(AppError, 'generateErrorId').mockReturnValueOnce('MOCKED');
 
     const sut = parseErrorToObject(new Error('Error ID: {{errorId}}'));
-    expect(sut.message).toEqual(
-      'An error occurred, contact support and report the code [MOCKED]',
-    );
+    console.log(sut);
+    expect(sut.message).toEqual('errors.internal_server_error');
     expect(sut.originalError?.message).toEqual('Error ID: MOCKED');
     expect(sut.errorId).toEqual('MOCKED');
   });

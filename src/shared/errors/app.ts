@@ -1,5 +1,7 @@
 import { randomInt } from 'node:crypto';
 
+import dottie from 'dottie';
+
 import { INTERNAL_SERVER_ERROR_MESSAGE } from '@/shared';
 import { HttpStatusCode } from '@/shared/enums';
 import { Utils } from '@/shared/utils';
@@ -34,15 +36,15 @@ export class AppError extends Error {
     const { originalError, ...rest } = options;
     Object.entries(rest).forEach(([k, v]) => this.setProperty(k, v));
 
-    const replaces = {
+    const replaces = dottie.flatten({
       ...options.metadata,
       errorId: this.errorId,
       requestId: this.requestId,
       code: this.code,
-    };
+    });
 
-    if (originalError?.message) {
-      this.setProperty('original', {
+    if (originalError) {
+      this.setProperty('originalError', {
         name: originalError.name,
         message: Utils.replaceKeysInString(originalError.message, replaces),
         stack: originalError.stack,

@@ -423,12 +423,12 @@ export class Utils {
 
   public static createBrlDate(date?: Date): Date {
     if (!date) date = new Date();
-    return Utils.createDateWithTimezone(date, Env.get('TZ_BRL'));
+    return Utils.createDateWithTimezone(date, Env.getTimezoneBrl());
   }
 
   public static createUtcDate(date?: Date): Date {
     if (!date) date = new Date();
-    return Utils.createDateWithTimezone(date, Env.get('TZ'));
+    return Utils.createDateWithTimezone(date, Env.getTimezoneUtc());
   }
 
   public static generateSlug(value: string): string {

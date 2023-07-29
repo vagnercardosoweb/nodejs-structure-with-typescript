@@ -8,9 +8,7 @@ describe('AppError', () => {
 
     expect(sut.code).toBe('DEFAULT');
     expect(sut.name).toBe('AppError');
-    expect(sut.message).toBe(
-      `An error occurred, contact support and report the code [${sut.errorId}]`,
-    );
+    expect(sut.message).toBe('errors.internal_server_error');
     expect(sut.description).toBeUndefined();
     expect(sut.metadata).toEqual({});
     expect(sut.statusCode).toBe(HttpStatusCode.INTERNAL_SERVER_ERROR);
@@ -34,7 +32,7 @@ describe('AppError', () => {
       description: 'any_description',
       statusCode: HttpStatusCode.INTERNAL_SERVER_ERROR,
       sendToSlack: false,
-      original: error,
+      originalError: error,
       errorId: 'any_error_id',
       logging: true,
       metadata: {
