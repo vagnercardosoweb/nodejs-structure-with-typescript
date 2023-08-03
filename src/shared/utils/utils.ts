@@ -415,6 +415,7 @@ export class Utils {
         month: '2-digit',
         minute: '2-digit',
         second: '2-digit',
+        hourCycle: 'h23',
         hour: '2-digit',
         timeZone,
       }).format(date),
