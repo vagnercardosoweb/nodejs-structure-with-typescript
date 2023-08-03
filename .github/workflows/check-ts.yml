@@ -36,4 +36,7 @@ jobs:
           REDIS_PORT: '6379'
           CHECK_ENVFILE: 'false'
           REDIS_HOST: 'localhost'
+          TZ_UTC: 'UTC'
+          TZ_BRL: 'America/Sao_Paulo'
+          TZ: 'UTC'
         run: npm run test:all
