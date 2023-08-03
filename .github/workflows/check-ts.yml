@@ -6,7 +6,6 @@ concurrency:
 
 on:
   - push
-  - pull_request
 
 jobs:
   main:
@@ -34,7 +33,6 @@ jobs:
 
       - name: Run Tests
         env:
-          TZ: 'UTC'
           REDIS_PORT: '6379'
           CHECK_ENVFILE: 'false'
           REDIS_HOST: 'localhost'

@@ -2,7 +2,8 @@ import { InternalServerError, NodeEnv, Utils } from '@/shared';
 
 export class Env {
   public static get(key: string, defaultValue?: any) {
-    const value = process.env[key] || defaultValue;
+    const value = process.env[key];
+    if (!value?.trim()) return defaultValue;
     return Utils.normalizeValue(value);
   }
 
