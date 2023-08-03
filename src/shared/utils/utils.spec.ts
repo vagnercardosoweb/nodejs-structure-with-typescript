@@ -2,7 +2,7 @@ import { randomInt } from 'node:crypto';
 
 import { describe, expect, it, vi } from 'vitest';
 
-import { Cnpj, Cpf } from '@/shared';
+import { BadRequestError, Cnpj, Cpf, Env } from '@/shared';
 
 import { Utils } from './utils';
 
@@ -184,30 +184,85 @@ describe('shared/utils/utils.ts', () => {
   it('removeLinesAndSpaceFromSql', () => {
     expect(
       Utils.normalizeSqlQuery(`SELECT *
-                                        FROM users
-                                        WHERE 1 = 1`),
+                               FROM users
+                               WHERE 1 = 1`),
     ).toStrictEqual('SELECT * FROM users WHERE 1 = 1');
   });
 
-  it('formatDateYYYYMMDD', () => {
+  it('formatDateYYYYMMDD (UTC+0)', () => {
+    const timezone = Env.getTimezoneUtc();
     const validDates: Record<string, Date> = {
-      '2023-06-15': Utils.parseDateFromStringWithoutTime('2023-06-15'),
-      '2023-06-18': new Date('2023-06-18T20:59:59'),
-      '2023-06-29': new Date('2023-06-30T02:59:59Z'),
-      '2023-06-30': new Date('2023-07-01T02:59:59Z'),
-      '2023-07-01': new Date('2023-07-01T21:00:01Z'),
-      '2023-07-02': new Date('2023-07-02T03:00:01Z'),
-      '2023-07-03': new Date('2023-07-04T02:59:59Z'),
-      '2023-02-28': new Date(2023, 1, 28, 0, 0, 0, 0),
-      '2023-06-05': new Date(2023, 5, 5, 2, 59, 59, 0),
-      '2023-07-04': new Date(2023, 6, 4),
-      '2023-06-01': new Date(2023, 5, 1),
+      '2023-06-19': Utils.createUtcDate(new Date('2023-06-18T20:59:59')),
+      '2023-06-30': Utils.createUtcDate(new Date('2023-06-30T02:59:59Z')),
+      '2023-07-01': Utils.createUtcDate(new Date('2023-07-01T02:59:59Z')),
+      '2023-07-02': Utils.createUtcDate(new Date('2023-07-02T03:00:01Z')),
+      '2023-07-04': Utils.createUtcDate(new Date('2023-07-04T02:59:59Z')),
+      '2023-02-28': Utils.createUtcDate(new Date(2023, 1, 28, 0, 0, 0, 0)),
+      '2023-06-05': Utils.createUtcDate(new Date(2023, 5, 5, 2, 59, 59, 0)),
+      '2023-07-07': Utils.createUtcDate(new Date(2023, 6, 7)),
+      '2023-06-01': Utils.createUtcDate(new Date(2023, 5, 1)),
     };
 
     for (const key in validDates) {
-      const value = Utils.formatDateYYYYMMDD(validDates[key]);
+      const value = Utils.formatDateYYYYMMDD(validDates[key], timezone);
       expect(value).toStrictEqual(key);
     }
+  });
+
+  it('formatDateYYYYMMDD (America/Sao_Paulo)', () => {
+    const timezone = Env.getTimezoneBrl();
+    const validDates: Record<string, Date> = {
+      '2023-06-18': Utils.createBrlDate(new Date('2023-06-18T20:59:59')),
+      '2023-06-29': Utils.createBrlDate(new Date('2023-06-30T02:59:59Z')),
+      '2023-06-30': Utils.createBrlDate(new Date('2023-07-01T02:59:59Z')),
+      '2023-07-02': Utils.createBrlDate(new Date('2023-07-02T03:00:01Z')),
+      '2023-07-03': Utils.createBrlDate(new Date('2023-07-04T02:59:59Z')),
+      '2023-02-28': Utils.createBrlDate(new Date(2023, 1, 28, 0, 0, 0, 0)),
+      '2023-06-05': Utils.createBrlDate(new Date(2023, 5, 5, 2, 59, 59, 0)),
+      '2023-07-07': Utils.createBrlDate(new Date(2023, 6, 7)),
+      '2023-06-01': Utils.createBrlDate(new Date(2023, 5, 1)),
+    };
+
+    for (const key in validDates) {
+      const value = Utils.formatDateYYYYMMDD(validDates[key], timezone);
+      expect(value).toStrictEqual(key);
+    }
+  });
+
+  it('parseDateFromStringWithoutTime: success', () => {
+    const expected = Utils.parseDateFromStringWithoutTime('2023-06-15');
+    expect(expected).toStrictEqual(new Date(2023, 5, 15, 3, 0, 0, 0));
+  });
+
+  it('parseDateFromStringWithoutTime: invalid format', () => {
+    const dateAsString = '2023-08-03T00:00:00Z';
+    expect(() =>
+      Utils.parseDateFromStringWithoutTime(dateAsString),
+    ).toThrowError(
+      new BadRequestError({
+        message:
+          'Invalid date "{{dateAsString}}", only "{{allowed}}" formats are accepted.',
+        metadata: {
+          allowed: ['DD/MM/YYYY', 'DD-MM-YYYY', 'YYYY-MM-DD'],
+          dateAsString,
+        },
+      }),
+    );
+  });
+
+  it('parseDateFromStringWithoutTime: invalid day', () => {
+    const dateAsString = '2023-02-31';
+    expect(() =>
+      Utils.parseDateFromStringWithoutTime(dateAsString),
+    ).toThrowError(
+      new BadRequestError({
+        message:
+          'The date "{{dateAsString}}" entered is not valid, please check.',
+        metadata: {
+          dateAsString,
+        },
+      }),
+    );
   });
 
   it('getFirstAndLastName', () => {

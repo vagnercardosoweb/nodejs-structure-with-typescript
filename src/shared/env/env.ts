@@ -27,7 +27,7 @@ export class Env {
   }
 
   public static getTimezoneGlobal(): string {
-    return Env.get('TZ', 'UTV');
+    return Env.get('TZ', 'UTC');
   }
 
   public static getTimezoneBrl(): string {
