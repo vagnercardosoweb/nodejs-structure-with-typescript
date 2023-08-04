@@ -196,10 +196,10 @@ describe('shared/utils/utils.ts', () => {
       '2023-07-01': Utils.createUtcDate(new Date('2023-06-30T21:00:00.000Z')),
       '2023-07-02': Utils.createUtcDate(new Date('2023-07-01T21:00:00.000Z')),
       '2023-07-05': Utils.createUtcDate(new Date('2023-07-04T21:00:00.000Z')),
-      '2023-02-28': Utils.createUtcDate(new Date(2023, 1, 28, 0, 0, 0, 0)),
-      '2023-06-05': Utils.createUtcDate(new Date(2023, 5, 5, 2, 59, 59, 0)),
-      '2023-07-07': Utils.createUtcDate(new Date(2023, 6, 7)),
-      '2023-06-01': Utils.createUtcDate(new Date(2023, 5, 1)),
+      '2023-02-28': new Date(2023, 1, 28, 0, 0, 0, 0),
+      '2023-06-05': new Date(2023, 5, 5, 2, 59, 59, 0),
+      '2023-07-07': new Date(2023, 6, 7),
+      '2023-06-01': new Date(2023, 5, 1),
     };
 
     console.log('formatDateYYYYMMDD (UTC+0)', validDates);
@@ -217,10 +217,10 @@ describe('shared/utils/utils.ts', () => {
       '2023-06-30': Utils.createBrlDate(new Date('2023-06-31T02:59:59.999Z')),
       '2023-07-01': Utils.createBrlDate(new Date('2023-07-02T02:59:59.999Z')),
       '2023-07-04': Utils.createBrlDate(new Date('2023-07-05T02:59:59.999Z')),
-      '2023-02-28': Utils.createBrlDate(new Date(2023, 1, 28, 0, 0, 0, 0)),
-      '2023-06-05': Utils.createBrlDate(new Date(2023, 5, 5, 2, 59, 59, 0)),
-      '2023-07-07': Utils.createBrlDate(new Date(2023, 6, 7)),
-      '2023-06-01': Utils.createBrlDate(new Date(2023, 5, 1)),
+      '2023-02-28': new Date(2023, 1, 28, 0, 0, 0, 0),
+      '2023-06-05': new Date(2023, 5, 5, 2, 59, 59, 0),
+      '2023-07-07': new Date(2023, 6, 7),
+      '2023-06-01': new Date(2023, 5, 1),
     };
 
     console.log('formatDateYYYYMMDD (America/Sao_Paulo)', validDates);

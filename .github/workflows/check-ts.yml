@@ -4,6 +4,14 @@ concurrency:
   group: ${{ github.workflow }}:${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  REDIS_PORT: '6379'
+  CHECK_ENVFILE: 'false'
+  REDIS_HOST: 'localhost'
+  TZ_UTC: 'UTC'
+  TZ_BRL: 'America/Sao_Paulo'
+  TZ: 'UTC'
+
 on:
   - push
 
@@ -32,11 +40,4 @@ jobs:
       - run: npm run check-ts
 
       - name: Run Tests
-        env:
-          REDIS_PORT: '6379'
-          CHECK_ENVFILE: 'false'
-          REDIS_HOST: 'localhost'
-          TZ_UTC: 'UTC'
-          TZ_BRL: 'America/Sao_Paulo'
-          TZ: 'UTC'
         run: npm run test:all
