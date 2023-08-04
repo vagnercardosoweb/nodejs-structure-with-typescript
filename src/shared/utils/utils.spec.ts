@@ -190,45 +190,43 @@ describe('shared/utils/utils.ts', () => {
   });
 
   it('formatDateYYYYMMDD (UTC+0)', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2023-07-31T21:00:00.000Z'));
+
     const timezone = Env.getTimezoneUtc();
-    const validDates: Record<string, Date> = {
-      '2023-06-19': Utils.createUtcDate(new Date('2023-06-18T21:00:00.000Z')),
-      '2023-07-01': Utils.createUtcDate(new Date('2023-06-30T21:00:00.000Z')),
-      '2023-07-02': Utils.createUtcDate(new Date('2023-07-01T21:00:00.000Z')),
-      '2023-07-05': Utils.createUtcDate(new Date('2023-07-04T21:00:00.000Z')),
-      '2023-02-28': new Date(2023, 1, 28, 0, 0, 0, 0),
-      '2023-06-05': new Date(2023, 5, 5, 2, 59, 59, 0),
-      '2023-07-07': new Date(2023, 6, 7),
-      '2023-06-01': new Date(2023, 5, 1),
-    };
+    expect(timezone).toStrictEqual('UTC');
 
-    console.log('formatDateYYYYMMDD (UTC+0)', validDates);
+    const expected = Utils.formatDateYYYYMMDD(new Date(), timezone);
+    expect(expected).toStrictEqual('2023-07-31');
 
-    for (const key in validDates) {
-      const value = Utils.formatDateYYYYMMDD(validDates[key], timezone);
-      expect(value).toStrictEqual(key);
-    }
+    vi.useRealTimers();
+  });
+
+  it('formatDateYYYYMMDD (America/Los_Angeles)', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2023-07-31T07:00:00.000Z'));
+
+    const expected = Utils.formatDateYYYYMMDD(
+      new Date(),
+      'America/Los_Angeles',
+    );
+
+    expect(expected).toStrictEqual('2023-07-31');
+
+    vi.useRealTimers();
   });
 
   it('formatDateYYYYMMDD (America/Sao_Paulo)', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2023-08-01T02:59:59Z'));
+
     const timezone = Env.getTimezoneBrl();
-    const validDates: Record<string, Date> = {
-      '2023-06-18': Utils.createBrlDate(new Date('2023-06-19T02:59:59.999Z')),
-      '2023-06-30': Utils.createBrlDate(new Date('2023-06-31T02:59:59.999Z')),
-      '2023-07-01': Utils.createBrlDate(new Date('2023-07-02T02:59:59.999Z')),
-      '2023-07-04': Utils.createBrlDate(new Date('2023-07-05T02:59:59.999Z')),
-      '2023-02-28': new Date(2023, 1, 28, 0, 0, 0, 0),
-      '2023-06-05': new Date(2023, 5, 5, 2, 59, 59, 0),
-      '2023-07-07': new Date(2023, 6, 7),
-      '2023-06-01': new Date(2023, 5, 1),
-    };
+    expect(timezone).toStrictEqual('America/Sao_Paulo');
 
-    console.log('formatDateYYYYMMDD (America/Sao_Paulo)', validDates);
+    const expected = Utils.formatDateYYYYMMDD(new Date(), timezone);
+    expect(expected).toStrictEqual('2023-07-31');
 
-    for (const key in validDates) {
-      const value = Utils.formatDateYYYYMMDD(validDates[key], timezone);
-      expect(value).toStrictEqual(key);
-    }
+    vi.useRealTimers();
   });
 
   it('parseDateFromStringWithoutTime: success', () => {

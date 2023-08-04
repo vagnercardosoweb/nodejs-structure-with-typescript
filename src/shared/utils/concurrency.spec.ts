@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 
 import { concurrency, go, Utils } from '@/shared';
 
-describe.skip('shared/utils/concurrency', () => {
+describe('shared/utils/concurrency', () => {
   test('can execute one function with limit 1', async () => {
     const limit1 = concurrency(1);
     const res: number[] = [];
