@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { Env, Logger, SlackAlert, Utils } from '@/shared';
+import { Env, Logger, SlackAlert } from '@/shared';
 import { parseErrorToObject } from '@/shared/errors';
 
 export const errorHandler = (
@@ -24,7 +24,7 @@ export const errorHandler = (
       path: `${requestMethod} ${requestUrl}`,
       routePath: request.route?.path,
       headers: request.headers,
-      body: Utils.obfuscateValues(request.body),
+      body: request.body,
       error,
     });
   }

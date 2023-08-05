@@ -128,11 +128,11 @@ export class Utils {
     return /data:image\/(.+);/gm.test(value);
   }
 
-  public static obfuscateValues(data: any, keys: string[] = []) {
+  public static obfuscateValues<T>(data: T, keys: string[] = []): T {
     if (!Env.get('OBFUSCATE_VALUE', true)) return data;
     if (!Utils.isArray(data) && !Utils.isObject(data)) return data;
 
-    const result = Utils.isArray(data) ? [...data] : { ...data };
+    const result = Utils.removeUndefined(data) as any;
     const uniqueKeys = new Set([...keys, ...obfuscateKeys]);
 
     for (const key of Object.keys(result)) {
@@ -161,19 +161,24 @@ export class Utils {
     return result;
   }
 
-  public static getFirstAndLastName(value: string): {
-    firstName: string;
-    lastName: string;
-  } {
-    const slitName = value.split(' ');
-    return {
-      firstName: slitName[0],
-      lastName: slitName
-        .slice(1)
-        .map((row) => row.trim())
-        .join(' ')
-        .trim(),
+  public static parseNameToParts(name: string) {
+    const result = {
+      firstName: '',
+      middleName: '',
+      lastName: '',
     };
+
+    const partsName = name.split(' ').map((w: string) => w.trim());
+    if (partsName.length === 0) return result;
+
+    result.firstName = partsName.shift() as string;
+
+    if (partsName.length > 0) {
+      result.lastName = partsName.pop() as string;
+      result.middleName = partsName.join(' ');
+    }
+
+    return result;
   }
 
   public static formatDateYYYYMMDD(date: Date, timeZone?: string): string {
@@ -301,7 +306,7 @@ export class Utils {
     }
   }
 
-  public static removeUndefined(value: Record<string, any>) {
+  public static removeUndefined<T>(value: T): T {
     return JSON.parse(JSON.stringify(value));
   }
 
@@ -423,23 +428,29 @@ export class Utils {
   }
 
   public static createBrlDate(date?: Date): Date {
-    if (!date) date = new Date();
-    return Utils.createDateWithTimezone(date, Env.getTimezoneBrl());
+    return Utils.createDateWithTimezone(
+      date ?? new Date(),
+      Env.getTimezoneBrl(),
+    );
   }
 
   public static createUtcDate(date?: Date): Date {
-    if (!date) date = new Date();
-    return Utils.createDateWithTimezone(date, Env.getTimezoneUtc());
+    return Utils.createDateWithTimezone(
+      date ?? new Date(),
+      Env.getTimezoneUtc(),
+    );
   }
 
   public static generateSlug(value: string): string {
-    return value
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
+    return Utils.removeAccents(value)
       .replace(/[^a-zA-Z0-9]/g, '-')
       .replace(/-{2,}/g, '-')
       .replace(/^-|-$/g, '')
       .toLowerCase();
+  }
+
+  public static scapeSql(text: string) {
+    return Utils.removeAccents(text).replace(/'/g, "''").toLocaleLowerCase();
   }
 }
 

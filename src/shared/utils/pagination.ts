@@ -1,6 +1,7 @@
 type Properties = { page: number; limit: number };
 
 type Result = {
+  perPage: number;
   totalRows: number;
   totalPages: number;
   currentPage: number;
@@ -11,8 +12,8 @@ type Result = {
 export class Pagination {
   protected page = 1;
   protected limit = 10;
-  protected offset = 0;
   protected totalRows = 0;
+  protected offset = 0;
 
   constructor({ page, limit }: Properties) {
     this.page = page;
@@ -52,6 +53,7 @@ export class Pagination {
     const nextPage = totalPages > this.page ? this.page + 1 : totalPages;
     const prevPage = this.page > 1 ? this.page - 1 : 1;
     return {
+      perPage: this.limit,
       totalRows: this.totalRows,
       totalPages,
       currentPage: this.page,

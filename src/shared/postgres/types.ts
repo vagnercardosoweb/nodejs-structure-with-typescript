@@ -34,6 +34,7 @@ export type PgPoolConnectionOptions = {
   timezone: string;
   charset: string;
   enabledSsl: boolean;
+  convertDateOnlyToDate: boolean;
   maxPool: number;
   minPool: number;
   logging: boolean;

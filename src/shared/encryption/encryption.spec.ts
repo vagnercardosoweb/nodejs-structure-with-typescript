@@ -1,18 +1,21 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { Utils } from '../utils';
-import { Encryption } from './encryption';
+import { Encryption, Utils } from '@/shared';
 
 const encryption = new Encryption('any_key');
 
-describe('Ecryption', () => {
+describe('Encryption', () => {
   it('should reject when encrypting', async () => {
     vi.spyOn(encryption as any, 'generateKey').mockReturnValueOnce('any');
-    expect(() => encryption.encrypt('any_value')).rejects.toBeTruthy();
+    expect(() => encryption.encrypt('any_value')).rejects.toThrowError(
+      'Invalid key length',
+    );
   });
 
   it('should reject when decrypting an invalid encryption', async () => {
-    expect(() => encryption.decrypt('any_value')).rejects.toBeTruthy();
+    expect(() => encryption.decrypt('any_value')).rejects.toThrowError(
+      'Unexpected token j in JSON at position 0',
+    );
   });
 
   it('should create an encryption and validate the payload', async () => {

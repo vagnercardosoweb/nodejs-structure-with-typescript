@@ -21,6 +21,7 @@ import {
   ContainerName,
   ContainerValue,
   DurationTime,
+  Env,
   HttpMethod,
   HttpStatusCode,
   InternalServerError,
@@ -205,10 +206,12 @@ export class RestApi {
           return response.json({
             data: result,
             path: `${request.method} ${request.originalUrl}`,
-            timestamp: new Date().toISOString(),
+            timezone: Env.getTimezoneGlobal(),
             duration: duration.format(),
             requestId: request.context.requestId,
             ipAddress: request.ip,
+            utcDate: Utils.createUtcDate(),
+            brlDate: Utils.createBrlDate(),
           });
         },
       );

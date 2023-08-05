@@ -1,3 +1,5 @@
+import process from 'node:process';
+
 export class DurationTime {
   public start: [number, number];
   public finish: [number, number] = [0, 0];

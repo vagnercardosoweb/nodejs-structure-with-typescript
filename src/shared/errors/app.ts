@@ -7,27 +7,20 @@ import { HttpStatusCode } from '@/shared/enums';
 import { Utils } from '@/shared/utils';
 
 export class AppError extends Error {
-  public code: string;
+  public code: string = 'DEFAULT';
   public name = 'AppError';
   public message: string;
   public description?: string;
   public metadata: Metadata = {};
-  public statusCode: HttpStatusCode;
-  public sendToSlack: boolean;
-  public originalError?: Error | { name?: string; message: string };
-  public logging: boolean;
+  public statusCode: HttpStatusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
+  public sendToSlack: boolean = true;
+  public originalError?: Error;
+  public logging: boolean = true;
   public requestId?: string;
   public errorId: string;
 
   constructor(options: Options = {}) {
-    if (!options.code) options.code = 'DEFAULT';
     if (!options.errorId) options.errorId = AppError.generateErrorId();
-    if (!options.statusCode) {
-      options.statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
-    }
-
-    if (Utils.isUndefined(options.sendToSlack)) options.sendToSlack = true;
-    if (Utils.isUndefined(options.logging)) options.logging = true;
 
     super(options.message ?? INTERNAL_SERVER_ERROR_MESSAGE);
     Object.setPrototypeOf(this, AppError.prototype);

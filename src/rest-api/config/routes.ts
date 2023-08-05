@@ -13,18 +13,16 @@ export const routes: Route[] = [
   {
     path: '/',
     public: true,
-    handler: async (request, response) => {
-      const path = `${request.method} ${request.originalUrl}`;
-      return response.json({
+    handler: async (request, response) =>
+      response.json({
         data: '🚀',
+        path: `${request.method} ${request.originalUrl}`,
+        timezone: Env.getTimezoneGlobal(),
+        requestId: request.context.requestId,
+        ipAddress: request.ip,
         utcDate: Utils.createUtcDate(),
         brlDate: Utils.createBrlDate(),
-        timezone: Env.getTimezoneGlobal(),
-        ipAddress: request.ip,
-        requestId: request.context.requestId,
-        path,
-      });
-    },
+      }),
   },
   ...userRoutes,
   ...swaggerRoutes,

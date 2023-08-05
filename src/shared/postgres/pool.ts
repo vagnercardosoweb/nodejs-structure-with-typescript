@@ -4,7 +4,6 @@ import {
   DurationTime,
   Env,
   InternalServerError,
-  Logger,
   LoggerInterface,
   Transaction,
   TransactionInterface,
@@ -44,11 +43,13 @@ export class PgPool implements PgPoolInterface {
       allowExitOnIdle: true,
     });
 
-    types.setTypeParser(1082, (value) => value);
+    if (!this.options.convertDateOnlyToDate) {
+      types.setTypeParser(1082, (value) => value);
+    }
   }
 
-  public static fromEnvironment(logger?: LoggerInterface): PgPool {
-    return new PgPool(logger ?? Logger.withId('DB_POOL'), {
+  public static fromEnvironment(logger: LoggerInterface): PgPool {
+    return new PgPool(logger, {
       appName: Env.get('DB_APP_NAME', 'api'),
       charset: Env.get('DB_CHARSET', 'utf8'),
       database: Env.required('DB_NAME'),
@@ -61,6 +62,7 @@ export class PgPool implements PgPoolInterface {
       port: Env.get('DB_PORT', 5432),
       schema: Env.get('DB_SCHEMA', 'public'),
       timezone: Env.get('DB_TIMEZONE', 'UTC'),
+      convertDateOnlyToDate: Env.get('DB_CONVERT_DATE_ONLY_TO_DATE', false),
       username: Env.required('DB_USERNAME'),
       timeout: {
         idle: Env.get('DB_POOL_IDLE', 30_000),

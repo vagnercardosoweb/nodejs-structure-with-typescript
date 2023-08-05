@@ -4,7 +4,7 @@ import jsonwebtoken, {
   VerifyOptions,
 } from 'jsonwebtoken';
 
-import { Env } from '@/shared';
+import { Env, InternalServerError } from '@/shared';
 import { Utils } from '@/shared/utils';
 
 export class Jwt implements JwtInterface {
@@ -51,7 +51,12 @@ export class Jwt implements JwtInterface {
       issuer: this.issuer,
       ...options,
     }) as JwtDecoded;
-    if (!decoded.sub) throw new Error('Jwt decoded.sub is required.');
+    if (!decoded.sub) {
+      throw new InternalServerError({
+        message: 'Jwt decoded.sub is required.',
+        metadata: decoded,
+      });
+    }
     return decoded;
   }
 }

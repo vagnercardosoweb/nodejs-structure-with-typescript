@@ -5,6 +5,7 @@ import {
   ContainerName,
   Env,
   Jwt,
+  Logger,
   Migrator,
   PgPool,
   RedisCache,
@@ -14,7 +15,7 @@ import {
 import { RestApi } from '../rest-api';
 
 export const makeDependencies = async (api: RestApi) => {
-  const pgPool = await PgPool.fromEnvironment().connect();
+  const pgPool = await PgPool.fromEnvironment(Logger).connect();
   api.set(ContainerName.PG_POOL, pgPool).addOnClose(() => pgPool.close());
 
   const cache = await RedisCache.fromEnvironment().connect();

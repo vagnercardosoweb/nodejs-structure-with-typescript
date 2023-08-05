@@ -1,6 +1,13 @@
 import os from 'node:os';
+import process from 'node:process';
 
-import { Env, LoggerInterface, LoggerMetadata, LogLevel } from '@/shared';
+import {
+  Env,
+  LoggerInterface,
+  LoggerMetadata,
+  LogLevel,
+  Utils,
+} from '@/shared';
 
 class Logger implements LoggerInterface {
   protected readonly pid: number;
@@ -22,6 +29,10 @@ class Logger implements LoggerInterface {
 
   public log(level: LogLevel, message: string, metadata?: LoggerMetadata) {
     if (Env.isTesting()) return;
+    if (metadata) {
+      metadata = Utils.obfuscateValues(metadata);
+      message = Utils.replaceKeysInString(message, metadata);
+    }
     const timestamp = new Date().toISOString();
     process.stdout.write(
       `${JSON.stringify({

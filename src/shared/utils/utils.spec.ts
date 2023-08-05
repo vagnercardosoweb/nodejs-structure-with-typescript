@@ -22,6 +22,8 @@ const createObjectObfuscate = () => {
     name: 'any_name',
     password: 'any_password',
     email: 'any_mail@mail.com',
+    undefinedValue: undefined,
+    nullValue: null,
     nestedObject: {
       name: 'any_name',
       password: 'any_password',
@@ -57,6 +59,7 @@ const createObjectModifiedObfuscate = () =>
     name: 'any_name',
     email: 'any_mail@mail.com',
     password: '*',
+    nullValue: null,
     nestedObject: {
       name: 'any_name',
       password: '*',
@@ -265,11 +268,12 @@ describe('shared/utils/utils.ts', () => {
     );
   });
 
-  it('getFirstAndLastName', () => {
-    const fullName = 'Vagner dos Santos Cardoso';
-    const { firstName, lastName } = Utils.getFirstAndLastName(fullName);
+  it('parseNameToParts', () => {
+    const name = 'Vagner dos Santos Cardoso';
+    const { firstName, middleName, lastName } = Utils.parseNameToParts(name);
     expect(firstName).toEqual('Vagner');
-    expect(lastName).toEqual('dos Santos Cardoso');
+    expect(middleName).toEqual('dos Santos');
+    expect(lastName).toEqual('Cardoso');
   });
 
   it('isUndefined', () => {
