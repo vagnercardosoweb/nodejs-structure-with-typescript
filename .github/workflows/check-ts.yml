@@ -13,12 +13,13 @@ env:
   TZ: 'UTC'
 
 on:
-  - push
+  push:
+    paths:
+      - 'src/**/*.ts'
 
 jobs:
   main:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
 
     strategy:
       matrix:
@@ -36,8 +37,11 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
-      - run: npm ci
-      - run: npm run check-ts:ci
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Check TS
+        run: npm run check-ts:ci
 
       - name: Run Tests
         run: npm run test:all
