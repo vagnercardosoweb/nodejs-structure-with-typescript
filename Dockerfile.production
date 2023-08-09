@@ -1,5 +1,5 @@
 # build stage 1
-FROM node:20-alpine as builder
+FROM node:18-alpine as builder
 
 # Update system and install required libs
 RUN apk add --update --no-cache python3 alpine-sdk openssh-client && rm -rf /var/cache/apk/*
@@ -9,11 +9,8 @@ WORKDIR /app
 
 # Copy files to build
 COPY ./src ./src
-COPY ./database ./database
-COPY ./.sequelizerc ./
-COPY ./scripts ./scripts
+COPY ./migrations ./migrations
 COPY ./tsconfig.json ./
-COPY ./tsconfig-build.json ./
 COPY ./package.json ./
 COPY ./package-lock.json ./
 COPY ./global.d.ts ./
@@ -22,7 +19,7 @@ COPY ./global.d.ts ./
 RUN npm install --ignore-scripts && npm run build && npm run db:compile
 
 # build stage 2
-FROM node:20-alpine as finish
+FROM node:18-alpine as finish
 
 # Set TZ and install required libs
 ENV TZ=${TZ:-UTC}
@@ -33,14 +30,12 @@ WORKDIR /app
 
 # Copy files to run application
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/scripts ./scripts
-COPY --from=builder /app/.sequelizerc ./
-COPY --from=builder /app/database-compiled ./database-compiled
+COPY --from=builder /app/migrations ./migrations
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/package-lock.json ./
 
 # Install production libs
 RUN npm install --omit=dev --ignore-scripts
 
-EXPOSE ${PORT:-3333}
+EXPOSE ${PORT:-3000}
 CMD ["npm", "run", "start"]

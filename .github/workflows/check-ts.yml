@@ -1,0 +1,48 @@
+name: Check TS and Run Tests
+
+concurrency:
+  group: ${{ github.workflow }}:${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REDIS_PORT: '6379'
+  CHECK_ENVFILE: 'false'
+  REDIS_HOST: 'localhost'
+  TZ_UTC: 'UTC'
+  TZ_BRL: 'America/Sao_Paulo'
+  TZ: 'UTC'
+
+on:
+  push:
+    paths:
+      - '.github/workflows/check-ts.yml'
+      - 'src/**/*.ts'
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [ 18.x ]
+
+    steps:
+      - name: Checkout V3
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Check TS
+        run: npm run check-ts:ci
+
+      - name: Run Tests
+        run: npm run test:all

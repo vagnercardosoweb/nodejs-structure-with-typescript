@@ -1,24 +1,24 @@
-import { RequestHandler } from 'express';
+import 'vitest/globals';
 
-import { AuthType, HttpMethod } from '@/enums';
-
-export type Route = {
-  path: string;
-  method?: HttpMethod;
-  handler: RequestHandler;
-  handlers?: RequestHandler[];
-  authType?: AuthType;
-  public?: boolean;
-};
+import {
+  ContainerInterface,
+  JwtDecoded,
+  LoggerInterface,
+  TranslationInterface,
+} from '@/shared';
 
 declare global {
   export namespace Express {
     export interface Request {
-      logger: typeof import('../src/shared/logger').default;
+      logger: LoggerInterface;
+      container: ContainerInterface;
+      translation: TranslationInterface;
       context: {
+        language: string;
         requestId: string;
-        jwt: {
-          sub: string;
+        awsTraceId?: string;
+        awsRequestId?: string;
+        jwt: JwtDecoded & {
           token: string;
           type: string;
         };
