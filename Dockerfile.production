@@ -21,10 +21,6 @@ RUN npm install --ignore-scripts && npm run build && npm run db:compile
 # build stage 2
 FROM node:18-alpine as finish
 
-# Set TZ and install required libs
-ENV TZ=${TZ:-UTC}
-RUN apk add --update --no-cache bash vim tzdata && rm -rf /var/cache/apk/*
-
 # Configure workdir
 WORKDIR /app
 

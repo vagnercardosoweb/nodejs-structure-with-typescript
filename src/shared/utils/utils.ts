@@ -39,7 +39,7 @@ export class Utils {
 
   public static removeAccents(value: string): string {
     return value
-      .normalize('NFD')
+      .normalize('NFKD')
       .replace(/[\u0300-\u036f|\u00b4|\u0060|\u005e|\u007e]/g, '');
   }
 
@@ -443,10 +443,10 @@ export class Utils {
 
   public static generateSlug(value: string): string {
     return Utils.removeAccents(value)
+      .toLowerCase()
       .replace(/[^a-zA-Z0-9]/g, '-')
       .replace(/-{2,}/g, '-')
-      .replace(/^-|-$/g, '')
-      .toLowerCase();
+      .replace(/^-|-$/g, '');
   }
 
   public static scapeSql(text: string) {
