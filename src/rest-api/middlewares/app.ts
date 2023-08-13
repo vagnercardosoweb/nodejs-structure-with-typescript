@@ -8,14 +8,8 @@ import { ContainerInterface } from '@/shared/container';
 export const app =
   (container: ContainerInterface) =>
   (request: Request, response: Response, next: NextFunction) => {
-    let language =
-      request
-        .acceptsLanguages()
-        .map((language) => language.toLowerCase())
-        .at(0) ?? '*';
-    if (language === '*') language = 'pt-br';
-
     request.container = container.clone();
+    request.eventManager = container.get(ContainerName.EVENT_MANAGER);
 
     const requestId = randomUUID();
     request.container.set(ContainerName.REQUEST_ID, requestId);
@@ -23,6 +17,13 @@ export const app =
 
     request.logger = Logger.withId(requestId);
     request.container.set(ContainerName.LOGGER, request.logger);
+
+    let language =
+      request
+        .acceptsLanguages()
+        .map((language) => language.toLowerCase())
+        .at(0) ?? '*';
+    if (language === '*') language = 'pt-br';
 
     request.context = {
       jwt: {} as Request['context']['jwt'],

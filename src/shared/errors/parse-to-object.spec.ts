@@ -1,29 +1,28 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { parseErrorToObject } from '@/shared';
+import { INTERNAL_SERVER_ERROR_MESSAGE, parseErrorToObject } from '@/shared';
 
 import { HttpStatusCode } from '../enums';
 import { AppError } from './app';
 
 describe('AppError', () => {
   it('should parse the default error to the AppError', () => {
-    const sut = parseErrorToObject(new Error('any_message'));
+    const sut = parseErrorToObject(new Error('message'));
     expect(sut).toBeInstanceOf(AppError);
-    expect(sut.originalError?.message).toBe('any_message');
     expect(sut.statusCode).toBe(HttpStatusCode.INTERNAL_SERVER_ERROR);
-    expect(sut.originalError).toBeDefined();
+    expect(sut.originalError?.message).toBe('message');
     expect(sut.name).toBe('Error');
   });
 
   it('should return an AppError by default', () => {
-    const sut = parseErrorToObject(new AppError({ message: 'any_message' }));
-    expect(sut.message).toBe('any_message');
+    const sut = parseErrorToObject(new AppError());
+    expect(sut.message).toBe(INTERNAL_SERVER_ERROR_MESSAGE);
     expect(sut.originalError).toBeUndefined();
     expect(sut.name).toBe('AppError');
   });
 
   it('should check for an axios error', () => {
-    const axiosErrorMock = new Error('any_error');
+    const axiosErrorMock = new Error('any');
     const mockResponse = {
       config: {
         url: '/login',
@@ -38,7 +37,7 @@ describe('AppError', () => {
     (axiosErrorMock as any).response = mockResponse;
 
     const sut = parseErrorToObject(axiosErrorMock);
-    expect(sut.originalError?.message).toBe('any_error');
+    expect(sut.originalError?.message).toBe('any');
     expect(sut.metadata).toStrictEqual(mockResponse);
     expect(sut.name).toBe('AxiosXxx');
   });

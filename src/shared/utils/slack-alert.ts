@@ -1,11 +1,13 @@
 import os from 'node:os';
 import util from 'node:util';
 
-import { Utils } from '@/shared';
-import { HttpMethod } from '@/shared/enums';
-import { Env } from '@/shared/env/env';
-import { InternalServerError } from '@/shared/errors';
-import { httpRequest } from '@/shared/utils/http-request';
+import {
+  Env,
+  HttpMethod,
+  httpRequest,
+  InternalServerError,
+  Utils,
+} from '@/shared';
 
 type Input = {
   color?: 'error' | 'warning' | 'info' | 'success' | string;
@@ -31,7 +33,7 @@ export class SlackAlert {
         token: Env.get('SLACK_TOKEN'),
         channel: Env.get('SLACK_CHANNEL'),
         memberIds: Env.get('SLACK_MEMBERS_ID'),
-        username: Env.get('SLACK_USERNAME'),
+        username: Env.get('SLACK_USERNAME', Env.get('APPLICATION_NAME')),
       },
     } = input;
 
@@ -66,26 +68,30 @@ export class SlackAlert {
                     )
                     .trim(),
                 },
-                fields: Object.entries({
-                  'Date': new Date().toISOString(),
-                  'Hostname / PID': util.format(
-                    '%s / %s',
-                    os.hostname(),
-                    process.pid,
-                  ),
-                  ...fields,
-                }).map(([title, value]) => ({
+                fields: Object.entries(
+                  Utils.removeUndefined({
+                    'Date': new Date().toISOString(),
+                    'Hostname / PID': util.format(
+                      '%s / %s',
+                      os.hostname(),
+                      process.pid,
+                    ),
+                    ...fields,
+                  }),
+                ).map(([title, value]) => ({
                   type: 'mrkdwn',
                   text: util.format('*%s*\n%s', Utils.ucFirst(title), value),
                 })),
               },
-              ...Object.entries(sections).map(([title, value]) => ({
-                type: 'section',
-                text: {
-                  type: 'mrkdwn',
-                  text: `*${Utils.ucFirst(title)}*\n${value}`,
-                },
-              })),
+              ...Object.entries(Utils.removeUndefined(sections)).map(
+                ([title, value]) => ({
+                  type: 'section',
+                  text: {
+                    type: 'mrkdwn',
+                    text: `*${Utils.ucFirst(title)}*\n${value}`,
+                  },
+                }),
+              ),
             ],
           },
         ],

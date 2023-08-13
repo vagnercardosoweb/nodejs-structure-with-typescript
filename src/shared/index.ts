@@ -4,6 +4,7 @@ export * from './postgres';
 export * from './container';
 export * from './encryption';
 export * from './password-hash';
+export * from './event-manager';
 export * from './enums';
 export * from './errors';
 export * from './logger';

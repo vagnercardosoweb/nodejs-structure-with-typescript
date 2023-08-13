@@ -1,12 +1,7 @@
 import { AppError } from '@/shared';
 
 export const parseErrorToObject = (error: any): AppError => {
-  const requestId = error?.requestId;
-
-  if (error instanceof AppError) {
-    if (requestId && !error.requestId) error.requestId = requestId;
-    return error;
-  }
+  if (error instanceof AppError) return error;
 
   const result = new AppError({
     code: error?.code,
@@ -14,18 +9,14 @@ export const parseErrorToObject = (error: any): AppError => {
     metadata: error?.metadata,
     description: error?.description,
     statusCode: error?.statusCode,
+    requestId: error?.requestId,
     originalError: error,
     sendToSlack: true,
     logging: true,
-    requestId,
   });
 
   if (error?.name) result.name = error.name;
-  if (error?.stack) {
-    result.stack = error.stack;
-  } else if (error?.message?.trim()) {
-    result.message = error.message;
-  }
+  if (error?.stack) result.stack = error.stack;
 
   // check axios errors
   if (result.name.startsWith('Axios')) {

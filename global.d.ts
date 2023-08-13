@@ -2,6 +2,7 @@ import 'vitest/globals';
 
 import {
   ContainerInterface,
+  EventManagerInterface,
   JwtDecoded,
   LoggerInterface,
   TranslationInterface,
@@ -13,6 +14,7 @@ declare global {
       logger: LoggerInterface;
       container: ContainerInterface;
       translation: TranslationInterface;
+      eventManager: EventManagerInterface;
       context: {
         language: string;
         requestId: string;

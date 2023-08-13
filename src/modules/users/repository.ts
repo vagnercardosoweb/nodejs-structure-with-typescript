@@ -2,7 +2,6 @@ import { Repository } from '@/shared';
 
 export class UserRepository extends Repository<User> {
   protected readonly tableName = 'users';
-  protected readonly primaryKey = 'id';
 
   public async getWithLimit(limit: number) {
     return this.findAll<GetWithLimitOutput>({

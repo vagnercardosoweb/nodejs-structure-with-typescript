@@ -199,9 +199,8 @@ export class RestApi {
           const duration = new DurationTime();
           const result = await new Handler(request, response).handle();
 
-          if (!result && response.statusCode === HttpStatusCode.OK) {
-            return response.sendStatus(HttpStatusCode.NO_CONTENT);
-          }
+          if (result?.hasOwnProperty('socket')) return result;
+          if (!result) return response.sendStatus(HttpStatusCode.NO_CONTENT);
 
           return response.json({
             data: result,

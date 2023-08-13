@@ -56,7 +56,7 @@ export class PgPool implements PgPoolInterface {
       enabledSsl: Env.get('DB_ENABLED_SSL', false),
       host: Env.required('DB_HOST'),
       logging: Env.required('DB_LOGGING', false),
-      maxPool: Env.get('DB_POOL_MAX', 35),
+      maxPool: Env.get('DB_POOL_MAX', 1),
       minPool: Env.get('DB_POOL_MIN', 0),
       password: Env.required('DB_PASSWORD'),
       port: Env.get('DB_PORT', 5432),
@@ -65,7 +65,7 @@ export class PgPool implements PgPoolInterface {
       convertDateOnlyToDate: Env.get('DB_CONVERT_DATE_ONLY_TO_DATE', false),
       username: Env.required('DB_USERNAME'),
       timeout: {
-        idle: Env.get('DB_POOL_IDLE', 30_000),
+        idle: Env.get('DB_POOL_IDLE', 1_000),
         connection: Env.get('DB_POOL_EVICT', 2_000),
         query: Env.get('DB_POOL_ACQUIRE', 3_000),
       },
