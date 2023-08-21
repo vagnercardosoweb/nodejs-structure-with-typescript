@@ -11,8 +11,8 @@ export const withToken = async (
   const { token } = request.context.jwt;
   if (!token?.trim()) {
     throw new UnauthorizedError({
+      code: 'auth.missing-token',
       message: 'token missing in the request',
-      sendToSlack: false,
     });
   }
   if (token === Env.get('API_KEY')) return next();
@@ -20,7 +20,6 @@ export const withToken = async (
     throw new UnauthorizedError({
       code: 'auth.invalid-format-token',
       message: 'token does not have a valid format',
-      sendToSlack: false,
     });
   }
   try {
@@ -31,7 +30,6 @@ export const withToken = async (
     throw new UnauthorizedError({
       code: 'auth.invalid-token',
       message: 'unable to validate your token please login again',
-      sendToSlack: false,
       originalError: e,
     });
   }

@@ -1,4 +1,5 @@
 import jsonwebtoken, {
+  Algorithm,
   JwtPayload,
   SignOptions,
   VerifyOptions,
@@ -16,12 +17,13 @@ export class Jwt implements JwtInterface {
     return Utils.base64ToValue(Env.required('JWT_PRIVATE_KEY'));
   }
 
-  private get algorithm() {
-    return Env.get('JWT_ALGORITHM', 'RS256');
+  private get algorithm(): Algorithm {
+    return 'RS256';
   }
 
   private get expiresIn() {
-    return Env.get('JWT_EXPIRE_IN_SECONDS', 604800);
+    const expiresIn7day = 604800;
+    return Env.get('JWT_EXPIRES_IN_SECONDS', expiresIn7day);
   }
 
   private get audience() {
@@ -33,7 +35,12 @@ export class Jwt implements JwtInterface {
   }
 
   public encode(payload: JwtEncoded, options?: SignOptions): string {
-    if (!payload.sub) throw new Error('Jwt payload.sub is required.');
+    if (!payload.sub) {
+      throw new InternalServerError({
+        message: 'Jwt payload.sub is required.',
+        metadata: { payload, options },
+      });
+    }
     return jsonwebtoken.sign(payload, this.secretKey, {
       algorithm: this.algorithm,
       expiresIn: this.expiresIn,
@@ -54,7 +61,7 @@ export class Jwt implements JwtInterface {
     if (!decoded.sub) {
       throw new InternalServerError({
         message: 'Jwt decoded.sub is required.',
-        metadata: decoded,
+        metadata: { decoded, options },
       });
     }
     return decoded;

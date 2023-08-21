@@ -40,7 +40,7 @@ export const errorHandler = (
         'Message': error.originalError?.message ?? error.message,
       },
     }).catch((e) => {
-      request.logger.error('SEND_ALERT_SLACK', {
+      request.logger.error('SEND_ALERT_SLACK_ERROR', {
         slackError: parseErrorToObject(e),
         originalError: error,
       });
