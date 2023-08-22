@@ -10,9 +10,7 @@ export class Repository<TRow extends QueryResultRow = any> {
 
   public constructor(protected readonly pgPool: PgPoolInterface) {}
 
-  protected async findAll<T extends QueryResultRow = TRow>(
-    params?: FindParams,
-  ): Promise<T[]> {
+  protected async findAll<T = TRow>(params?: FindParams<T>): Promise<T[]> {
     const {
       columns = [`${this.tableName}.*`],
       where = [],
@@ -38,7 +36,7 @@ export class Repository<TRow extends QueryResultRow = any> {
   }
 
   protected async findAndCountAll<T extends QueryResultRow = TRow>(
-    params?: FindParams,
+    params?: FindParams<T>,
   ): Promise<{ count: number; rows: T[] }> {
     const [countResult] = await this.findAll<T>({
       where: params?.where,
@@ -53,12 +51,15 @@ export class Repository<TRow extends QueryResultRow = any> {
   }
 
   protected async findOne<T = TRow>(
-    params: FindOneWithRejectParams,
+    params: FindOneWithRejectParams<T>,
   ): Promise<T>;
 
-  protected async findOne<T = TRow>(params: FindOneParams): Promise<T | null>;
-  protected async findOne(params: FindOneParams) {
-    const result = await this.findAll({ ...params, limit: 1 });
+  protected async findOne<T = TRow>(
+    params: FindOneParams<T>,
+  ): Promise<T | null>;
+
+  protected async findOne<T = TRow>(params: FindOneParams<T>) {
+    const result = await this.findAll<T>({ ...params, limit: 1 });
     if (
       result.length === 0 &&
       Object.prototype.hasOwnProperty.call(params, 'rejectOnEmpty')
@@ -72,7 +73,7 @@ export class Repository<TRow extends QueryResultRow = any> {
     return result.at(0) ?? null;
   }
 
-  protected async findById<T = TRow>(params: FindByIdParams) {
+  protected async findById<T = TRow>(params: FindByIdParams<T>) {
     if (!params.where) params.where = [];
     if (!params.binding) params.binding = [];
     const bindingLength = params.binding.length;
@@ -97,7 +98,7 @@ export class Repository<TRow extends QueryResultRow = any> {
       }
     }
     params.where.push(`${this.primaryKey} = $${bindingLength + 1}`);
-    params.binding.push(params.primaryValue);
+    params.binding.push(params.id);
     return this.findOne<T>(params);
   }
 
@@ -170,13 +171,14 @@ export class Repository<TRow extends QueryResultRow = any> {
   }
 }
 
-type Where = string[];
 type Binding = any[];
+export type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
+type Where = string[];
 
-type FindParams = {
+type FindParams<Column> = {
   where?: Where;
   binding?: Binding;
-  columns?: string[];
+  columns?: (keyof Column)[] | string[];
   orderBy?: string[];
   joins?: string[];
   limit?: number;
@@ -195,13 +197,13 @@ type UpdateParams<Data extends QueryResultRow = any> = {
   data: Partial<Data>;
 };
 
-type FindOneParams = Omit<FindParams, 'limit' | 'offset'>;
+type FindOneParams<Column> = Omit<FindParams<Column>, 'limit' | 'offset'>;
 
-type FindOneWithRejectParams = {
+type FindOneWithRejectParams<Column> = {
   rejectOnEmpty: boolean | string | Error;
-} & FindOneParams;
+} & FindOneParams<Column>;
 
-type FindByIdParams = { primaryValue: any } & Omit<
-  FindOneWithRejectParams,
+type FindByIdParams<Column> = { id: any } & Omit<
+  FindOneWithRejectParams<Column>,
   'groupBy' | 'orderBy'
 >;

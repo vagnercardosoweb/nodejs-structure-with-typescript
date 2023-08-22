@@ -14,7 +14,7 @@ import {
 
 import {
   FnTransaction,
-  PgPoolConnectionOptions,
+  PgPoolOptions,
   PgPoolInterface,
   QueryResult,
   QueryResultRow,
@@ -28,7 +28,7 @@ export class PgPool implements PgPoolInterface {
 
   public constructor(
     protected logger: LoggerInterface,
-    protected readonly options: PgPoolConnectionOptions,
+    protected readonly options: PgPoolOptions,
   ) {
     this.pool = new Pool({
       host: this.options.host,

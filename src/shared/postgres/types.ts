@@ -25,7 +25,7 @@ export type FnTransaction<T> = (
   >,
 ) => Promise<T>;
 
-export type PgPoolConnectionOptions = {
+export type PgPoolOptions = {
   host: string;
   port: number;
   schema: string;
