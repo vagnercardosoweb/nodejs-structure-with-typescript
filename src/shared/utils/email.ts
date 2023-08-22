@@ -1,5 +1,4 @@
-import { HttpStatusCode } from '../enums';
-import { AppError } from '../errors';
+import { BadRequestError } from '@/shared';
 
 const REGEX = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
 
@@ -16,10 +15,9 @@ export class Email {
   private validate(): boolean {
     const isValid = REGEX.test(this.value);
     if (isValid) return true;
-    throw new AppError({
+    throw new BadRequestError({
       code: 'VALIDATE:EMAIL',
       message: 'Email [{{value}}] entered does not have a valid format',
-      statusCode: HttpStatusCode.BAD_REQUEST,
       metadata: { value: this.value },
     });
   }

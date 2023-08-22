@@ -35,7 +35,7 @@ export class InMemoryCache implements CacheInterface {
       return value;
     }
 
-    if (result?.value) await this.remove(key);
+    if (result?.value) await this.delete(key);
 
     return null;
   }
@@ -45,7 +45,7 @@ export class InMemoryCache implements CacheInterface {
     return result !== null;
   }
 
-  public async remove(key: string): Promise<boolean> {
+  public async delete(key: string): Promise<boolean> {
     return this.cached.delete(key);
   }
 

@@ -111,13 +111,13 @@ describe('InMemoryCache', () => {
 
   it('deveria retornar TRUE ao remover um cache existente', async () => {
     await inMemoryCache.set('any_key', 'any_value');
-    await expect(inMemoryCache.remove('any_key')).resolves.toBeTruthy();
+    await expect(inMemoryCache.delete('any_key')).resolves.toBeTruthy();
     expect((inMemoryCache as any).cached.size).toBe(0);
   });
 
   it('deveria retornar FALSE ao remover um cache existente', async () => {
     await inMemoryCache.set('any_key', 'any_value');
-    await expect(inMemoryCache.remove('not_exist_key')).resolves.toBeFalsy();
+    await expect(inMemoryCache.delete('not_exist_key')).resolves.toBeFalsy();
   });
 
   for (let testValue of testValues) {

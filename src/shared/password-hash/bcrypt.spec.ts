@@ -24,7 +24,7 @@ describe('PasswordHashBcrypt', () => {
     expect(bcrypt.hash).toHaveBeenCalledWith('any_password', 'any_salt');
 
     expect(bcrypt.genSalt).toHaveBeenCalledTimes(1);
-    expect(bcrypt.genSalt).toHaveBeenCalledWith(10);
+    expect(bcrypt.genSalt).toHaveBeenCalledWith(12);
   });
 
   test('must compare a plaintext password with a hashed one', async () => {

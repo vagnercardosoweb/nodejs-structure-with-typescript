@@ -104,20 +104,20 @@ describe('shared/cache/redis', () => {
 
   it('deveria retornar true ao remover um cache que existe', async () => {
     redisClient.del.mockResolvedValue(1);
-    await expect(cacheClient.remove('key')).resolves.toBeTruthy();
+    await expect(cacheClient.delete('key')).resolves.toBeTruthy();
     expect(redisClient.del).toHaveBeenCalledWith('key');
     expect(redisClient.del).toHaveBeenCalledTimes(1);
   });
 
   it('deveria retornar false ao remover um cache que não existe', async () => {
     redisClient.del.mockResolvedValue(1);
-    await expect(cacheClient.remove('key')).resolves.toBeTruthy();
+    await expect(cacheClient.delete('key')).resolves.toBeTruthy();
   });
 
   it('deveria remover o cache com base em um prefix', async () => {
     const keys = ['key:1', 'key:2'];
     redisClient.keys.mockResolvedValue(keys.map((k) => `cache:${k}`));
-    await cacheClient.deletePrefix('key:*');
+    await cacheClient.deleteByPrefix('key:*');
 
     expect(redisClient.keys).toHaveBeenCalledTimes(1);
     expect(redisClient.keys).toHaveBeenCalledWith('cache:key:*');

@@ -11,7 +11,7 @@ export interface CacheInterface {
 
   has(key: string): Promise<boolean>;
 
-  remove(key: string): Promise<boolean>;
+  delete(key: string): Promise<boolean>;
 
   clear(): Promise<boolean>;
 }

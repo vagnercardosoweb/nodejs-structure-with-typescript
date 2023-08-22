@@ -104,24 +104,22 @@ export class RedisCache implements CacheInterface {
     return result > 0;
   }
 
-  public async remove(key: string): Promise<boolean> {
+  public async delete(key: string): Promise<boolean> {
     const result = await this.client.del(key);
     return result > 0;
   }
 
-  public async deletePrefix(prefix: string): Promise<void> {
+  public async deleteByPrefix(prefix: string): Promise<void> {
     const keys = await this.client.keys(this.mergePrefix(prefix));
-    await Promise.all(
-      keys.map((key) => this.remove(this.removeKeyPrefix(key))),
-    );
+    await Promise.all(keys.map((key) => this.delete(this.removeByPrefix(key))));
   }
 
   public async getByPrefix(prefix: string) {
     const keys = await this.client.keys(this.mergePrefix(prefix));
-    return Promise.all(keys.map((key) => this.get(this.removeKeyPrefix(key))));
+    return Promise.all(keys.map((key) => this.get(this.removeByPrefix(key))));
   }
 
-  private removeKeyPrefix(prefix: string): string {
+  private removeByPrefix(prefix: string): string {
     return prefix.replace(this.keyPrefix, '');
   }
 

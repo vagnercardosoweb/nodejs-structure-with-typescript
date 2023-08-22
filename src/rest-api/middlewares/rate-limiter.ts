@@ -31,10 +31,10 @@ export const rateLimiter =
         response.statusCode < HttpStatusCode.BAD_REQUEST
       ) {
         cacheClient
-          .remove(cacheKey)
+          .delete(cacheKey)
           .catch((error) =>
             Logger.error(
-              `Error remove RATE LIMITE KEY: [${cacheKey}].`,
+              `Removing rate-limit key: ${cacheKey}.`,
               parseErrorToObject(error),
             ),
           );

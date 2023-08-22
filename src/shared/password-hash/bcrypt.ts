@@ -18,7 +18,7 @@ export class PasswordHashBcrypt implements PasswordHash {
   }
 
   private async generateSalt(): Promise<string> {
-    const rounds = Env.get('BCRYPT_SALT_ROUNDS', 10);
+    const rounds = Env.get('BCRYPT_SALT_ROUNDS', 12);
     return bcrypt.genSalt(rounds);
   }
 }
