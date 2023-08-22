@@ -13,11 +13,8 @@ export class Translation implements TranslationInterface {
 
   public get(path: string, replaces: Data = {}): string {
     let result = this.translations.get(this.locale)?.[path] ?? path;
-    const keys = Object.keys(replaces);
-    if (keys.length === 0) return result;
-    for (const key of keys) {
-      result = result.replace(`{{${key}}}`, replaces[key]);
-    }
+    if (Object.keys(replaces).length === 0) return result;
+    result = Utils.replaceKeysInString(result, replaces);
     return Utils.normalizeValue(result);
   }
 

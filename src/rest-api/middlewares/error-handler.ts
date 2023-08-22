@@ -33,11 +33,11 @@ export const errorHandler = (
     SlackAlert.send({
       color: 'error',
       sections: {
-        'Request': `[${error.statusCode}] ${requestMethod} ${requestUrl}`,
-        'ErrorId / ErrorCode': `${error.errorId} / ${error.code}`,
         'RequestId': requestId,
+        'RequestInfo': `[${error.statusCode}] ${requestMethod} ${requestUrl}`,
+        'ErrorCode / ErrorId': `${error.code} / ${error.errorId}`,
+        'ErrorMessage': error.originalError?.message ?? error.message,
         'Description': requestId ? error?.description : 'Unexpected error',
-        'Message': error.originalError?.message ?? error.message,
       },
     }).catch((e) => {
       request.logger.error('SEND_ALERT_SLACK_ERROR', {

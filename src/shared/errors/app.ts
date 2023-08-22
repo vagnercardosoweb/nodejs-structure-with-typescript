@@ -12,11 +12,11 @@ export class AppError extends Error {
   public message: string;
   public description?: string;
   public metadata: Metadata = {};
-  public statusCode: HttpStatusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
-  public sendToSlack: boolean = true;
+  public statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
   public originalError?: Error;
-  public logging: boolean = true;
+  public sendToSlack: boolean = true;
   public requestId?: string;
+  public logging: boolean = true;
   public errorId: string;
 
   constructor(options: Options = {}) {
@@ -74,8 +74,8 @@ export type Options = {
   description?: string;
   metadata?: Metadata;
   statusCode?: HttpStatusCode;
-  sendToSlack?: boolean;
   originalError?: Error;
+  sendToSlack?: boolean;
   requestId?: string;
   logging?: boolean;
   errorId?: string;

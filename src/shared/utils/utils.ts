@@ -145,9 +145,7 @@ export class Utils {
 
       if (Utils.isArray(result[key])) {
         result[key] = result[key].map((row: any) => {
-          if (Utils.isImageBase64(row) || uniqueKeys.has(keyAsLower)) {
-            return '*';
-          }
+          if (Utils.isImageBase64(row)) return '*';
           return Utils.obfuscateValues(row, keys);
         });
         continue;
@@ -291,13 +289,13 @@ export class Utils {
   }
 
   public static parseStringToJson<T = any>(json: any, defaultValue?: any): T {
-    const result = this.normalizeValue(json);
-    if ([null, undefined, ''].includes(result)) return defaultValue;
-    if (typeof result !== 'string') return result;
+    const normalizedJson = this.normalizeValue(json);
+    if ([null, undefined, ''].includes(normalizedJson)) return defaultValue;
+    if (typeof normalizedJson !== 'string') return normalizedJson;
     try {
       return {
         ...defaultValue,
-        ...JSON.parse(result),
+        ...JSON.parse(normalizedJson),
       };
     } catch (e: any) {
       if (Utils.isUndefined(defaultValue)) throw e;

@@ -10,15 +10,15 @@ import {
 import { Utils } from '@/shared/utils';
 
 export interface HttpRequest extends RequestOptions {
-  url: string;
   body?: string;
   method?: HttpMethod;
+  url: string;
 }
 
 export interface HttpResponse<T = any> {
-  body: T;
   statusCode: number;
   headers: IncomingHttpHeaders;
+  body: T;
 }
 
 const makeError = (externalError: any, metadata: any) => {
@@ -26,7 +26,7 @@ const makeError = (externalError: any, metadata: any) => {
     externalError instanceof AppError
       ? externalError
       : new InternalServerError({
-          code: 'HTTP_REQUEST:ERROR',
+          code: 'HTTP_REQUEST_ERROR',
           message: externalError.message,
           originalError: externalError,
         });

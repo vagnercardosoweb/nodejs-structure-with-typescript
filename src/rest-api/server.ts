@@ -13,7 +13,7 @@ const sendSlackAlert = async (color: string, message: string) => {
   try {
     await SlackAlert.send({ color, sections: { message } });
   } catch (e) {
-    Logger.error('SLACK_ALERT:ERROR', parseErrorToObject(e));
+    Logger.error('SLACK_ALERT_ERROR', parseErrorToObject(e));
   }
 };
 
