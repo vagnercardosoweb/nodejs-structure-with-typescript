@@ -38,10 +38,10 @@ class Logger implements LoggerInterface {
       `${JSON.stringify({
         id: this.id,
         level: level.toUpperCase(),
-        message,
         pid: this.pid,
         hostname: this.hostname,
         timestamp,
+        message,
         metadata,
       })}\n`,
     );

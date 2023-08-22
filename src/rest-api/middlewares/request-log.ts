@@ -29,10 +29,10 @@ export const requestLog = (
     return JSON.stringify({
       id: tokens.res(req, res, 'x-request-id'),
       level: statusCode < 200 || statusCode >= 400 ? 'ERROR' : 'INFO',
-      message: 'HTTP_REQUEST_COMPLETED',
       pid: `${process.pid}`,
       hostname: `${os.hostname()}`,
       timestamp: tokens.date(req, res, 'iso'),
+      message: 'HTTP_REQUEST_COMPLETED',
       metadata: {
         ip: tokens['remote-addr'](req, res),
         path,

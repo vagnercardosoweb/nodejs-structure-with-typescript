@@ -4,7 +4,8 @@ import { Utils } from './utils';
 
 export class Translation implements TranslationInterface {
   private translations = new Map<string, Data>();
-  private locale = 'pt-br';
+
+  public constructor(private locale: string = 'pt-br') {}
 
   public add(locale: string, data: Data) {
     this.translations.set(locale, dottie.flatten(data));
