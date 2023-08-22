@@ -16,25 +16,27 @@ import {
 import { RestApi } from '../rest-api';
 import { makeEvents } from './events';
 
-export const makeDependencies = async (api: RestApi) => {
+export const makeDependencies = async (restApi: RestApi) => {
   const pgPool = await PgPool.fromEnvironment(
     Logger.withId('PG_POOL'),
   ).connect();
-  api.set(ContainerName.PG_POOL, pgPool).addOnClose(() => pgPool.close());
+
+  restApi.set(ContainerName.PG_POOL, pgPool);
+  restApi.beforeClose(() => pgPool.close());
 
   const cacheClient = await RedisCache.fromEnvironment().connect();
-  api
+  restApi
     .set(ContainerName.CACHE_CLIENT, cacheClient)
-    .addOnClose(() => cacheClient.close());
+    .beforeClose(() => cacheClient.close());
 
   const translation = new Translation().add('pt-br', languagePtbr);
-  api.set(ContainerName.TRANSLATION, translation);
+  restApi.set(ContainerName.TRANSLATION, translation);
 
   const eventManager = new EventManager();
-  api.set(ContainerName.EVENT_MANAGER, eventManager);
+  restApi.set(ContainerName.EVENT_MANAGER, eventManager);
   makeEvents(eventManager);
 
-  api.set(ContainerName.JWT, new Jwt());
+  restApi.set(ContainerName.JWT, new Jwt());
 
   if (Env.get('DB_EXECUTE_MIGRATION_ON_STARTED', true)) {
     await new Migrator(

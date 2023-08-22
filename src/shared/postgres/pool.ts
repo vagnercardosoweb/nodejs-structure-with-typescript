@@ -5,6 +5,8 @@ import {
   Env,
   InternalServerError,
   LoggerInterface,
+  LoggerMetadata,
+  LogLevel,
   Transaction,
   TransactionInterface,
   Utils,
@@ -20,6 +22,7 @@ import {
 
 export class PgPool implements PgPoolInterface {
   protected client: PoolClient | null = null;
+  protected hasCloned = false;
   protected readonly pool: Pool;
   protected closed = false;
 
@@ -73,14 +76,14 @@ export class PgPool implements PgPoolInterface {
   }
 
   public withLoggerId(id: string): PgPool {
-    const clone = Utils.cloneObject(this);
-    clone.logger = this.logger.withId(id);
-    return clone;
+    const instance = this.clone();
+    instance.logger = this.logger.withId(id);
+    return instance;
   }
 
   public async close(): Promise<void> {
     if (this.closed) return;
-    this.logger.info('DB_CLOSING');
+    this.log(LogLevel.INFO, 'DB_CLOSING');
     await this.pool.end();
     this.closed = true;
   }
@@ -91,9 +94,9 @@ export class PgPool implements PgPoolInterface {
   }
 
   public async createTransaction(): Promise<TransactionInterface> {
-    this.client = await this.pool.connect();
-    const transaction = new Transaction(this);
-    transaction.onFinish(() => this.release());
+    const instance = this.clone();
+    instance.client = await instance.pool.connect();
+    const transaction = new Transaction(instance);
     await transaction.begin();
     return transaction;
   }
@@ -102,7 +105,7 @@ export class PgPool implements PgPoolInterface {
     query: string,
     bind: any[] = [],
   ): Promise<QueryResult<T>> {
-    const client = this.getClient();
+    const client = this.client ?? this.pool;
     query = Utils.normalizeSqlQuery(query);
     const metadata = {
       name: this.options.appName,
@@ -115,7 +118,7 @@ export class PgPool implements PgPoolInterface {
     try {
       const result = await client.query<T>(query, bind);
       metadata.duration = duration.format();
-      if (this.options.logging) this.logger.info('DB_QUERY', metadata);
+      if (this.options.logging) this.log(LogLevel.INFO, 'DB_QUERY', metadata);
       return {
         oid: result.oid,
         rows: result.rows,
@@ -147,14 +150,22 @@ export class PgPool implements PgPoolInterface {
     }
   }
 
-  protected release() {
+  public release() {
     if (this.client === null) return;
-    this.logger.info('DB_RELEASING');
+    this.log(LogLevel.INFO, 'DB_RELEASING');
     this.client.release();
     this.client = null;
   }
 
-  protected getClient() {
-    return this.client ?? this.pool;
+  protected log(level: LogLevel, message: string, metadata?: LoggerMetadata) {
+    if (!this.options.logging) return;
+    this.logger.log(level, message, metadata);
+  }
+
+  protected clone(): PgPool {
+    if (this.hasCloned) return this;
+    const cloned = Utils.cloneObject(this);
+    cloned.hasCloned = true;
+    return cloned;
   }
 }

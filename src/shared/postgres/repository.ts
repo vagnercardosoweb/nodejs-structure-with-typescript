@@ -37,17 +37,17 @@ export class Repository<TRow extends QueryResultRow = any> {
     return result.rows;
   }
 
-  protected async findAndCountAll(
+  protected async findAndCountAll<T extends QueryResultRow = TRow>(
     params?: FindParams,
-  ): Promise<{ count: number; rows: TRow[] }> {
-    const [countResult] = await this.findAll({
+  ): Promise<{ count: number; rows: T[] }> {
+    const [countResult] = await this.findAll<T>({
       where: params?.where,
       columns: ['COUNT(1) AS count'],
       groupBy: params?.groupBy,
       binding: params?.binding,
       joins: params?.joins,
     });
-    const rows = await this.findAll(params);
+    const rows = await this.findAll<T>(params);
     const count = Number(countResult?.count ?? '0');
     return { count, rows };
   }
@@ -86,7 +86,8 @@ export class Repository<TRow extends QueryResultRow = any> {
         throw new InternalServerError({
           code: 'BASE_REPOSITORY:DIFERENCE_BINDING',
           message:
-            'The query bind is incorrect, needs to have {{totalWhereBinding}} values and received {{bindingLength}}.',
+            'The query bind is incorrect, needs to have {{totalWhereBinding}}' +
+            ' values and received {{bindingLength}}.',
           metadata: {
             totalWhereBinding,
             bindingLength,

@@ -1,16 +1,9 @@
-import 'express-async-errors';
-
 import http from 'node:http';
 
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
-import express, {
-  Application,
-  NextFunction,
-  Request,
-  RequestHandler,
-  Response,
-} from 'express';
+import express, { Application, NextFunction, Request, Response } from 'express';
+import 'express-async-errors';
 import helmet from 'helmet';
 import httpGraceFullShutdown from 'http-graceful-shutdown';
 import responseTime from 'response-time';
@@ -37,22 +30,19 @@ import {
   methodOverride,
   notFound,
   requestLog,
-  withAuth,
-  withPermission,
-  withToken,
 } from './middlewares';
-import { OnCloseFn, Route } from './types';
+import { BeforeCloseFn, Route } from './types';
 
 export class RestApi {
-  private readonly app: Application;
-  private readonly routes: Route[] = [];
-  private readonly container: ContainerInterface;
-  private readonly onCloseFn: OnCloseFn[] = [];
-  private readonly server: http.Server;
+  protected readonly app: Application;
+  protected readonly routes: Route[] = [];
+  protected readonly container: ContainerInterface;
+  protected readonly beforeCloseFn: BeforeCloseFn[] = [];
+  protected readonly server: http.Server;
 
   public constructor(
-    private readonly port: number,
-    private readonly secret: string,
+    protected readonly port: number,
+    protected readonly secret: string,
   ) {
     this.app = express();
     this.server = http.createServer(this.app);
@@ -74,8 +64,8 @@ export class RestApi {
     return this.container.get<T>(name);
   }
 
-  public addOnClose(fn: OnCloseFn) {
-    if (!this.onCloseFn.some((f) => f === fn)) this.onCloseFn.push(fn);
+  public beforeClose(fn: BeforeCloseFn) {
+    if (!this.beforeCloseFn.some((f) => f === fn)) this.beforeCloseFn.push(fn);
     return this;
   }
 
@@ -124,7 +114,7 @@ export class RestApi {
       this.server.on('listening', () => {
         httpGraceFullShutdown(this.server, {
           signals: 'SIGINT SIGTERM SIGQUIT',
-          onShutdown: async () => this.performOnClose(),
+          onShutdown: async () => this.runBeforeClose(),
           forceExit: true,
         });
 
@@ -140,7 +130,7 @@ export class RestApi {
   }
 
   public async close(): Promise<void> {
-    await this.performOnClose();
+    await this.runBeforeClose();
     if (!this.server.listening) return;
     await new Promise<void>((resolve, reject) => {
       this.server.close((error) => {
@@ -150,11 +140,11 @@ export class RestApi {
     });
   }
 
-  private async performOnClose() {
-    await Promise.all(this.onCloseFn.map((fn) => fn()));
+  protected async runBeforeClose() {
+    await Promise.all(this.beforeCloseFn.map((fn) => fn()));
   }
 
-  private registerDefaultHandlers() {
+  protected registerDefaultHandlers() {
     this.app.use(cors);
     this.app.use(helmet());
     this.app.use(compression());
@@ -168,24 +158,11 @@ export class RestApi {
     this.app.use(requestLog);
   }
 
-  private registerRouteHandlers() {
+  protected registerRouteHandlers() {
     for (const route of this.routes) {
-      if (Utils.isUndefined(route.public)) route.public = false;
-      let middlewares: RequestHandler[] = route.middlewares || [];
-
-      if (route.authType) {
-        middlewares = [
-          withAuth(route.authType),
-          withPermission,
-          ...middlewares,
-        ];
-      }
-
-      if (!route.public || route.authType) {
-        middlewares = [withToken, ...middlewares];
-      }
-
       const method = (route.method ?? HttpMethod.GET).toLowerCase();
+      const middlewares = route.middlewares ?? [];
+
       (this.app as any)[method](
         route.path,
         ...middlewares,
@@ -217,12 +194,12 @@ export class RestApi {
     }
   }
 
-  private registerErrorHandlers() {
+  protected registerErrorHandlers() {
     this.app.use(notFound);
     this.app.use(errorHandler);
   }
 
-  private initExpress() {
+  protected initExpress() {
     this.app.set('trust proxy', true);
     this.app.set('strict routing', true);
     this.app.set('x-powered-by', false);

@@ -13,6 +13,7 @@ export interface PgPoolInterface {
   withLoggerId(requestId: string): PgPoolInterface;
   createTransaction(): Promise<TransactionInterface>;
   createTransactionManaged<T>(fn: FnTransaction<T>): Promise<T>;
+  release(): void;
   connect(): Promise<PgPoolInterface>;
   close(): Promise<void>;
 }

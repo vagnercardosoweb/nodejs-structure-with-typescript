@@ -2,9 +2,10 @@ import { InternalServerError } from '@/shared';
 
 import { PgPoolInterface } from './types';
 
-export class Transaction {
+export class Transaction implements TransactionInterface {
   protected started = false;
-  protected handlers: Handlers[] = [];
+  protected finished = false;
+  protected hooks: Hooks[] = [];
 
   public constructor(protected readonly client: PgPoolInterface) {}
 
@@ -15,60 +16,69 @@ export class Transaction {
   }
 
   public async commit() {
-    await this.runCommitOrRollback('COMMIT');
+    await this.runQuery('COMMIT');
+    await this.runHooks(KindHook.COMMIT);
   }
 
   public async rollback() {
-    await this.runCommitOrRollback('ROLLBACK');
+    await this.runQuery('ROLLBACK');
+    await this.runHooks(KindHook.ROLLBACK);
   }
 
-  public onCommit(handle: Handle): void {
-    this.handlers.push({ kind: 'COMMIT', handle });
+  public afterCommit(handle: HandleHook): void {
+    this.hooks.push({ kind: KindHook.COMMIT, handle });
   }
 
-  public onRollback(handle: Handle): void {
-    this.handlers.push({ kind: 'ROLLBACK', handle });
+  public afterRollback(handle: HandleHook): void {
+    this.hooks.push({ kind: KindHook.ROLLBACK, handle });
   }
 
-  public onFinish(handle: Handle) {
-    this.handlers.push({ kind: 'FINISH', handle });
+  protected async runHooks(kind: KindHook) {
+    const handlers = this.hooks.filter((handler) => handler.kind === kind);
+    for await (const handler of handlers) {
+      const result = handler.handle.bind(this)(this.client);
+      const isPromise = result instanceof Promise;
+      if (isPromise) await result;
+    }
   }
 
-  private async runCommitOrRollback(query: string) {
+  protected async runQuery(query: string) {
     if (!this.started) {
       throw new InternalServerError({
-        code: 'DATABASE:TRANSACTION:NO_STARTED',
-        message:
-          'The transaction has not started yet, use the [begin] method to start.',
+        code: 'DATABASE:TRANSACTION:NOT_STARTED',
+        message: 'The transaction has not started',
+      });
+    }
+
+    if (this.finished) {
+      throw new InternalServerError({
+        code: 'DATABASE:TRANSACTION:FINISHED',
+        message: 'The transaction has already finished',
+        metadata: { query },
       });
     }
 
     try {
       await this.client.query(query);
     } finally {
-      const kind = query as Kind;
-      await Promise.all(
-        this.handlers
-          .filter((handler) => [kind, 'FINISH'].includes(handler.kind))
-          .map((handler) => handler.handle()),
-      ).catch(() => {});
+      this.finished = true;
+      this.client.release();
     }
   }
 }
 
-type Kind = 'COMMIT' | 'ROLLBACK' | 'FINISH';
+enum KindHook {
+  'ROLLBACK' = 'ROLLBACK',
+  'COMMIT' = 'COMMIT',
+}
 
-export type Handle = () => Promise<void> | void;
-type Handlers = {
-  handle: Handle;
-  kind: Kind;
-};
+export type HandleHook = (pgPool: PgPoolInterface) => Promise<void> | void;
+type Hooks = { handle: HandleHook; kind: KindHook };
 
 export interface TransactionInterface {
   begin(): Promise<void>;
   commit(): Promise<void>;
   rollback(): Promise<void>;
-  onCommit(handle: Handle): void;
-  onRollback(handle: Handle): void;
-  onFinish(handle: Handle): void;
+  afterRollback(handle: HandleHook): void;
+  afterCommit(handle: HandleHook): void;
 }

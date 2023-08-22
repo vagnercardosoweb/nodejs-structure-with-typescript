@@ -20,20 +20,20 @@ const sendSlackAlert = async (color: string, message: string) => {
 (async (): Promise<void> => {
   Logger.info(`server using environment ${Env.required('NODE_ENV')}`);
 
-  const api = new RestApi(Env.required('PORT'), Env.required('APP_KEY'));
-  api.addOnClose(() => sendSlackAlert('error', 'server closed'));
+  const restApi = new RestApi(Env.required('PORT'), Env.required('APP_KEY'));
+  restApi.beforeClose(() => sendSlackAlert('error', 'server closed'));
 
   try {
-    await makeDependencies(api);
-    routes.forEach((route) => api.addRoute(route));
-    await api.start();
+    await makeDependencies(restApi);
+    routes.forEach((route) => restApi.addRoute(route));
+    await restApi.start();
 
-    const message = `server started on port ${api.getPort()}`;
+    const message = `server started on port ${restApi.getPort()}`;
     await sendSlackAlert('success', message);
     Logger.info(message);
   } catch (error: any) {
     Logger.error('server started error', parseErrorToObject(error));
-    await api.close();
+    await restApi.close();
     process.exit(1);
   }
 })();

@@ -14,7 +14,6 @@ export const swaggerRoutes: Route[] = [
   {
     path: '/api-docs',
     method: HttpMethod.USE,
-    public: true,
     middlewares: [noCache, ...swagger.serve],
     handler: swagger.setup({
       openapi: '3.0.3',

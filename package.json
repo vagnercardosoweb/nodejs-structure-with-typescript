@@ -7,7 +7,7 @@
     "./dist/**/*"
   ],
   "scripts": {
-    "dev:local": "cross-env NODE_ENV=local tsx watch 'src/rest-api/server.ts'",
+    "dev:local": "cross-env NODE_ENV=local tsx watch './src/rest-api/server.ts'",
     "dev:docker": "cross-env NODE_ENV=local docker-compose -f docker-compose.yml up --build -d",
     "start": "cross-env NODE_ENV=production node ./dist/rest-api/server.js",
     "updatelibs": "npx npm-check -s -u",

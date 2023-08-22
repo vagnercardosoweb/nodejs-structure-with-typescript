@@ -7,6 +7,5 @@ export const userRoutes: Route[] = [
     path: '/users',
     handler: ListUserHandler,
     method: HttpMethod.GET,
-    public: true,
   },
 ];
