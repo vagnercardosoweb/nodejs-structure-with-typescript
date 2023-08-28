@@ -8,6 +8,8 @@ import { HttpStatusCode } from '@/shared/enums';
 import { parseErrorToObject } from '@/shared/errors';
 
 export class Utils {
+  public static DAY_IN_SECONDS = 86400;
+
   public static uuid(): string {
     return randomUUID();
   }
@@ -21,8 +23,8 @@ export class Utils {
     return value.replace(/<[^>]+>/gm, '');
   }
 
-  public static dateNowToSeconds(): number {
-    return Math.floor(Date.now() / 1000);
+  public static base64ToString(value: string): string {
+    return Buffer.from(value, 'base64url').toString();
   }
 
   public static generateRandomString(length = 16): string {
@@ -437,6 +439,15 @@ export class Utils {
       date ?? new Date(),
       Env.getTimezoneUtc(),
     );
+  }
+
+  public static getNowInSeconds(): number {
+    return Math.floor(Date.now() / 1000);
+  }
+
+  public static getDiffDays(start: Date, end: Date): number {
+    const diffInMs = Math.abs(end.getTime() - start.getTime());
+    return Math.ceil(diffInMs / (Utils.DAY_IN_SECONDS * 1000));
   }
 
   public static generateSlug(value: string): string {

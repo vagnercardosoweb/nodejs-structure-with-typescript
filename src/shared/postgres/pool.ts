@@ -14,8 +14,8 @@ import {
 
 import {
   FnTransaction,
-  PgPoolOptions,
   PgPoolInterface,
+  PgPoolOptions,
   QueryResult,
   QueryResultRow,
 } from './types';
@@ -94,9 +94,8 @@ export class PgPool implements PgPoolInterface {
   }
 
   public async createTransaction(): Promise<TransactionInterface> {
-    const instance = this.clone();
-    instance.client = await instance.pool.connect();
-    const transaction = new Transaction(instance);
+    this.client = await this.pool.connect();
+    const transaction = new Transaction(this);
     await transaction.begin();
     return transaction;
   }

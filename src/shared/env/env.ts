@@ -12,7 +12,7 @@ export class Env {
   }
 
   public static set(key: string, value: any, override = true) {
-    if (!override && process.env?.[key]?.trim()) return;
+    if (!override && process.env.hasOwnProperty(key)) return;
     process.env[key] = Utils.normalizeValue(value);
   }
 

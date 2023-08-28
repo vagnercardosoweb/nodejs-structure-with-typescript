@@ -112,7 +112,7 @@ describe('shared/utils/utils.ts', () => {
   it('dateNowToSeconds', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(Date.UTC(2023, 5, 13, 0, 0, 0, 0)));
-    const seconds = Utils.dateNowToSeconds();
+    const seconds = Utils.getNowInSeconds();
     expect(seconds).toStrictEqual(1686614400);
     vi.useRealTimers();
   });
