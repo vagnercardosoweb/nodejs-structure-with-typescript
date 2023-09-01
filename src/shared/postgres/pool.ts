@@ -114,10 +114,10 @@ export class PgPool implements PgPoolInterface {
       bind,
     };
     const duration = new DurationTime();
+    let hasError = false;
     try {
       const result = await client.query<T>(query, bind);
       metadata.duration = duration.format();
-      if (this.options.logging) this.log(LogLevel.INFO, 'DB_QUERY', metadata);
       return {
         oid: result.oid,
         rows: result.rows,
@@ -129,11 +129,20 @@ export class PgPool implements PgPoolInterface {
         bind,
       };
     } catch (e: any) {
+      hasError = true;
       metadata.duration = duration.format();
       throw new InternalServerError({
         originalError: e,
         metadata,
       });
+    } finally {
+      if (this.options.logging) {
+        this.log(
+          hasError ? LogLevel.ERROR : LogLevel.INFO,
+          'DB_QUERY',
+          metadata,
+        );
+      }
     }
   }
 

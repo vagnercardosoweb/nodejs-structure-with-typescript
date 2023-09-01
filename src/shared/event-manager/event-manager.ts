@@ -67,7 +67,7 @@ export class EventManager implements EventManagerInterface {
   }
 
   protected logError(event: Event<any>, err: any): void {
-    this.logger.error('DISPATCH', {
+    this.logger.error('DISPATCH_ERROR', {
       event,
       originalError: {
         name: err.name,

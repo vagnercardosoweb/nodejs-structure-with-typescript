@@ -88,7 +88,7 @@ describe('EventManager', () => {
     expect(handler).toBeCalledTimes(1);
 
     expect(loggerSpy).toBeCalledTimes(1);
-    expect(loggerSpy).toBeCalledWith('DISPATCH', {
+    expect(loggerSpy).toBeCalledWith('DISPATCH_ERROR', {
       event: {
         name: eventName,
         createdAt: expect.any(Date),
@@ -118,7 +118,7 @@ describe('EventManager', () => {
     await Utils.sleep(10);
 
     expect(loggerSpy).toBeCalledTimes(1);
-    expect(loggerSpy).toBeCalledWith('DISPATCH', {
+    expect(loggerSpy).toBeCalledWith('DISPATCH_ERROR', {
       event: {
         name: eventName,
         createdAt: expect.any(Date),

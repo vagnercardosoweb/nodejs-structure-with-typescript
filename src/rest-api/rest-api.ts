@@ -101,8 +101,8 @@ export class RestApi {
     return this.port;
   }
 
-  public async start(): Promise<void> {
-    await new Promise<void>((resolve, reject) => {
+  public async listen(): Promise<http.Server> {
+    return new Promise((resolve, reject) => {
       this.server.on('error', (error: any) => {
         if (error?.code !== 'EADDRINUSE') reject(error);
         setTimeout(() => {
@@ -118,11 +118,8 @@ export class RestApi {
           forceExit: true,
         });
 
-        this.registerDefaultHandlers();
-        this.registerRouteHandlers();
-        this.registerErrorHandlers();
-
-        resolve();
+        this.start();
+        resolve(this.server);
       });
 
       this.server.listen(this.port);
@@ -144,7 +141,7 @@ export class RestApi {
     await Promise.all(this.beforeCloseFn.map((fn) => fn()));
   }
 
-  protected registerDefaultHandlers() {
+  public start() {
     this.app.use(cors);
     this.app.use(helmet());
     this.app.use(compression());
@@ -156,9 +153,16 @@ export class RestApi {
     this.app.use(methodOverride);
     this.app.use(extractToken);
     this.app.use(requestLog);
+
+    this.registerRoutes();
+
+    this.app.use(notFound);
+    this.app.use(errorHandler);
+
+    return this.app;
   }
 
-  protected registerRouteHandlers() {
+  protected registerRoutes() {
     for (const route of this.routes) {
       const method = (route.method ?? HttpMethod.GET).toLowerCase();
       const middlewares = route.middlewares ?? [];
@@ -192,11 +196,6 @@ export class RestApi {
         },
       );
     }
-  }
-
-  protected registerErrorHandlers() {
-    this.app.use(notFound);
-    this.app.use(errorHandler);
   }
 
   protected initExpress() {

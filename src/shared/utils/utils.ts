@@ -415,14 +415,15 @@ export class Utils {
   public static createDateWithTimezone(date: Date, timeZone: string): Date {
     return new Date(
       new Intl.DateTimeFormat('en-US', {
-        day: '2-digit',
-        year: 'numeric',
-        month: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hourCycle: 'h23',
-        hour: '2-digit',
         timeZone,
+        fractionalSecondDigits: 3,
+        year: 'numeric',
+        hourCycle: 'h23',
+        month: 'numeric',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
       }).format(date),
     );
   }

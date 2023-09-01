@@ -26,7 +26,7 @@ const sendSlackAlert = async (color: string, message: string) => {
   try {
     await makeDependencies(restApi);
     routes.forEach((route) => restApi.addRoute(route));
-    await restApi.start();
+    await restApi.listen();
 
     const message = `server started on port ${restApi.getPort()}`;
     await sendSlackAlert('success', message);
