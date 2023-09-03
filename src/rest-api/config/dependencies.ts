@@ -40,7 +40,7 @@ export const makeDependencies = async (restApi: RestApi) => {
 
   if (Env.get('DB_EXECUTE_MIGRATION_ON_STARTED', true)) {
     await new Migrator(
-      pgPool.withLoggerId('MIGRATOR'),
+      pgPool.withLogger(Logger.withId('DB_MIGRATOR')),
       path.resolve('migrations'),
     ).up();
   }

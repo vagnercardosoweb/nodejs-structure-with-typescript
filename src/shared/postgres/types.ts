@@ -3,14 +3,15 @@ import {
   QueryResultRow as PgQueryResultRow,
 } from 'pg';
 
-import { TransactionInterface } from '@/shared';
+import { LoggerInterface, TransactionInterface } from '@/shared';
 
 export interface PgPoolInterface {
   query<T extends QueryResultRow = any>(
     query: string,
     bind?: any[],
   ): Promise<QueryResult<T>>;
-  withLoggerId(requestId: string): PgPoolInterface;
+  withLogger(logger: LoggerInterface): PgPoolInterface;
+  getLogger(): LoggerInterface;
   createTransaction(): Promise<TransactionInterface>;
   createTransactionManaged<T>(fn: FnTransaction<T>): Promise<T>;
   release(): void;

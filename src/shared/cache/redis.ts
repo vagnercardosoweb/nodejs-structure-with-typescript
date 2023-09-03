@@ -1,6 +1,7 @@
 import IORedis from 'ioredis';
 
-import { Env, Logger, LoggerInterface, Utils } from '@/shared';
+import { Env, Utils } from '@/shared';
+import { Logger, LoggerInterface } from '@/shared/logger';
 
 import { CacheDefaultValue, CacheInterface } from './cache';
 
@@ -47,10 +48,14 @@ export class RedisCache implements CacheInterface {
     });
   }
 
-  public withLoggerId(id: string): CacheInterface {
+  public withLogger(logger: LoggerInterface): CacheInterface {
     const clone = Utils.cloneObject(this);
-    clone.logger = this.logger.withId(id);
+    clone.logger = logger;
     return clone;
+  }
+
+  public getLogger(): LoggerInterface {
+    return this.logger;
   }
 
   public async clear(): Promise<boolean> {

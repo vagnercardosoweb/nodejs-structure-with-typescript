@@ -1,6 +1,9 @@
+import { Logger, LoggerInterface } from '@/shared/logger';
+
 import { CacheDefaultValue, CacheInterface } from './cache';
 
 export class InMemoryCache implements CacheInterface {
+  protected readonly logger = Logger;
   private readonly cached = new Map<string, Cached>();
 
   public async clear(): Promise<boolean> {
@@ -8,8 +11,12 @@ export class InMemoryCache implements CacheInterface {
     return true;
   }
 
-  public withLoggerId(_id: string): CacheInterface {
+  public withLogger(_logger: LoggerInterface): CacheInterface {
     return this;
+  }
+
+  public getLogger(): LoggerInterface {
+    return this.logger;
   }
 
   public async get<T>(

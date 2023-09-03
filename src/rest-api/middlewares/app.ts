@@ -43,7 +43,7 @@ export const app =
       ContainerName.PG_POOL,
       request.container
         .get<PgPoolInterface>(ContainerName.PG_POOL)
-        .withLoggerId(requestId),
+        .withLogger(request.logger),
     );
 
     return next();

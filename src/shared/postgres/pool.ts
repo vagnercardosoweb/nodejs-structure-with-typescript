@@ -75,10 +75,14 @@ export class PgPool implements PgPoolInterface {
     });
   }
 
-  public withLoggerId(id: string): PgPool {
+  public withLogger(logger: LoggerInterface): PgPool {
     const instance = this.clone();
-    instance.logger = this.logger.withId(id);
+    instance.logger = logger;
     return instance;
+  }
+
+  public getLogger(): LoggerInterface {
+    return this.logger;
   }
 
   public async close(): Promise<void> {

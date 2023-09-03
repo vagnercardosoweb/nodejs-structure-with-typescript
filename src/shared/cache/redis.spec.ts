@@ -1,7 +1,7 @@
 import IORedis from 'ioredis';
 import { beforeEach, describe, expect, it, Mocked, vi } from 'vitest';
 
-import { RedisCache } from '@/shared';
+import { Logger, RedisCache } from '@/shared';
 
 vi.mock('ioredis', () => {
   const client = vi.fn();
@@ -159,7 +159,7 @@ describe('shared/cache/redis', () => {
   });
 
   it('deveria criar uma instância do cache com outro logger id', () => {
-    const clone = cacheClient.withLoggerId('other_id');
+    const clone = cacheClient.withLogger(Logger.withId('other_id'));
     expect((clone as any).logger.id).toStrictEqual('other_id');
     expect(clone).not.toStrictEqual(cacheClient);
   });

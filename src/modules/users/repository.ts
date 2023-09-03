@@ -4,7 +4,7 @@ export class UserRepository extends Repository<User> {
   protected readonly tableName = 'users';
 
   public async all() {
-    return this.findAll<GetWithLimitOutput>({
+    return this.getMany<GetWithLimitOutput>({
       columns: ['id', 'name', 'email'],
       orderBy: ['created_at DESC'],
       limit: -1,
