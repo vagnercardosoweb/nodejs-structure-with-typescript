@@ -20,7 +20,11 @@ export const requestLog = (
     ? request.body
     : undefined;
 
-  request.logger.info('HTTP_REQUEST_STARTED', { ip: request.ip, path, body });
+  request.logger.info('HTTP_REQUEST_STARTED', {
+    ip: request.ip,
+    path,
+    body,
+  });
 
   return morgan((tokens, req: Request, res) => {
     const routePath = req.route?.path;

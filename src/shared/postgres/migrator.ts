@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { PgPoolInterface } from '@/shared';
+import { Env, PgPoolInterface } from '@/shared';
 
 enum Prefix {
   DOWN = 'down',
@@ -58,7 +58,7 @@ export class Migrator {
        FROM information_schema.tables
        WHERE table_schema = $1
          AND table_name = $2;`,
-      [(this.pgPool as any).options.schema, 'migrations'],
+      [Env.get('DB_MIGRATOR_SCHEMA', 'public'), 'migrations'],
     );
     if (result.rows.length === 0) {
       await this.pgPool.query(`
