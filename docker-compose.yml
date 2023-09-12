@@ -12,6 +12,8 @@ services:
     container_name: app.server
     working_dir: /home/node
     env_file: .env.local
+    platform: linux/amd64
+    network_mode: host
     tty: true
     depends_on:
       - redis
@@ -32,6 +34,8 @@ services:
     container_name: app.postgres
     tty: true
     env_file: .env.local
+    platform: linux/amd64
+    network_mode: host
     volumes:
       - app.volume.postgres:/bitnami/postgresql
     networks:
@@ -46,6 +50,7 @@ services:
   redis:
     image: bitnami/redis:latest
     container_name: app.redis
+    network_mode: host
     platform: linux/amd64
     tty: true
     env_file: .env.local

@@ -137,10 +137,6 @@ export class RestApi {
     });
   }
 
-  protected async runBeforeClose() {
-    await Promise.all(this.beforeCloseFn.map((fn) => fn()));
-  }
-
   public start() {
     this.app.use(cors);
     this.app.use(helmet());
@@ -162,6 +158,38 @@ export class RestApi {
     return this.app;
   }
 
+  protected async runBeforeClose() {
+    await Promise.all(this.beforeCloseFn.map((fn) => fn()));
+  }
+
+  protected responseHandle({
+    request,
+    response,
+    duration,
+    result,
+  }: {
+    request: Request;
+    response: Response;
+    duration: DurationTime;
+    result: any;
+  }) {
+    if (result?.hasOwnProperty('socket')) return result.end();
+    if (!result) return response.sendStatus(HttpStatusCode.NO_CONTENT);
+
+    response
+      .json({
+        data: result,
+        path: `${request.method} ${request.originalUrl}`,
+        timezone: Env.getTimezoneGlobal(),
+        duration: duration.format(),
+        requestId: request.context.requestId,
+        ipAddress: request.ip,
+        utcDate: Utils.createUtcDate(),
+        brlDate: Utils.createBrlDate(),
+      })
+      .end();
+  }
+
   protected registerRoutes() {
     for (const route of this.routes) {
       const method = (route.method ?? HttpMethod.GET).toLowerCase();
@@ -170,7 +198,7 @@ export class RestApi {
       (this.app as any)[method](
         route.path,
         ...middlewares,
-        async (request: Request, response: Response, next: NextFunction) => {
+        (request: Request, response: Response, next: NextFunction) => {
           const prototype = Object.getPrototypeOf(route.handler);
           if (prototype?.name !== AbstractHandler.name) {
             return (route.handler as any)(request, response, next);
@@ -178,21 +206,30 @@ export class RestApi {
 
           const Handler = route.handler as any;
           const duration = new DurationTime();
-          const result = await new Handler(request, response).handle();
 
-          if (result?.hasOwnProperty('socket')) return result;
-          if (!result) return response.sendStatus(HttpStatusCode.NO_CONTENT);
+          const handler = new Handler(request, response);
+          const result = handler.handle();
 
-          return response.json({
-            data: result,
-            path: `${request.method} ${request.originalUrl}`,
-            timezone: Env.getTimezoneGlobal(),
-            duration: duration.format(),
-            requestId: request.context.requestId,
-            ipAddress: request.ip,
-            utcDate: Utils.createUtcDate(),
-            brlDate: Utils.createBrlDate(),
-          });
+          const isPromise = result instanceof Promise;
+          if (isPromise) {
+            result
+              .then((result) =>
+                this.responseHandle({
+                  request,
+                  response,
+                  duration,
+                  result,
+                }),
+              )
+              .catch(next);
+          } else {
+            this.responseHandle({
+              request,
+              response,
+              duration,
+              result,
+            });
+          }
         },
       );
     }
