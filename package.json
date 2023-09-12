@@ -18,7 +18,7 @@
     "eslint:fix": "npm run eslint:check -- --fix",
     "prettier:write": "npx prettier --write ./src",
     "clean": "rm -rf ./dist",
-    "build": "npm run clean && npx tsc",
+    "build": "npm run clean && npx tsc -p ./tsconfig.build.json",
     "test:all": "cross-env NODE_ENV=test vitest run --dir src/",
     "test:watch": "cross-env NODE_ENV=test vitest --dir src/",
     "test:coverage": "cross-env NODE_ENV=test vitest run --coverage",

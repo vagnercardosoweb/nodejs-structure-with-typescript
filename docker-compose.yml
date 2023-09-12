@@ -11,9 +11,8 @@ services:
       dockerfile: Dockerfile.local
     container_name: app.server
     working_dir: /home/node
-    env_file: .env.local
     platform: linux/amd64
-    network_mode: host
+    env_file: .env.local
     tty: true
     depends_on:
       - redis
@@ -24,7 +23,7 @@ services:
     networks:
       - app.network
     ports:
-      - "${DOCKER_PORT:-3000}:${PORT:-3000}"
+      - "${DOCKER_PORT:-3001}:${PORT:-3000}"
       - "${DEBUG_PORT:-9229}:9229"
     environment:
       - NODE_ENV=${NODE_ENV:-local}
@@ -32,10 +31,9 @@ services:
   postgres:
     image: bitnami/postgresql:15
     container_name: app.postgres
-    tty: true
-    env_file: .env.local
     platform: linux/amd64
-    network_mode: host
+    env_file: .env.local
+    tty: true
     volumes:
       - app.volume.postgres:/bitnami/postgresql
     networks:
@@ -50,10 +48,9 @@ services:
   redis:
     image: bitnami/redis:latest
     container_name: app.redis
-    network_mode: host
     platform: linux/amd64
-    tty: true
     env_file: .env.local
+    tty: true
     volumes:
       - app.volume.redis:/bitnami/redis/data
     networks:

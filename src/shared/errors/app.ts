@@ -22,7 +22,9 @@ export class AppError extends Error {
   constructor(options: Options = {}) {
     if (!options.errorId) options.errorId = AppError.generateErrorId();
 
-    super(options.message ?? INTERNAL_SERVER_ERROR_MESSAGE);
+    options.message = options.message ?? INTERNAL_SERVER_ERROR_MESSAGE;
+    super(options.message);
+
     Object.setPrototypeOf(this, AppError.prototype);
     Error.captureStackTrace(this, this.constructor);
 
