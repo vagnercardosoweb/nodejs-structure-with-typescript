@@ -1,6 +1,9 @@
-import { InternalServerError } from '@/shared';
-
-import { PgPoolInterface } from './types';
+import {
+  HandleHook,
+  InternalServerError,
+  PgPoolInterface,
+  TransactionInterface,
+} from '@/shared';
 
 export class Transaction implements TransactionInterface {
   protected started = false;
@@ -72,13 +75,4 @@ enum KindHook {
   'COMMIT' = 'COMMIT',
 }
 
-export type HandleHook = (pgPool: PgPoolInterface) => Promise<void> | void;
 type Hooks = { handle: HandleHook; kind: KindHook };
-
-export interface TransactionInterface {
-  begin(): Promise<void>;
-  commit(): Promise<void>;
-  rollback(): Promise<void>;
-  afterRollback(handle: HandleHook): void;
-  afterCommit(handle: HandleHook): void;
-}

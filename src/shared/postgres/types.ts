@@ -3,7 +3,16 @@ import {
   QueryResultRow as PgQueryResultRow,
 } from 'pg';
 
-import { LoggerInterface, TransactionInterface } from '@/shared';
+import { LoggerInterface } from '@/shared';
+
+export type HandleHook = (pgPool: PgPoolInterface) => Promise<void> | void;
+export interface TransactionInterface {
+  begin(): Promise<void>;
+  commit(): Promise<void>;
+  rollback(): Promise<void>;
+  afterRollback(handle: HandleHook): void;
+  afterCommit(handle: HandleHook): void;
+}
 
 export interface PgPoolInterface {
   query<T extends QueryResultRow = any>(

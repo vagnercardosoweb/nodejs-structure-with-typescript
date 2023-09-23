@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { Env, PgPoolInterface } from '@/shared';
+import { PgPoolInterface } from '@/shared';
 
 enum Prefix {
   DOWN = 'down',
@@ -21,7 +21,7 @@ export class Migrator {
     await this.checkOrCreateMigrationTable();
     let query = 'SELECT file_name FROM migrations ORDER BY file_name DESC';
     if (limit !== -1) query += ` LIMIT ${limit}`;
-    const { rows } = await this.pgPool.query(query);
+    const { rows } = await this.pgPool.query<{ file_name: string }>(query);
     if (rows.length === 0) return;
     await this.pgPool.createTransactionManaged(async () => {
       for await (const row of rows) {
@@ -58,13 +58,13 @@ export class Migrator {
        FROM information_schema.tables
        WHERE table_schema = $1
          AND table_name = $2;`,
-      [Env.get('DB_MIGRATOR_SCHEMA', 'public'), 'migrations'],
+      [(this.pgPool as any).options.schema, 'migrations'],
     );
     if (result.rows.length === 0) {
       await this.pgPool.query(`
         CREATE TABLE IF NOT EXISTS migrations (
           file_name VARCHAR NOT NULL,
-          created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+          created_at TIMESTAMPTZ DEFAULT (NOW() AT TIME ZONE 'UTC') NOT NULL
         );
         CREATE INDEX IF NOT EXISTS migrations_file_name_idx ON migrations (file_name);
         ALTER TABLE migrations
@@ -96,10 +96,13 @@ export class Migrator {
 
   private async getMigrationFromDb(): Promise<Record<string, boolean>> {
     const query = 'SELECT file_name FROM migrations;';
-    const { rows } = await this.pgPool.query(query);
-    return rows.reduce((previous, current) => {
-      previous[current.file_name] = true;
-      return previous;
-    }, {});
+    const { rows } = await this.pgPool.query<{ file_name: string }>(query);
+    return rows.reduce(
+      (previous, current) => {
+        previous[current.file_name] = true;
+        return previous;
+      },
+      {} as Record<string, boolean>,
+    );
   }
 }

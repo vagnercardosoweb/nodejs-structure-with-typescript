@@ -1,6 +1,7 @@
 import http, { IncomingHttpHeaders } from 'node:http';
 import https, { RequestOptions } from 'node:https';
 
+import { LoggerInterface } from '@/shared';
 import { HttpMethod, HttpStatusCode } from '@/shared/enums';
 import {
   AppError,
@@ -12,6 +13,7 @@ import { Utils } from '@/shared/utils';
 export interface HttpRequest extends RequestOptions {
   body?: string;
   method?: HttpMethod;
+  logger?: LoggerInterface;
   url: string;
 }
 
@@ -38,14 +40,17 @@ const makeError = (externalError: any, metadata: any) => {
 export const httpRequest = async <T = any>(
   options: HttpRequest,
 ): Promise<HttpResponse<T>> => {
-  const { url, body, ...rest } = options;
+  const { url, body, logger, ...rest } = options;
   const httpInstance = url.startsWith('https://') ? https : http;
   rest.method = rest.method ?? HttpMethod.GET;
-  return new Promise<HttpResponse>((resolve, reject) => {
+
+  if (logger) logger.info('HTTP_REQUEST_STARTED', options);
+
+  const response = await new Promise<HttpResponse>((resolve, reject) => {
     const request = httpInstance.request(url, rest, async (res) => {
       const chunks: any[] = [];
-      res.on('error', (e) => reject(makeError(e, options)));
       res.on('data', (chunk) => chunks.push(chunk));
+      res.on('error', (e) => reject(makeError(e, options)));
       res.on('end', () => {
         const data = Buffer.concat(chunks).toString().trim();
         const { statusCode = HttpStatusCode.OK, headers } = res;
@@ -56,9 +61,18 @@ export const httpRequest = async <T = any>(
         });
       });
     });
-    request.on('timeout', () => request.destroy(new GatewayTimeoutError()));
+
+    request.on('timeout', () =>
+      request.destroy(makeError(new GatewayTimeoutError(), options)),
+    );
+
     request.on('error', (e) => reject(makeError(e, options)));
     if (body?.trim()?.length) request.write(body);
+
     request.end();
   });
+
+  if (logger) logger.info('HTTP_REQUEST_COMPLETED', response);
+
+  return response;
 };

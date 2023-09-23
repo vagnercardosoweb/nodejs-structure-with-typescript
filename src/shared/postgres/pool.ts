@@ -37,13 +37,13 @@ export class PgPool implements PgPoolInterface {
       user: this.options.username,
       password: this.options.password,
       application_name: this.options.appName,
+      query_timeout: this.options.timeout.query,
+      connectionTimeoutMillis: this.options.timeout.connection,
+      idleTimeoutMillis: this.options.timeout.idle,
+      ssl: this.options.enabledSsl ? { rejectUnauthorized: false } : undefined,
+      allowExitOnIdle: true,
       min: this.options.minPool,
       max: this.options.maxPool,
-      ssl: this.options.enabledSsl ? { rejectUnauthorized: false } : undefined,
-      query_timeout: options.timeout.query,
-      connectionTimeoutMillis: options.timeout.connection,
-      idleTimeoutMillis: options.timeout.idle,
-      allowExitOnIdle: true,
     });
 
     if (!this.options.convertDateOnlyToDate) {
@@ -53,13 +53,13 @@ export class PgPool implements PgPoolInterface {
 
   public static fromEnvironment(logger: LoggerInterface): PgPool {
     return new PgPool(logger, {
-      appName: Env.get('DB_APP_NAME', 'api'),
+      appName: Env.required('DB_APP_NAME'),
       charset: Env.get('DB_CHARSET', 'utf8'),
       database: Env.required('DB_NAME'),
       enabledSsl: Env.get('DB_ENABLED_SSL', false),
       host: Env.required('DB_HOST'),
-      logging: Env.required('DB_LOGGING', false),
-      maxPool: Env.get('DB_POOL_MAX', 1),
+      logging: Env.required('DB_LOGGING', true),
+      maxPool: Env.get('DB_POOL_MAX', 35),
       minPool: Env.get('DB_POOL_MIN', 0),
       password: Env.required('DB_PASSWORD'),
       port: Env.get('DB_PORT', 5432),
