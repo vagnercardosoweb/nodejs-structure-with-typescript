@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: api
+  labels:
+    app: api
+spec:
+  selector:
+    matchLabels:
+      app: api
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      name: api
+      namespace: api
+      labels:
+        app: api
+    spec:
+      containers:
+        - name: api
+          image: IMAGE_NAME
+          imagePullPolicy: Always
+          ports:
+            - name: api
+              containerPort: 3000
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: api
+            - secretRef:
+                name: api
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: 1000m
+            requests:
+              memory: 256Mi
+              cpu: 200m

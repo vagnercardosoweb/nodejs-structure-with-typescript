@@ -24,7 +24,7 @@ export class Repository<TRow extends QueryResultRow = any> {
     } = params || {};
     let query = `SELECT ${columns.join(', ')} `;
     query += `FROM ${this.tableName} `;
-    if (tableAlias?.trim()) query += `AS ${tableAlias} `;
+    if (tableAlias) query += `AS ${tableAlias.trim()} `;
     if (joins.length > 0) query += `${joins.join(' ')} `;
     if (where.length > 0) query += `WHERE ${this.makeWhere(where)} `;
     if (groupBy.length > 0) query += `GROUP BY ${groupBy.join(', ')} `;
@@ -40,16 +40,17 @@ export class Repository<TRow extends QueryResultRow = any> {
   protected async getManyAndCount<T extends QueryResultRow = TRow>(
     params?: FindParams<T>,
   ): Promise<{ count: number; rows: T[] }> {
-    const [countResult] = await this.getMany<T>({
+    const [result] = await this.getMany<{ count: number }>({
+      limit: -1,
       where: params?.where,
-      tableAlias: params?.tableAlias,
-      columns: ['COUNT(1) AS count'],
+      columns: ['COUNT(1)::INTEGER AS count'],
       groupBy: params?.groupBy,
+      tableAlias: params?.tableAlias,
       binding: params?.binding,
       joins: params?.joins,
     });
+    const count = Number(result?.count ?? '0');
     const rows = await this.getMany<T>(params);
-    const count = Number(countResult?.count ?? '0');
     return { count, rows };
   }
 
@@ -69,7 +70,7 @@ export class Repository<TRow extends QueryResultRow = any> {
     ) {
       const rejectOnEmpty = (<any>params).rejectOnEmpty;
       if (typeof rejectOnEmpty === 'object') throw rejectOnEmpty;
-      let message = 'No results found';
+      let message = 'Resource not found';
       if (typeof rejectOnEmpty === 'string') message = rejectOnEmpty;
       throw new NotFoundError({ message });
     }
@@ -106,14 +107,14 @@ export class Repository<TRow extends QueryResultRow = any> {
   }
 
   protected async create(data: Omit<TRow, 'id'>): Promise<TRow> {
-    const record = Utils.removeUndefined(data);
-    const columns = Object.keys(record);
+    data = Utils.removeUndefined(data);
+    const columns = Object.keys(data);
     const bindings = columns.map((_, index) => `$${index + 1}`);
     const { rows } = await this.pgPool.query<TRow>(
       `INSERT INTO ${this.tableName} (${columns})
        VALUES (${bindings})
        RETURNING *;`,
-      Object.values(record),
+      Object.values(data),
     );
     return rows[0];
   }
@@ -123,26 +124,23 @@ export class Repository<TRow extends QueryResultRow = any> {
     where,
     binding,
   }: UpdateParams<TRow>): Promise<TRow> {
-    const record = Utils.removeUndefined(data);
-    const columns = Object.keys(record);
-    const length = columns.length;
+    data = Utils.removeUndefined(data);
+    const columns = Object.keys(data);
 
     const set = columns
       .map((column, index) => `${column} = $${index + 1}`)
       .join(', ');
 
-    const bindings = [...Object.values(record)];
-    const parseWhere = this.makeWhere(where, length);
+    const length = columns.length;
+    const bindings = Object.values(data);
 
     binding.forEach((bind, index) => {
       bindings[index + length] = bind;
     });
 
+    const parseWhere = this.makeWhere(where, length);
     const { rows } = await this.pgPool.query<TRow>(
-      `UPDATE ${this.tableName}
-       SET ${set}
-       WHERE ${parseWhere}
-       RETURNING *;`,
+      `UPDATE ${this.tableName} SET ${set} WHERE ${parseWhere} RETURNING *;`,
       bindings,
     );
 
@@ -152,10 +150,7 @@ export class Repository<TRow extends QueryResultRow = any> {
   protected async delete({ where, binding }: DeleteParams): Promise<TRow> {
     const tableName = this.tableName;
     const { rows } = await this.pgPool.query<TRow>(
-      `DELETE
-       FROM ${tableName}
-       WHERE ${this.makeWhere(where)}
-       RETURNING *;`,
+      `DELETE FROM ${tableName} WHERE ${this.makeWhere(where)} RETURNING *;`,
       binding,
     );
     return rows[0];
@@ -191,8 +186,8 @@ type FindParams<Column> = {
 };
 
 type DeleteParams = {
-  where: Where;
   binding: Binding;
+  where: Where;
 };
 
 type UpdateParams<Data extends QueryResultRow = any> = {

@@ -180,12 +180,14 @@ export class RestApi {
       .json({
         data: result,
         path: `${request.method} ${request.originalUrl}`,
-        timezone: Env.getTimezoneGlobal(),
         duration: duration.format(),
-        requestId: request.context.requestId,
+        timezone: Env.getTimezoneGlobal(),
         ipAddress: request.ip,
-        utcDate: Utils.createUtcDate(),
+        environment: Env.get('NODE_ENV'),
+        requestId: request.context.requestId,
+        userAgent: request.headers['user-agent'],
         brlDate: Utils.createBrlDate(),
+        utcDate: Utils.createUtcDate(),
       })
       .end();
   }

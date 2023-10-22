@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api
+  namespace: api
+  annotations:
+    nginx.org/client-max-body-size: "10m"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: node-api.127.0.0.1.nip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api
+                port:
+                  number: 80

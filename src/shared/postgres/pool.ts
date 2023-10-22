@@ -97,13 +97,6 @@ export class PgPool implements PgPoolInterface {
     return this;
   }
 
-  public async createTransaction(): Promise<TransactionInterface> {
-    this.client = await this.pool.connect();
-    const transaction = new Transaction(this);
-    await transaction.begin();
-    return transaction;
-  }
-
   public async query<T extends QueryResultRow = any>(
     query: string,
     bind: any[] = [],
@@ -140,14 +133,16 @@ export class PgPool implements PgPoolInterface {
         metadata,
       });
     } finally {
-      if (this.options.logging) {
-        this.log(
-          hasError ? LogLevel.ERROR : LogLevel.INFO,
-          'DB_QUERY',
-          metadata,
-        );
-      }
+      const logLevel = hasError ? LogLevel.ERROR : LogLevel.INFO;
+      this.log(logLevel, 'DB_QUERY', metadata);
     }
+  }
+
+  public async createTransaction(): Promise<TransactionInterface> {
+    this.client = await this.pool.connect();
+    const transaction = new Transaction(this);
+    await transaction.begin();
+    return transaction;
   }
 
   public async createTransactionManaged<T>(fn: FnTransaction<T>): Promise<T> {

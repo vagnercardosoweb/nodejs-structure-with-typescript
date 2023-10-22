@@ -38,6 +38,11 @@ export class AppError extends Error {
       code: this.code,
     });
 
+    this.setProperty(
+      'message',
+      Utils.replaceKeysInString(this.message, replaces),
+    );
+
     if (originalError) {
       this.setProperty('originalError', {
         name: originalError.name,
@@ -45,11 +50,6 @@ export class AppError extends Error {
         stack: originalError.stack,
       });
     }
-
-    this.setProperty(
-      'message',
-      Utils.replaceKeysInString(this.message, replaces),
-    );
 
     this.setProperty('stack', this.stack);
   }

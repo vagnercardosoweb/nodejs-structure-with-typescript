@@ -6,6 +6,7 @@ import {
 import { LoggerInterface } from '@/shared';
 
 export type HandleHook = (pgPool: PgPoolInterface) => Promise<void> | void;
+
 export interface TransactionInterface {
   begin(): Promise<void>;
   commit(): Promise<void>;
@@ -19,17 +20,17 @@ export interface PgPoolInterface {
     query: string,
     bind?: any[],
   ): Promise<QueryResult<T>>;
-  withLogger(logger: LoggerInterface): PgPoolInterface;
-  getLogger(): LoggerInterface;
   createTransaction(): Promise<TransactionInterface>;
   createTransactionManaged<T>(fn: FnTransaction<T>): Promise<T>;
+  withLogger(logger: LoggerInterface): PgPoolInterface;
+  getLogger(): LoggerInterface;
   release(): void;
   connect(): Promise<PgPoolInterface>;
   close(): Promise<void>;
 }
 
 export type FnTransaction<T> = (
-  connection: Omit<
+  pgPool: Omit<
     PgPoolInterface,
     'createTransaction' | 'createTransactionManaged'
   >,

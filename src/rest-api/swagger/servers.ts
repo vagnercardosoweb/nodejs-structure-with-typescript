@@ -1,10 +1,8 @@
 import { Env } from '@/shared';
 
-const swaggerServers = [
+export default [
   {
     url: `http://localhost:${Env.get('PORT')}`,
     description: 'Local server',
   },
 ];
-
-export default swaggerServers;

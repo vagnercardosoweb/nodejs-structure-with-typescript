@@ -59,11 +59,11 @@ export const errorHandler = (
       ? error
       : {
           name: error.name,
-          code: error.code,
-          errorId: error.errorId,
-          requestId: error.requestId,
-          statusCode: error.statusCode,
           message: error.message,
+          statusCode: error.statusCode,
+          requestId: error.requestId,
+          errorId: error.errorId,
+          code: error.code,
         },
   );
 };

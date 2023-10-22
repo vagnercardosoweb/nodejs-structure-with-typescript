@@ -12,6 +12,10 @@ export class Translation implements TranslationInterface {
     return this;
   }
 
+  public has(path: string): boolean {
+    return !!this.translations.get(this.locale)?.[path];
+  }
+
   public get(path: string, replaces: Data = {}): string {
     let result = this.translations.get(this.locale)?.[path] ?? path;
     if (Object.keys(replaces).length === 0) return result;
@@ -38,6 +42,7 @@ type Data = Record<string, any>;
 
 export interface TranslationInterface {
   add(locale: string, data: Data): TranslationInterface;
+  has(path: string): boolean;
   getLocale(): string;
   withLocale(locale: string): TranslationInterface;
   get(path: string, replaces: Data): string;

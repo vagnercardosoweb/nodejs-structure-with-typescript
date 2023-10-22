@@ -50,6 +50,7 @@ export class Transaction implements TransactionInterface {
       throw new InternalServerError({
         code: 'DATABASE:TRANSACTION:NOT_STARTED',
         message: 'The transaction has not started',
+        metadata: { query },
       });
     }
 

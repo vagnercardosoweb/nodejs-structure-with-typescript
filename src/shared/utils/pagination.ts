@@ -11,7 +11,7 @@ type Result = {
 
 export class Pagination {
   protected page = 1;
-  protected limit = 10;
+  protected limit = 50;
   protected totalRows = 0;
   protected offset = 0;
 
@@ -23,8 +23,8 @@ export class Pagination {
 
   public static fromExpressRequest(request: any) {
     return new Pagination({
+      limit: Number(request.query.limit || 50),
       page: Number(request.query.page || 1),
-      limit: Number(request.query.limit || 10),
     });
   }
 

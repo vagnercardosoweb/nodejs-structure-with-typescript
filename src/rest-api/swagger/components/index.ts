@@ -1,62 +1,37 @@
 export default {
   responses: {
-    default: {
-      description: 'AppError',
+    error: {
+      description: 'Error response',
       content: {
-        'application/json': {
-          schema: {
-            description: 'AppError',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/default-error',
-                },
-              },
-            },
-          },
+        'application/json; charset=utf-8': {
+          schema: { $ref: '#/components/schemas/error' },
         },
       },
     },
   },
 
   schemas: {
-    'default-error': {
-      type: 'object',
+    error: {
+      title: 'ResponseError',
+      description: 'Default object returned in case of error',
       required: ['*'],
       properties: {
         name: { type: 'string' },
-        code: { type: 'string' },
-        statusCode: { type: 'number' },
         message: { type: 'string' },
+        statusCode: { type: 'integer', description: 'HTTP Status Code' },
+        requestId: { type: 'string' },
         errorId: { type: 'string' },
-        original: {
-          type: 'object',
-          nullable: true,
-          properties: {
-            name: { type: 'string' },
-            message: { type: 'string' },
-            stack: {
-              $ref: '#/components/schemas/default-error/properties/stack',
-            },
-          },
-        },
-        metadata: { type: 'object' },
-        stack: {
-          type: 'array',
-          items: {
-            type: 'string',
-          },
-        },
+        code: { type: 'string' },
       },
     },
   },
 
   securitySchemes: {
     bearerAuth: {
-      in: 'header',
-      type: 'http',
+      description: 'Authorization token',
+      bearerFormat: 'JWT',
       scheme: 'bearer',
-      description: 'Authorization token.',
+      type: 'http',
     },
   },
 };

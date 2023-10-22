@@ -12,7 +12,7 @@ import tags from './tags';
 
 export const swaggerRoutes: Route[] = [
   {
-    path: '/api-docs',
+    path: '/docs',
     method: HttpMethod.USE,
     middlewares: [noCache, ...swagger.serve],
     handler: swagger.setup({

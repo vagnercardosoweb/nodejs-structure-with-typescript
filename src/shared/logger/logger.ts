@@ -14,8 +14,8 @@ class Logger implements LoggerInterface {
   protected readonly hostname: string;
 
   constructor(private readonly id: string) {
-    this.pid = process.pid;
     this.hostname = os.hostname();
+    this.pid = process.pid;
   }
 
   public withId(id: string) {
@@ -29,15 +29,15 @@ class Logger implements LoggerInterface {
 
   public log(level: LogLevel, message: string, metadata?: LoggerMetadata) {
     if (Env.isTesting()) return;
-    if (metadata) {
+    const timestamp = new Date().toISOString();
+    if (metadata !== undefined) {
       metadata = Utils.obfuscateValues(metadata);
       message = Utils.replaceKeysInString(message, metadata);
     }
-    const timestamp = new Date().toISOString();
     process.stdout.write(
       `${JSON.stringify({
         id: this.id,
-        level: level.toUpperCase(),
+        level,
         pid: this.pid,
         hostname: this.hostname,
         timestamp,

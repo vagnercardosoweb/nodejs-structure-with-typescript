@@ -1,7 +1,9 @@
-import jsonwebtoken, {
+import {
   Algorithm,
   JwtPayload,
+  sign,
   SignOptions,
+  verify,
   VerifyOptions,
 } from 'jsonwebtoken';
 
@@ -37,11 +39,11 @@ export class Jwt implements JwtInterface {
   public encode(payload: JwtEncoded, options?: SignOptions): string {
     if (!payload.sub) {
       throw new InternalServerError({
-        message: 'Jwt payload.sub is required.',
+        message: 'When creating a token, the "sub" is mandatory.',
         metadata: { payload, options },
       });
     }
-    return jsonwebtoken.sign(payload, this.secretKey, {
+    return sign(payload, this.secretKey, {
       algorithm: this.algorithm,
       expiresIn: this.expiresIn,
       allowInsecureKeySizes: true,
@@ -52,7 +54,7 @@ export class Jwt implements JwtInterface {
   }
 
   public decode(token: string, options?: VerifyOptions): JwtDecoded {
-    const decoded = jsonwebtoken.verify(token, this.publicKey, {
+    const decoded = verify(token, this.publicKey, {
       algorithms: [this.algorithm],
       audience: this.audience,
       issuer: this.issuer,
@@ -60,7 +62,7 @@ export class Jwt implements JwtInterface {
     }) as JwtDecoded;
     if (!decoded.sub) {
       throw new InternalServerError({
-        message: 'Jwt decoded.sub is required.',
+        message: 'When decoding a token, the "sub" is mandatory.',
         metadata: { decoded, options },
       });
     }

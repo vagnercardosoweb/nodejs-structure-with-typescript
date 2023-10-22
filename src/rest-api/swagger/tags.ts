@@ -1,8 +1,6 @@
-const swaggerTags = [
+export default [
   {
-    name: 'Default',
-    description: '',
+    name: 'default',
+    description: 'Default tag',
   },
 ];
-
-export default swaggerTags;

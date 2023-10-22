@@ -135,7 +135,7 @@ export class Utils {
     if (!Utils.isArray(data) && !Utils.isObject(data)) return data;
 
     const result = Utils.removeUndefined(data) as any;
-    const uniqueKeys = new Set([...keys, ...obfuscateKeys]);
+    const uniqueKeys = new Set(keys.concat(obfuscateKeys));
 
     for (const key of Object.keys(result)) {
       const keyAsLower = key.toLowerCase();
@@ -295,10 +295,7 @@ export class Utils {
     if ([null, undefined, ''].includes(normalizedJson)) return defaultValue;
     if (typeof normalizedJson !== 'string') return normalizedJson;
     try {
-      return {
-        ...defaultValue,
-        ...JSON.parse(normalizedJson),
-      };
+      return { ...defaultValue, ...JSON.parse(normalizedJson) };
     } catch (e: any) {
       if (Utils.isUndefined(defaultValue)) throw e;
       Logger.error('ERROR_PARSE_JSON', parseErrorToObject(e));

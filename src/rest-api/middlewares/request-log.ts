@@ -5,7 +5,7 @@ import morgan from 'morgan';
 
 import { Env } from '@/shared';
 
-const bypassPaths = ['/', '/favicon.ico'];
+const bypassPaths = ['/docs', '/favicon.ico'];
 
 export const requestLog = (
   request: Request,
@@ -13,7 +13,13 @@ export const requestLog = (
   next: NextFunction,
 ) => {
   const requestUrl = request.path;
-  if (Env.isTesting() || bypassPaths.includes(requestUrl)) return next();
+  if (
+    Env.isTesting() ||
+    requestUrl === '/' ||
+    bypassPaths.some((path) => requestUrl.startsWith(path))
+  ) {
+    return next();
+  }
 
   const path = `${request.method.toUpperCase()} ${requestUrl}`;
   const body = Env.get('SHOW_BODY_HTTP_REQUEST_LOGGER', false)
@@ -33,8 +39,8 @@ export const requestLog = (
     return JSON.stringify({
       id: tokens.res(req, res, 'x-request-id'),
       level: statusCode < 200 || statusCode >= 400 ? 'ERROR' : 'INFO',
-      pid: `${process.pid}`,
-      hostname: `${os.hostname()}`,
+      pid: process.pid,
+      hostname: os.hostname(),
       timestamp: tokens.date(req, res, 'iso'),
       message: 'HTTP_REQUEST_COMPLETED',
       metadata: {
