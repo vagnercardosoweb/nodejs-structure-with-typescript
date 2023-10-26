@@ -1,25 +1,37 @@
+import { HttpStatusCode } from '@/shared';
+
 export default {
   responses: {
     error: {
-      description: 'Error response',
+      description: 'Default Error',
       content: {
         'application/json; charset=utf-8': {
-          schema: { $ref: '#/components/schemas/error' },
+          schema: { $ref: '#/components/schemas/ResponseError' },
         },
       },
     },
   },
 
   schemas: {
-    error: {
-      title: 'ResponseError',
+    ResponseError: {
       description: 'Default object returned in case of error',
-      required: ['*'],
+      required: [
+        'name',
+        'message',
+        'statusCode',
+        'requestId',
+        'errorId',
+        'code',
+      ],
       properties: {
         name: { type: 'string' },
         message: { type: 'string' },
-        statusCode: { type: 'integer', description: 'HTTP Status Code' },
-        requestId: { type: 'string' },
+        statusCode: {
+          description: 'HTTP Status Code',
+          default: HttpStatusCode.BAD_REQUEST,
+          type: 'integer',
+        },
+        requestId: { type: 'string', format: 'uuid' },
         errorId: { type: 'string' },
         code: { type: 'string' },
       },

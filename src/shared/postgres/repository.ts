@@ -4,9 +4,13 @@ import { InternalServerError, NotFoundError, Utils } from '@/shared';
 
 import { PgPoolInterface } from './types';
 
-export class Repository<TRow extends QueryResultRow = any> {
+export class Repository<TRow extends QueryResultRow> {
   protected readonly tableName: string = 'table';
   protected readonly primaryKey: string = 'id';
+
+  protected readonly deletedAt: string | null = 'deleted_at';
+  protected readonly updatedAt: string | null = 'updated_at';
+  protected readonly createdAt: string | null = 'created_at';
 
   public constructor(protected readonly pgPool: PgPoolInterface) {}
 
@@ -70,8 +74,7 @@ export class Repository<TRow extends QueryResultRow = any> {
     ) {
       const rejectOnEmpty = (<any>params).rejectOnEmpty;
       if (typeof rejectOnEmpty === 'object') throw rejectOnEmpty;
-      let message = 'Resource not found';
-      if (typeof rejectOnEmpty === 'string') message = rejectOnEmpty;
+      const message = rejectOnEmpty ?? 'Resource not found';
       throw new NotFoundError({ message });
     }
     return result.at(0) ?? null;
@@ -108,6 +111,9 @@ export class Repository<TRow extends QueryResultRow = any> {
 
   protected async create(data: Omit<TRow, 'id'>): Promise<TRow> {
     data = Utils.removeUndefined(data);
+    if (this.createdAt && !data.hasOwnProperty(this.createdAt)) {
+      (data as any)[this.createdAt] = 'NOW()';
+    }
     const columns = Object.keys(data);
     const bindings = columns.map((_, index) => `$${index + 1}`);
     const { rows } = await this.pgPool.query<TRow>(
@@ -119,12 +125,17 @@ export class Repository<TRow extends QueryResultRow = any> {
     return rows[0];
   }
 
-  protected async update({
+  protected async update<T extends QueryResultRow = TRow>({
     data,
     where,
     binding,
-  }: UpdateParams<TRow>): Promise<TRow> {
+  }: UpdateParams<T>): Promise<T> {
     data = Utils.removeUndefined(data);
+
+    if (this.updatedAt && !data.hasOwnProperty(this.updatedAt)) {
+      (data as any)[this.updatedAt] = 'NOW()';
+    }
+
     const columns = Object.keys(data);
 
     const set = columns
@@ -139,7 +150,7 @@ export class Repository<TRow extends QueryResultRow = any> {
     });
 
     const parseWhere = this.makeWhere(where, length);
-    const { rows } = await this.pgPool.query<TRow>(
+    const { rows } = await this.pgPool.query<T>(
       `UPDATE ${this.tableName} SET ${set} WHERE ${parseWhere} RETURNING *;`,
       bindings,
     );
@@ -148,6 +159,13 @@ export class Repository<TRow extends QueryResultRow = any> {
   }
 
   protected async delete({ where, binding }: DeleteParams): Promise<TRow> {
+    if (this.deletedAt) {
+      return this.update<any>({
+        where,
+        data: { [this.deletedAt]: 'NOW()' },
+        binding,
+      });
+    }
     const tableName = this.tableName;
     const { rows } = await this.pgPool.query<TRow>(
       `DELETE FROM ${tableName} WHERE ${this.makeWhere(where)} RETURNING *;`,
@@ -186,20 +204,20 @@ type FindParams<Column> = {
 };
 
 type DeleteParams = {
-  binding: Binding;
   where: Where;
+  binding: Binding;
 };
 
-type UpdateParams<Data extends QueryResultRow = any> = {
+type UpdateParams<T extends QueryResultRow> = {
   where: Where;
   binding: Binding;
-  data: Partial<Data>;
+  data: Partial<T>;
 };
 
 type FindOneParams<Column> = Omit<FindParams<Column>, 'limit' | 'offset'>;
 
 type FindOneWithRejectParams<Column> = {
-  rejectOnEmpty: boolean | string | Error;
+  rejectOnEmpty: string | Error;
 } & FindOneParams<Column>;
 
 type FindByIdParams<Column> = { id: any } & Omit<

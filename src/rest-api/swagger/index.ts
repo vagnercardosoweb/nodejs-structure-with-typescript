@@ -16,7 +16,7 @@ export const swaggerRoutes: Route[] = [
     method: HttpMethod.USE,
     middlewares: [noCache, ...swagger.serve],
     handler: swagger.setup({
-      openapi: '3.0.3',
+      openapi: '3.1.0',
       security: [{ bearerAuth: [] }],
       externalDocs: {},
       info,
