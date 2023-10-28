@@ -2,14 +2,19 @@ import { randomUUID } from 'node:crypto';
 
 import { NextFunction, Request, Response } from 'express';
 
-import { ContainerName, Logger, PgPoolInterface, Translation } from '@/shared';
+import {
+  CacheInterface,
+  ContainerName,
+  Logger,
+  PgPoolInterface,
+  Translation,
+} from '@/shared';
 import { ContainerInterface } from '@/shared/container';
 
 export const app =
   (container: ContainerInterface) =>
   (request: Request, response: Response, next: NextFunction) => {
     request.container = container.clone();
-    request.eventManager = container.get(ContainerName.EVENT_MANAGER);
 
     const requestId = randomUUID();
     request.container.set(ContainerName.REQUEST_ID, requestId);
@@ -33,11 +38,19 @@ export const app =
       language,
     };
 
-    request.translation = container
-      .get<Translation>(ContainerName.TRANSLATION)
-      .withLocale(language);
+    request.container.set(
+      ContainerName.TRANSLATION,
+      container
+        .get<Translation>(ContainerName.TRANSLATION)
+        .withLocale(language),
+    );
 
-    request.container.set(ContainerName.TRANSLATION, request.translation);
+    request.container.set(
+      ContainerName.CACHE_CLIENT,
+      container
+        .get<CacheInterface>(ContainerName.CACHE_CLIENT)
+        .withLogger(request.logger),
+    );
 
     request.container.set(
       ContainerName.PG_POOL,

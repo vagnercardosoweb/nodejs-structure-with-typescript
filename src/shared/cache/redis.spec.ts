@@ -18,6 +18,7 @@ vi.mock('ioredis', () => {
 
 describe('shared/cache/redis', () => {
   let cacheClient: RedisCache;
+  const logger = Logger.withId('REDIS');
   let redisClient: Mocked<IORedis>;
 
   const testValues = [
@@ -33,7 +34,7 @@ describe('shared/cache/redis', () => {
   ];
 
   beforeEach(() => {
-    cacheClient = new RedisCache({} as any);
+    cacheClient = new RedisCache(logger, {} as any);
     redisClient = new IORedis() as any;
   });
 
@@ -64,12 +65,12 @@ describe('shared/cache/redis', () => {
   });
 
   it('deveria criar uma instância com ":" no final do prefix', () => {
-    cacheClient = new RedisCache({ keyPrefix: 'cache:' } as any);
+    cacheClient = new RedisCache(logger, { keyPrefix: 'cache:' } as any);
     expect((cacheClient as any).keyPrefix).toStrictEqual('cache:');
   });
 
   it('deveria criar uma instância com base nas variáveis de ambiente', () => {
-    expect(() => RedisCache.fromEnvironment()).not.toThrow();
+    expect(() => RedisCache.fromEnvironment(logger)).not.toThrow();
   });
 
   it(`deveria recuperar um cache com uma chave que não existe e retornar null`, () => {

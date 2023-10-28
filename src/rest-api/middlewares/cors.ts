@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { cors as configCors } from '@/rest-api/config';
+import { cors as configCors } from '@/config/cors';
 import { HttpMethod, HttpStatusCode } from '@/shared';
 
 const { origin, methods, headers } = configCors;

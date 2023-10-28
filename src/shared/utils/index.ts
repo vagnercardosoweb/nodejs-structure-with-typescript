@@ -4,11 +4,11 @@ export { Utils } from './utils';
 
 export * from './jwt';
 
-export { DurationTime } from './duration-time';
+export * from './duration-time';
 export { MaskValue } from './mask-value';
 export { Pagination } from './pagination';
 export { SlackAlert } from './slack-alert';
-export { Translation, TranslationInterface } from './translation';
+export * from './translation';
 
 export { Cnpj } from './cnpj';
 export { Cpf } from './cpf';

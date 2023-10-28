@@ -36,7 +36,7 @@ export class Env {
   }
 
   public static getTimezoneUtc(): string {
-    return Env.get('TZ_UTC', Env.getTimezoneGlobal());
+    return Env.get('TZ_UTC', 'UTC');
   }
 
   public static isLocal(): boolean {

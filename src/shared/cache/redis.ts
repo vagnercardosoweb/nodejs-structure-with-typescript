@@ -1,7 +1,7 @@
 import IORedis from 'ioredis';
 
 import { Env, Utils } from '@/shared';
-import { Logger, LoggerInterface } from '@/shared/logger';
+import { LoggerInterface } from '@/shared/logger';
 
 import { CacheDefaultValue, CacheInterface } from './cache';
 
@@ -15,30 +15,28 @@ type Options = {
 };
 
 export class RedisCache implements CacheInterface {
-  private client: IORedis;
-  private readonly keyPrefix: string = 'cache';
-  private connected = false;
-  private logger: LoggerInterface;
+  protected client: IORedis;
+  protected readonly keyPrefix: string;
+  protected connected = false;
 
-  public constructor(options: Options) {
-    this.logger = Logger.withId('REDIS');
-
-    const prefix = options?.keyPrefix?.trim() ?? this.keyPrefix;
-    this.keyPrefix = this.normalizeKeyPrefix(prefix);
-
+  public constructor(
+    protected logger: LoggerInterface,
+    protected readonly options: Options,
+  ) {
+    this.keyPrefix = this.getKeyPrefix();
     this.client = new IORedis({
-      port: options.port,
-      host: options.host,
-      password: options.password,
-      db: options.db,
-      username: options.username,
+      port: this.options.port,
+      host: this.options.host,
+      password: this.options.password,
+      db: this.options.db,
+      username: this.options.username,
       keyPrefix: this.keyPrefix,
       lazyConnect: true,
     });
   }
 
-  public static fromEnvironment(): RedisCache {
-    return new RedisCache({
+  public static fromEnvironment(logger: LoggerInterface): RedisCache {
+    return new RedisCache(logger, {
       port: Env.required('REDIS_PORT'),
       host: Env.required('REDIS_HOST'),
       password: Env.get('REDIS_PASSWORD'),
@@ -124,16 +122,17 @@ export class RedisCache implements CacheInterface {
     return Promise.all(keys.map((key) => this.get(this.removeByPrefix(key))));
   }
 
-  private removeByPrefix(prefix: string): string {
+  protected removeByPrefix(prefix: string): string {
     return prefix.replace(this.keyPrefix, '');
   }
 
-  private normalizeKeyPrefix(prefix: string): string {
-    if (prefix?.length && !prefix.endsWith(':')) return `${prefix}:`;
+  protected getKeyPrefix() {
+    let prefix = this.options?.keyPrefix?.trim() ?? 'cache:';
+    if (prefix?.length && !prefix.endsWith(':')) prefix = `${prefix}:`;
     return prefix;
   }
 
-  private mergePrefix(prefix: string): string {
+  protected mergePrefix(prefix: string): string {
     return `${this.keyPrefix}${prefix}`;
   }
 }

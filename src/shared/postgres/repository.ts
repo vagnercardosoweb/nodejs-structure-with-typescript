@@ -14,7 +14,7 @@ export class Repository<TRow extends QueryResultRow> {
 
   public constructor(protected readonly pgPool: PgPoolInterface) {}
 
-  protected async getMany<T = TRow>(params?: FindParams<T>): Promise<T[]> {
+  protected async findAll<T = TRow>(params?: FindParams<T>): Promise<T[]> {
     const {
       where = [],
       joins = [],
@@ -41,10 +41,10 @@ export class Repository<TRow extends QueryResultRow> {
     return result.rows;
   }
 
-  protected async getManyAndCount<T extends QueryResultRow = TRow>(
+  protected async findAndCountAll<T extends QueryResultRow = TRow>(
     params?: FindParams<T>,
   ): Promise<{ count: number; rows: T[] }> {
-    const [result] = await this.getMany<{ count: number }>({
+    const [{ count }] = await this.findAll<{ count: number }>({
       limit: -1,
       where: params?.where,
       columns: ['COUNT(1)::INTEGER AS count'],
@@ -53,21 +53,20 @@ export class Repository<TRow extends QueryResultRow> {
       binding: params?.binding,
       joins: params?.joins,
     });
-    const count = Number(result?.count ?? '0');
-    const rows = await this.getMany<T>(params);
+    const rows = await this.findAll<T>(params);
     return { count, rows };
   }
 
-  protected async getFirst<T = TRow>(
+  protected async findOne<T = TRow>(
     params: FindOneWithRejectParams<T>,
   ): Promise<T>;
 
-  protected async getFirst<T = TRow>(
+  protected async findOne<T = TRow>(
     params: FindOneParams<T>,
   ): Promise<T | null>;
 
-  protected async getFirst<T = TRow>(params: FindOneParams<T>) {
-    const result = await this.getMany<T>({ ...params, limit: 1 });
+  protected async findOne<T = TRow>(params: FindOneParams<T>) {
+    const result = await this.findAll<T>({ ...params, limit: 1 });
     if (
       result.length === 0 &&
       Object.prototype.hasOwnProperty.call(params, 'rejectOnEmpty')
@@ -80,7 +79,7 @@ export class Repository<TRow extends QueryResultRow> {
     return result.at(0) ?? null;
   }
 
-  protected async getById<T = TRow>(params: FindByIdParams<T>) {
+  protected async findById<T = TRow>(params: FindByIdParams<T>) {
     if (!params.where) params.where = [];
     if (!params.binding) params.binding = [];
     const bindingLength = params.binding.length;
@@ -106,7 +105,7 @@ export class Repository<TRow extends QueryResultRow> {
     }
     params.where.push(`${this.primaryKey} = $${bindingLength + 1}`);
     params.binding.push(params.id);
-    return this.getFirst<T>(params);
+    return this.findOne<T>(params);
   }
 
   protected async create(data: Omit<TRow, 'id'>): Promise<TRow> {

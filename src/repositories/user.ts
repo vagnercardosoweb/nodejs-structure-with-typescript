@@ -3,11 +3,12 @@ import { Repository } from '@/shared';
 export class UserRepository extends Repository<User> {
   protected readonly tableName = 'users';
 
-  public async all() {
-    return this.getMany<GetWithLimitOutput>({
+  public async findWithLimit(limit: number, offset = -1) {
+    return this.findAndCountAll<All>({
       columns: ['id', 'name', 'email'],
       orderBy: ['created_at DESC'],
-      limit: -1,
+      offset,
+      limit,
     });
   }
 }
@@ -17,14 +18,13 @@ type User = {
   name: string;
   email: string;
   birth_date: Date;
+  code_to_invite: string;
   password_hash: string;
   confirmed_email_at: Date | null;
   login_blocked_until: Date | null;
-  code_to_invite: string;
+  created_at: Date;
+  deleted_at: Date | null;
+  updated_at: Date;
 };
 
-type GetWithLimitOutput = {
-  id: string;
-  name: string;
-  email: string;
-};
+type All = Pick<User, 'id' | 'name' | 'email'>;

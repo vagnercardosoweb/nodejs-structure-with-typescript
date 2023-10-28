@@ -5,7 +5,7 @@ export const errors = {
     'Ocorreu um erro, tente novamente, se o problema persistir entre em contato com nosso suporte e informe o código [{{errorId}}].',
   unauthorized: 'unauthorized',
   unprocessable_entity: 'unprocessable_entity',
-  rate_limiter: 'rate_limiter',
+  rate_limiter: 'Muitas requisições. Por favor tente mais tarde.',
   not_found: 'not_found',
   not_acceptable: 'not_acceptable',
   gateway_timeout: 'gateway_timeout',

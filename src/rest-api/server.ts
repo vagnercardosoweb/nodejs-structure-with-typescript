@@ -3,10 +3,10 @@ import '../config/module-alias';
 
 import process from 'node:process';
 
+import { setupDependencies } from '@/rest-api/dependencies';
+import { RestApi } from '@/rest-api/rest-api';
+import { routes } from '@/rest-api/routes';
 import { Env, Logger, parseErrorToObject, SlackAlert } from '@/shared';
-
-import { makeDependencies, routes } from './config';
-import { RestApi } from './rest-api';
 
 const sendSlackAlert = async (color: string, message: string) => {
   if (!Env.get('SLACK_ALERT_ON_STARTED_OR_CLOSE_SERVER', true)) return;
@@ -24,7 +24,7 @@ const sendSlackAlert = async (color: string, message: string) => {
   restApi.beforeClose(() => sendSlackAlert('error', 'server closed'));
 
   try {
-    await makeDependencies(restApi);
+    await setupDependencies(restApi);
     routes.forEach((route) => restApi.addRoute(route));
     await restApi.listen();
 

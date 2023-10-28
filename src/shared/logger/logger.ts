@@ -1,6 +1,6 @@
-import os from 'node:os';
 import process from 'node:process';
 
+import { HOSTNAME, PID } from '@/config/constants';
 import {
   Env,
   LoggerInterface,
@@ -10,13 +10,7 @@ import {
 } from '@/shared';
 
 class Logger implements LoggerInterface {
-  protected readonly pid: number;
-  protected readonly hostname: string;
-
-  constructor(private readonly id: string) {
-    this.hostname = os.hostname();
-    this.pid = process.pid;
-  }
+  constructor(private readonly id: string) {}
 
   public withId(id: string) {
     if (id === undefined) id = 'APP';
@@ -31,15 +25,15 @@ class Logger implements LoggerInterface {
     if (Env.isTesting()) return;
     const timestamp = new Date().toISOString();
     if (metadata !== undefined) {
-      metadata = Utils.obfuscateValues(metadata);
+      metadata = Utils.redactedRecursiveKeys(metadata);
       message = Utils.replaceKeysInString(message, metadata);
     }
     process.stdout.write(
       `${JSON.stringify({
         id: this.id,
         level,
-        pid: this.pid,
-        hostname: this.hostname,
+        pid: PID,
+        hostname: HOSTNAME,
         timestamp,
         message,
         metadata,

@@ -1,8 +1,7 @@
-import os from 'node:os';
-
 import { NextFunction, Request, Response } from 'express';
 import morgan from 'morgan';
 
+import { HOSTNAME, PID } from '@/config/constants';
 import { Env } from '@/shared';
 
 const bypassPaths = ['/docs', '/favicon.ico'];
@@ -39,8 +38,8 @@ export const requestLog = (
     return JSON.stringify({
       id: tokens.res(req, res, 'x-request-id'),
       level: statusCode < 200 || statusCode >= 400 ? 'ERROR' : 'INFO',
-      pid: process.pid,
-      hostname: os.hostname(),
+      pid: PID,
+      hostname: HOSTNAME,
       timestamp: tokens.date(req, res, 'iso'),
       message: 'HTTP_REQUEST_COMPLETED',
       metadata: {

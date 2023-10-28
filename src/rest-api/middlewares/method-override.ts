@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { cors } from '@/rest-api/config';
+import { cors } from '@/config/cors';
 
 export const methodOverride = (
   request: Request,

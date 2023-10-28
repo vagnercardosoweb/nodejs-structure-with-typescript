@@ -16,7 +16,12 @@ export class DurationTime {
     return this.ms;
   }
 
-  public format() {
-    return `${this.milliseconds().toFixed(6)}ms`;
+  public format(digits = 3) {
+    return `${this.milliseconds().toFixed(digits)}ms`;
   }
+}
+
+export interface DurationTimeInterface {
+  milliseconds(): number;
+  format(): string;
 }

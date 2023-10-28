@@ -1,6 +1,5 @@
-type Properties = { page: number; limit: number };
-
-type Result = {
+export type PaginationResult = {
+  rows: any[];
   perPage: number;
   totalRows: number;
   totalPages: number;
@@ -9,52 +8,32 @@ type Result = {
   prevPage: number;
 };
 
-export class Pagination {
-  protected page = 1;
-  protected limit = 50;
-  protected totalRows = 0;
-  protected offset = 0;
+const DEFAULT_LIMIT = 50;
+const DEFAULT_PAGE = 1;
 
-  constructor({ page, limit }: Properties) {
-    this.page = page;
-    this.limit = limit;
+export class Pagination {
+  public offset = 0;
+
+  constructor(
+    public readonly limit = DEFAULT_LIMIT,
+    public readonly page = DEFAULT_PAGE,
+  ) {
     this.offset = (page - 1) * limit;
   }
 
-  public static fromExpressRequest(request: any) {
-    return new Pagination({
-      limit: Number(request.query.limit || 50),
-      page: Number(request.query.page || 1),
-    });
+  public static fromRequest(request: any) {
+    const { limit = DEFAULT_LIMIT, page = DEFAULT_PAGE } = request.query;
+    return new Pagination(Number(limit), Number(page));
   }
 
-  public setTotalRows(total: number) {
-    this.totalRows = total;
-  }
-
-  public getTotalRows(): number {
-    return this.totalRows;
-  }
-
-  public getCurrentPage(): number {
-    return this.page;
-  }
-
-  public getLimit(): number {
-    return this.limit;
-  }
-
-  public getOffset(): number {
-    return this.offset;
-  }
-
-  public toJson(): Result {
-    const totalPages = Math.max(Math.ceil(this.totalRows / this.limit), 1);
+  public toJSON<T>(rows: T[], totalRows: number): PaginationResult {
+    const totalPages = Math.max(Math.ceil(totalRows / this.limit), 1);
     const nextPage = totalPages > this.page ? this.page + 1 : totalPages;
     const prevPage = this.page > 1 ? this.page - 1 : 1;
     return {
+      rows,
       perPage: this.limit,
-      totalRows: this.totalRows,
+      totalRows,
       totalPages,
       currentPage: this.page,
       nextPage,

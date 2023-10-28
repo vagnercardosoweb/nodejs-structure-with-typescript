@@ -1,48 +1,45 @@
-import { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 
 import {
-  CacheInterface,
-  ContainerName,
-  Env,
-  HttpStatusCode,
-  Logger,
-  parseErrorToObject,
-  RateLimiterError,
-} from '@/shared';
-
-const DEFAULT_LIMIT = Env.get('RATE_LIMITER_LIMIT', 50);
-const DEFAULT_EXPIRES_IN_SECONDS = Env.get('RATE_LIMITER_EXPIRES_IN', 86400);
+  RATE_LIMITER_EXPIRES_SECONDS,
+  RATE_LIMITER_LIMIT,
+  RATE_LIMITER_SKIP_SUCCESS,
+} from '@/config/constants';
+import { getCacheClientFromRequest } from '@/rest-api/dependencies';
+import { HttpStatusCode, RateLimiterError } from '@/shared';
 
 export const rateLimiter =
   (
     key: string,
-    expiresIn = DEFAULT_EXPIRES_IN_SECONDS,
-    limit = DEFAULT_LIMIT,
+    expiresSeconds = RATE_LIMITER_EXPIRES_SECONDS,
+    limit = RATE_LIMITER_LIMIT,
   ) =>
   async (request: Request, response: Response, next: NextFunction) => {
+    const cacheClient = getCacheClientFromRequest(request);
     const cacheKey = `rate-limiter:${request.ip}:${key}`;
-    const cacheClient = request.container.get<CacheInterface>(
-      ContainerName.CACHE_CLIENT,
-    );
-
-    response.on('finish', () => {
-      if (
-        response.statusCode >= HttpStatusCode.OK &&
-        response.statusCode < HttpStatusCode.BAD_REQUEST
-      ) {
-        cacheClient
-          .delete(cacheKey)
-          .catch((error) =>
-            Logger.error(
-              `Removing rate-limit key: ${cacheKey}.`,
-              parseErrorToObject(error),
-            ),
-          );
-      }
-    });
 
     const hits = Number(await cacheClient.get<number>(cacheKey, 0)) + 1;
-    if (hits > limit) throw new RateLimiterError();
-    await cacheClient.set(cacheKey, hits, expiresIn);
+    await cacheClient.set(cacheKey, hits, expiresSeconds);
+
+    response.setHeader('X-RateLimit-Limit', limit);
+    response.setHeader('X-RateLimit-Remaining', Math.max(limit - hits, 0));
+    response.setHeader('X-RateLimit-Used', Math.min(hits, limit));
+
+    const resetTime = Date.now() + expiresSeconds * 1000;
+    response.setHeader('X-RateLimit-Reset', Math.ceil(resetTime / 1000));
+
+    if (RATE_LIMITER_SKIP_SUCCESS) {
+      response.on('finish', async () => {
+        if (response.statusCode > HttpStatusCode.BAD_REQUEST) return;
+        await cacheClient.set(cacheKey, hits - 1, expiresSeconds);
+      });
+    }
+
+    if (hits > limit) {
+      const retryAfter = Math.ceil((resetTime - Date.now()) / 1000);
+      response.setHeader('Retry-After', Math.max(0, retryAfter));
+      throw new RateLimiterError({ metadata: { ip: request.ip } });
+    }
+
     return next();
   };

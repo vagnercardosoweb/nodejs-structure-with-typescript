@@ -2,6 +2,7 @@ import { randomInt } from 'node:crypto';
 
 import { describe, expect, it, vi } from 'vitest';
 
+import * as constants from '@/config/constants';
 import { BadRequestError, Cnpj, Cpf, Env } from '@/shared';
 
 import { Utils } from './utils';
@@ -58,13 +59,13 @@ const createObjectModifiedObfuscate = () =>
   Object.freeze({
     name: 'any_name',
     email: 'any_mail@mail.com',
-    password: '*',
+    password: constants.REDACTED_TEXT,
     nullValue: null,
     nestedObject: {
       name: 'any_name',
-      password: '*',
+      password: constants.REDACTED_TEXT,
       credentials: {
-        password: '*',
+        password: constants.REDACTED_TEXT,
       },
     },
     arrayAsString: ['one', 'two'],
@@ -73,19 +74,23 @@ const createObjectModifiedObfuscate = () =>
       {
         name: 'any_name',
         email: 'any_mail@mail.com',
-        password: '*',
+        password: constants.REDACTED_TEXT,
       },
       {
         name: 'any_name_2',
         email: 'any_mail_2@mail.com',
-        password: '*',
+        password: constants.REDACTED_TEXT,
       },
     ],
     images: {
-      facematch: '*',
-      document_front: '*',
-      document_back: '*',
-      liveness: ['*', '*', '*'],
+      facematch: constants.REDACTED_TEXT,
+      document_front: constants.REDACTED_TEXT,
+      document_back: constants.REDACTED_TEXT,
+      liveness: [
+        constants.REDACTED_TEXT,
+        constants.REDACTED_TEXT,
+        constants.REDACTED_TEXT,
+      ],
     },
   });
 
@@ -371,16 +376,16 @@ describe('shared/utils/utils.ts', () => {
 
   it('convertObjectKeyToLowerCase', () => {
     const input = {
-      'Name': '*',
-      'X-ID-Token': '*',
-      'Authorization': '*',
-      'X-Api-Key': '*',
+      'Name': 'any',
+      'X-ID-Token': 'any',
+      'Authorization': 'any',
+      'X-Api-Key': 'any',
     };
     const output = {
-      'name': '*',
-      'x-id-token': '*',
-      'authorization': '*',
-      'x-api-key': '*',
+      'name': 'any',
+      'x-id-token': 'any',
+      'authorization': 'any',
+      'x-api-key': 'any',
     };
     expect(Utils.convertObjectKeyToLowerCase(input)).toStrictEqual(output);
     expect(Utils.convertObjectKeyToLowerCase(input)).not.deep.equal(input);
@@ -458,9 +463,10 @@ describe('shared/utils/utils.ts', () => {
 
   describe('obfuscateValue', () => {
     it('deveria retornar o objeto modificado e manter o original', () => {
+      process.env.REDACTED_KEYS = 'password';
       const value = createObjectObfuscate();
       const expected = createObjectModifiedObfuscate();
-      const obfuscateValue = Utils.obfuscateValues(value);
+      const obfuscateValue = Utils.redactedRecursiveKeys(value);
       expect(obfuscateValue).deep.equal(expected);
       expect(value).not.deep.equal(expected);
     });
@@ -471,29 +477,37 @@ describe('shared/utils/utils.ts', () => {
         {
           name: 'any_name',
           email: 'any_mail@mail.com',
-          password: '*',
+          password: constants.REDACTED_TEXT,
         },
         {
           name: 'any_name_2',
           email: 'any_mail_2@mail.com',
-          password: '*',
+          password: constants.REDACTED_TEXT,
         },
       ];
-      expect(Utils.obfuscateValues(value.arrayAsObject)).deep.equal(expected);
+      expect(Utils.redactedRecursiveKeys(value.arrayAsObject)).deep.equal(
+        expected,
+      );
       expect(value).not.deep.equal(expected);
     });
 
     it('deveria retornar o array de imageBase64 modificado e manter o original', () => {
       const value = createObjectObfuscate();
-      const expected = ['*', '*', '*'];
-      expect(Utils.obfuscateValues(value.images.liveness)).deep.equal(expected);
+      const expected = [
+        constants.REDACTED_TEXT,
+        constants.REDACTED_TEXT,
+        constants.REDACTED_TEXT,
+      ];
+      expect(Utils.redactedRecursiveKeys(value.images.liveness)).deep.equal(
+        expected,
+      );
       expect(value).not.deep.equal(expected);
     });
 
-    it('deveria não modificar o objeto passado com env[OBFUSCATE_VALUE=false]', () => {
-      process.env.OBFUSCATE_VALUE = 'false';
+    it('deveria não modificar o objeto passado com env[REDACTED_KEYS=]', () => {
+      vi.spyOn(constants, 'REDACTED_KEYS', 'get').mockReturnValue([]);
       const value = createObjectObfuscate();
-      expect(Utils.obfuscateValues(value)).deep.equal(value);
+      expect(Utils.redactedRecursiveKeys(value)).deep.equal(value);
     });
   });
 });

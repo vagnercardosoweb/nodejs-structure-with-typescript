@@ -1,11 +1,10 @@
 import 'vitest/globals';
 
-import {
+import type {
   ContainerInterface,
-  EventManagerInterface,
+  DurationTimeInterface,
   JwtDecoded,
   LoggerInterface,
-  TranslationInterface,
 } from '@/shared';
 
 declare global {
@@ -13,8 +12,8 @@ declare global {
     export interface Request {
       logger: LoggerInterface;
       container: ContainerInterface;
-      translation: TranslationInterface;
-      eventManager: EventManagerInterface;
+      originalMethod?: string;
+      durationTime: DurationTimeInterface;
       context: {
         language: string;
         requestId: string;

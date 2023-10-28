@@ -1,6 +1,6 @@
-import os from 'node:os';
 import util from 'node:util';
 
+import { HOSTNAME, PID } from '@/config/constants';
 import {
   Env,
   HttpMethod,
@@ -71,11 +71,7 @@ export class SlackAlert {
                 fields: Object.entries(
                   Utils.removeUndefined({
                     'Date': new Date().toISOString(),
-                    'Hostname / PID': util.format(
-                      '%s / %s',
-                      os.hostname(),
-                      process.pid,
-                    ),
+                    'Hostname / PID': util.format('%s / %s', HOSTNAME, PID),
                     ...fields,
                   }),
                 ).map(([title, value]) => ({

@@ -8,6 +8,7 @@ import helmet from 'helmet';
 import httpGraceFullShutdown from 'http-graceful-shutdown';
 import responseTime from 'response-time';
 
+import { HOSTNAME } from '@/config/constants';
 import {
   Container,
   ContainerInterface,
@@ -35,7 +36,7 @@ import { BeforeCloseFn, Route } from './types';
 
 export class RestApi {
   protected readonly app: Application;
-  protected readonly routes: Route[] = [];
+  protected readonly routes = new Map<string, Route>();
   protected readonly container: ContainerInterface;
   protected readonly beforeCloseFn: BeforeCloseFn[] = [];
   protected readonly server: http.Server;
@@ -50,7 +51,6 @@ export class RestApi {
 
     this.initExpress();
 
-    this.set('routes', this.routes);
     this.set('secret', this.secret);
     this.set('port', this.port);
   }
@@ -70,19 +70,17 @@ export class RestApi {
   }
 
   public addRoute(route: Route): void {
-    if (
-      this.routes.some(
-        (r) => r.method === route.method && r.path === route.path,
-      )
-    ) {
+    route.method = route.method.toUpperCase() as HttpMethod;
+    const key = `${route.method} ${route.path}`;
+
+    if (this.routes.has(key)) {
       throw new InternalServerError({
-        message: 'Route ({routeName}) already exists registered',
+        message: 'Route "{{routeName}}" already exists registered',
         metadata: { routeName: `${route.method} ${route.path}` },
       });
     }
 
-    this.routes.push(route);
-    this.set('routes', this.routes);
+    this.routes.set(key, route);
   }
 
   public getServer(): http.Server {
@@ -94,7 +92,7 @@ export class RestApi {
   }
 
   public getRoutes(): Route[] {
-    return this.routes;
+    return Array.from(this.routes.values());
   }
 
   public getPort(): number {
@@ -138,6 +136,11 @@ export class RestApi {
   }
 
   public start() {
+    this.app.use((request, _, next) => {
+      request.durationTime = new DurationTime();
+      next();
+    });
+
     this.app.use(cors);
     this.app.use(helmet());
     this.app.use(compression());
@@ -165,12 +168,10 @@ export class RestApi {
   protected responseHandle({
     request,
     response,
-    duration,
     result,
   }: {
     request: Request;
     response: Response;
-    duration: DurationTime;
     result: any;
   }) {
     if (result?.hasOwnProperty('socket')) return result.end();
@@ -180,10 +181,11 @@ export class RestApi {
       .json({
         data: result,
         path: `${request.method} ${request.originalUrl}`,
-        duration: duration.format(),
-        timezone: Env.getTimezoneGlobal(),
         ipAddress: request.ip,
+        duration: request.durationTime.format(),
+        timezone: Env.getTimezoneGlobal(),
         environment: Env.get('NODE_ENV'),
+        hostname: HOSTNAME,
         requestId: request.context.requestId,
         userAgent: request.headers['user-agent'],
         brlDate: Utils.createBrlDate(),
@@ -193,7 +195,7 @@ export class RestApi {
   }
 
   protected registerRoutes() {
-    for (const route of this.routes) {
+    for (const route of this.getRoutes()) {
       const method = (route.method ?? HttpMethod.GET).toLowerCase();
       const middlewares = route.middlewares ?? [];
 
@@ -207,8 +209,6 @@ export class RestApi {
           }
 
           const Handler = route.handler as any;
-          const duration = new DurationTime();
-
           const handler = new Handler(request, response);
           const result = handler.handle();
 
@@ -219,7 +219,6 @@ export class RestApi {
                 this.responseHandle({
                   request,
                   response,
-                  duration,
                   result,
                 }),
               )
@@ -228,7 +227,6 @@ export class RestApi {
             this.responseHandle({
               request,
               response,
-              duration,
               result,
             });
           }

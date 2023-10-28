@@ -8,6 +8,7 @@ env:
   REDIS_PORT: '6379'
   CHECK_ENVFILE: 'false'
   REDIS_HOST: 'localhost'
+  REDACTED_KEYS: 'password'
   TZ_UTC: 'UTC'
   TZ_BRL: 'America/Sao_Paulo'
   TZ: 'UTC'

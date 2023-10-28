@@ -12,10 +12,8 @@ export const notFound = (
     requestId: request.context.requestId,
     method: request.method,
   };
-  if (
-    (<any>request)?.originalMethod &&
-    (<any>request).originalMethod.toUpperCase() !== request.method.toUpperCase()
-  ) {
+  const originalMethod = request.originalMethod || request.method;
+  if (originalMethod.toUpperCase() !== request.method.toUpperCase()) {
     return next(new MethodNotAllowedError(errorOptions));
   }
   return next(new PageNotFoundError(errorOptions));

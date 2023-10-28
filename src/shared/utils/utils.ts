@@ -2,7 +2,7 @@ import childProcess from 'node:child_process';
 import { randomBytes, randomInt, randomUUID } from 'node:crypto';
 import { promisify } from 'node:util';
 
-import { obfuscateKeys } from '@/config/obfuscate-keys';
+import { REDACTED_KEYS, REDACTED_TEXT } from '@/config/constants';
 import { BadRequestError, Env, Logger } from '@/shared';
 import { HttpStatusCode } from '@/shared/enums';
 import { parseErrorToObject } from '@/shared/errors';
@@ -130,31 +130,31 @@ export class Utils {
     return /data:image\/(.+);/gm.test(value);
   }
 
-  public static obfuscateValues<T>(data: T, keys: string[] = []): T {
-    if (!Env.get('OBFUSCATE_VALUE', true)) return data;
+  public static redactedRecursiveKeys<T>(data: T, keys: string[] = []): T {
+    if (REDACTED_KEYS.length === 0) return data;
     if (!Utils.isArray(data) && !Utils.isObject(data)) return data;
 
     const result = Utils.removeUndefined(data) as any;
-    const uniqueKeys = new Set(keys.concat(obfuscateKeys));
+    const uniqueKeys = new Set(keys.concat(REDACTED_KEYS));
 
     for (const key of Object.keys(result)) {
       const keyAsLower = key.toLowerCase();
 
       if (Utils.isObject(result[key])) {
-        result[key] = Utils.obfuscateValues(result[key], keys);
+        result[key] = Utils.redactedRecursiveKeys(result[key], keys);
         continue;
       }
 
       if (Utils.isArray(result[key])) {
         result[key] = result[key].map((row: any) => {
-          if (Utils.isImageBase64(row)) return '*';
-          return Utils.obfuscateValues(row, keys);
+          if (Utils.isImageBase64(row)) return REDACTED_TEXT;
+          return Utils.redactedRecursiveKeys(row, keys);
         });
         continue;
       }
 
       if (uniqueKeys.has(keyAsLower) || Utils.isImageBase64(result[key])) {
-        result[key] = '*';
+        result[key] = REDACTED_TEXT;
       }
     }
 
@@ -402,6 +402,7 @@ export class Utils {
     message: string,
     metadata: Record<string, any>,
   ): string {
+    if (!message?.trim()) return message;
     if (message.indexOf('{{') === -1) return message;
     for (const key in metadata) {
       message = message.replace(`{{${key}}}`, metadata[key]);
