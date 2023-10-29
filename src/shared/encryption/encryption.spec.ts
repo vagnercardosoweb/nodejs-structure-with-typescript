@@ -14,7 +14,7 @@ describe('Encryption', () => {
 
   it('should reject when decrypting an invalid encryption', async () => {
     expect(() => encryption.decrypt('any_value')).rejects.toThrowError(
-      'Unexpected token j in JSON at position 0',
+      'Unexpected token \'j\', "j|���n" is not valid JSON',
     );
   });
 
