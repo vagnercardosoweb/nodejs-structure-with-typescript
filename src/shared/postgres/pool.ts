@@ -41,6 +41,7 @@ export class PgPool implements PgPoolInterface {
       connectionTimeoutMillis: this.options.timeout.connection,
       idleTimeoutMillis: this.options.timeout.idle,
       ssl: this.options.enabledSsl ? { rejectUnauthorized: false } : undefined,
+      options: `-c search_path=${this.options.schema}`,
       allowExitOnIdle: true,
       min: this.options.minPool,
       max: this.options.maxPool,
