@@ -8,11 +8,10 @@ import { BadRequestError, Cnpj, Cpf, Env } from '@/shared';
 import { Utils } from './utils';
 
 vi.mock('node:crypto', async () => {
-  const actual = (await vi.importActual('node:crypto')) as any;
   return {
-    ...actual,
-    randomInt: vi.fn().mockResolvedValue(0),
+    ...((await vi.importActual('node:crypto')) as any),
     randomBytes: vi.fn().mockReturnValue('a'),
+    randomInt: vi.fn().mockResolvedValue(0),
   };
 });
 
@@ -131,7 +130,8 @@ describe('shared/utils/utils.ts', () => {
   });
 
   it('removeAccents', () => {
-    expect(Utils.removeAccents('áéíóúç')).toEqual('aeiouc');
+    expect(Utils.removeAccents('àÀáÁâÂãÃäÄåÅ')).toEqual('aAaAaAaAaAaA');
+    expect(Utils.removeAccents('áÁéÉíÍóÓúÚ')).toEqual('aAeEiIoOuU');
   });
 
   it('toCamelCase', () => {

@@ -11,8 +11,8 @@ export const errorHandler = (
   next: NextFunction,
 ) => {
   if (response.headersSent) return next(error);
-
   error = parseErrorToObject(error);
+
   const requestUrl = request.originalUrl || request.url;
   const requestMethod = request.method.toUpperCase();
 
@@ -22,6 +22,7 @@ export const errorHandler = (
   if (!request.logger) request.logger = Logger.withId(requestId);
   if (error.logging) {
     request.logger.error('HTTP_REQUEST_ERROR', {
+      ip: request.ip,
       path: `${requestMethod} ${requestUrl}`,
       routePath: request.route?.path,
       headers: request.headers,

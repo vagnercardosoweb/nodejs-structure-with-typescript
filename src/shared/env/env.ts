@@ -27,16 +27,12 @@ export class Env {
     return value;
   }
 
-  public static getTimezoneGlobal(): string {
-    return Env.get('TZ', 'UTC');
+  public static getTimezoneUtc(): string {
+    return 'UTC';
   }
 
   public static getTimezoneBrl(): string {
-    return Env.get('TZ_BRL', 'America/Sao_Paulo');
-  }
-
-  public static getTimezoneUtc(): string {
-    return Env.get('TZ_UTC', 'UTC');
+    return 'America/Sao_Paulo';
   }
 
   public static isLocal(): boolean {

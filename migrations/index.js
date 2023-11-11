@@ -1,14 +1,7 @@
-import '../src/config/module-alias';
+require('../dist/config/module-alias');
 
-import path from 'node:path';
-
-import { Env, Logger, Migrator, PgPool } from '@/shared';
-
-const nodeEnv = Env.required('NODE_ENV');
-if (nodeEnv === 'local') {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  require('dotenv').config({ path: '.env.local' });
-}
+const path = require('node:path');
+const { Logger, Migrator, PgPool } = require('@/shared');
 
 (async () => {
   const logger = Logger.withId('DB_MIGRATOR');

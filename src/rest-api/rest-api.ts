@@ -31,6 +31,7 @@ import {
   methodOverride,
   notFound,
   requestLog,
+  timestamp,
 } from './middlewares';
 import { BeforeCloseFn, Route } from './types';
 
@@ -148,6 +149,7 @@ export class RestApi {
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
     this.app.use(cookieParser(this.secret));
+    this.app.use(timestamp);
     this.app.use(app(this.container));
     this.app.use(methodOverride);
     this.app.use(extractToken);
@@ -183,7 +185,7 @@ export class RestApi {
         path: `${request.method} ${request.originalUrl}`,
         ipAddress: request.ip,
         duration: request.durationTime.format(),
-        timezone: Env.getTimezoneGlobal(),
+        timezone: Env.getTimezoneUtc(),
         environment: Env.get('NODE_ENV'),
         hostname: HOSTNAME,
         requestId: request.context.requestId,

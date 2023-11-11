@@ -1,30 +1,23 @@
 FROM node:20-alpine
-LABEL MAINTENANCE="Vagner dos Santos Cardoso <vagnercardosoweb@gmail.com>"
 
-# set environments
-ENV TZ=${TZ:-UTC}
+# create node user
+ENV USER=node
 
-# set workdir
-ENV WORKDIR=/home/node
+# create workdir
+ENV WORKDIR=/home/${USER}/app
 WORKDIR ${WORKDIR}
 
-# update system and install tz
-RUN apk add --update --no-cache bash tzdata openssl && rm -rf /var/cache/apk/*
-
-# set non-root user
-ENV USER=node
-USER ${USER}
-
-# create node_modules
-RUN mkdir -p ${WORKDIR}/node_modules
-
 # copy and install node packages
-COPY --chown=node:node package*.json ./
-RUN npm install
-COPY --chown=node:node . .
+COPY --chown=${user}:${user} package*.json ./
+RUN npm install --ignore-scripts
+COPY --chown=${USER}:${USER} . .
 
 # expose port
 ENV PORT=${PORT:-3000}
 EXPOSE ${PORT}
 
+# run as node user
+USER ${USER}
+
+# run application
 CMD ["npm", "run", "dev:local"]

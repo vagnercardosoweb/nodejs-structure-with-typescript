@@ -9,18 +9,10 @@ export const withToken = async (
   next: NextFunction,
 ) => {
   const { token } = request.context.jwt;
-  if (!token?.trim()) {
-    throw new UnauthorizedError({
-      code: 'auth.missing-token',
-      message: 'token missing in the request',
-    });
-  }
+  if (!token?.trim()) throw new UnauthorizedError({ code: 'JwtTokenIsEmpty' });
   if (token === Env.get('API_KEY')) return next();
   if (token.split('.').length !== 3) {
-    throw new UnauthorizedError({
-      code: 'auth.invalid-format-token',
-      message: 'token does not have a valid format',
-    });
+    throw new UnauthorizedError({ code: 'JwtTokenInvalidFormat' });
   }
   try {
     request.context.jwt = request.container
@@ -28,9 +20,8 @@ export const withToken = async (
       .decode(token) as any;
   } catch (e: any) {
     throw new UnauthorizedError({
-      code: 'auth.invalid-token',
-      message: 'unable to validate your token please login again',
       originalError: e,
+      code: 'JwtTokenValidationFailed',
     });
   }
   return next();

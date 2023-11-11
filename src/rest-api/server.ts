@@ -1,4 +1,3 @@
-import '../config/dotenv';
 import '../config/module-alias';
 
 import process from 'node:process';
@@ -18,7 +17,8 @@ const sendSlackAlert = async (color: string, message: string) => {
 };
 
 (async (): Promise<void> => {
-  Logger.info(`server using environment ${Env.required('NODE_ENV')}`);
+  process.env.TZ = Env.getTimezoneUtc();
+  Logger.info(`using environment ${Env.required('NODE_ENV')}`);
 
   const restApi = new RestApi(Env.required('PORT'), Env.required('APP_KEY'));
   restApi.beforeClose(() => sendSlackAlert('error', 'server closed'));

@@ -4,7 +4,7 @@ import { InternalServerError, NotFoundError, Utils } from '@/shared';
 
 import { PgPoolInterface } from './types';
 
-export class Repository<TRow extends QueryResultRow> {
+export class BaseRepository<TRow extends QueryResultRow> {
   protected readonly tableName: string = 'table';
   protected readonly primaryKey: string = 'id';
 

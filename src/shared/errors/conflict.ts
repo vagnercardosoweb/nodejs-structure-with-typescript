@@ -1,16 +1,16 @@
 import { HttpStatusCode } from '@/shared/enums';
 
-import { AppError, Options } from './app';
+import { AppError, AppErrorInput } from './app';
 
 export class ConflictError extends AppError {
   public name = 'ConflictError';
 
-  constructor(options?: Options) {
+  constructor(input?: AppErrorInput) {
     super({
       code: 'CONFLICT',
       statusCode: HttpStatusCode.CONFLICT,
       message: 'errors.conflict',
-      ...options,
+      ...input,
     });
   }
 }

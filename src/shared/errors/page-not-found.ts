@@ -1,17 +1,17 @@
 import { HttpStatusCode } from '@/shared/enums';
 
-import { AppError, Options as AppOptions } from './app';
+import { AppError, AppErrorInput } from './app';
 
-interface Options extends Omit<AppOptions, 'message'> {
+type Input = Omit<AppErrorInput, 'message'> & {
   path: string;
   method: string;
   message?: string;
-}
+};
 
 export class PageNotFoundError extends AppError {
   public name = 'PageNotFoundError';
 
-  constructor({ path, method, ...options }: Options) {
+  constructor({ path, method, ...input }: Input) {
     super({
       code: 'PAGE_NOT_FOUND',
       metadata: { path, method },
@@ -19,7 +19,7 @@ export class PageNotFoundError extends AppError {
       message: 'errors.page_not_found',
       sendToSlack: false,
       logging: false,
-      ...options,
+      ...input,
     });
   }
 }

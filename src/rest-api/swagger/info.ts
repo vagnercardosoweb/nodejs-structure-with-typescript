@@ -1,7 +1,5 @@
-import { description, name, version } from '../../../package.json';
-
 export default {
-  title: name,
-  description,
-  version,
+  title: 'API Documentation',
+  description: 'API Documentation for the application',
+  version: '1.0.0',
 };

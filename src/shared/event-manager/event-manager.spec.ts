@@ -26,12 +26,15 @@ describe('EventManager', () => {
 
     eventManager.remove(eventName, handler);
     let handlers = (eventManager as any).handlers;
+
     expect(handlers[eventName]).toHaveLength(1);
     expect(handlers[eventName][0]).toStrictEqual(handler2);
 
     eventManager.remove(eventName, handler2);
     handlers = (eventManager as any).handlers;
+
     expect(handlers[eventName]).toBeUndefined();
+    expect(handlers).toStrictEqual({});
   });
 
   it('deveria lançar um erro ao registrar mais de um evento com mesmo handler', () => {

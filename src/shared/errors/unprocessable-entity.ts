@@ -1,16 +1,16 @@
 import { HttpStatusCode } from '@/shared/enums';
 
-import { AppError, Options } from './app';
+import { AppError, AppErrorInput } from './app';
 
 export class UnprocessableEntityError extends AppError {
   public name = 'UnprocessableEntityError';
 
-  constructor(options?: Options) {
+  constructor(input?: AppErrorInput) {
     super({
       code: 'UNPROCESSABLE_ENTITY',
       statusCode: HttpStatusCode.UNPROCESSABLE_ENTITY,
       message: 'errors.unprocessable_entity',
-      ...options,
+      ...input,
     });
   }
 }

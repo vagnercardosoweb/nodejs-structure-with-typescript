@@ -1,17 +1,17 @@
 import { HttpStatusCode } from '@/shared/enums';
 
-import { AppError, Options } from './app';
+import { AppError, AppErrorInput } from './app';
 
 export class RateLimiterError extends AppError {
   public name = 'RateLimiterError';
 
-  constructor(options?: Partial<Options>) {
+  constructor(input?: Partial<AppErrorInput>) {
     super({
       code: 'RATE_LIMITER',
       statusCode: HttpStatusCode.MANY_REQUEST,
       message: 'errors.rate_limiter',
       sendToSlack: false,
-      ...options,
+      ...input,
     });
   }
 }

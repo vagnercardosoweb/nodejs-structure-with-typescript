@@ -6,9 +6,8 @@ import { Pagination } from '@/shared';
 export class ListAllHandler extends AbstractHandler {
   public async handle() {
     const pagination = Pagination.fromRequest(this.request);
-    const { total, rows } = await new UserListAllSvc(
-      new UserRepository(this.pgPool),
-    ).execute(pagination);
+    const userListSvc = new UserListAllSvc(new UserRepository(this.pgPool));
+    const { rows, total } = await userListSvc.execute(pagination);
     return pagination.toJSON(rows, total);
   }
 }

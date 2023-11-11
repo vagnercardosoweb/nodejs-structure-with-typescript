@@ -10,3 +10,4 @@ export { withAuth } from './with-auth';
 export { withPermission } from './with-permission';
 export { rateLimiter } from './rate-limiter';
 export { requestLog } from './request-log';
+export { timestamp } from './timestamp';

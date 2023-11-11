@@ -1,21 +1,18 @@
 # build stage 1
 FROM node:20-alpine as builder
 
-# Update system and install required libs
-RUN apk add --update --no-cache python3 alpine-sdk openssh-client && rm -rf /var/cache/apk/*
-
 # Configure workdir
 WORKDIR /app
 
 # Copy files to build
 COPY ./src ./src
 COPY ./migrations ./migrations
-COPY ./tsconfig.json ./
+COPY ./tsconfig*.json ./
 COPY ./package*.json ./
 COPY ./global.d.ts ./
 
 # Build application
-RUN npm install --ignore-scripts && npm run build && npm run db:compile
+RUN npm install --ignore-scripts && npm run build
 
 # build stage 2
 FROM node:20-alpine as finish

@@ -6,8 +6,8 @@ export default defineConfig({
   test: {
     globals: true,
     clearMocks: true,
-    setupFiles: ['./src/config/dotenv'],
     passWithNoTests: true,
+    setupFiles: ['./src/config/dotenv'],
     environment: 'node',
   },
 });

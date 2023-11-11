@@ -52,8 +52,7 @@ export const requestLog = (
         status: tokens.status(req, res),
         agent: tokens['user-agent'](req, res),
         query: request.query,
-        time: `${res.getHeader('X-Response-Time')}`,
-        body,
+        time: `${tokens['response-time'](req, res)}ms`,
       },
     });
   })(request, response, next);
