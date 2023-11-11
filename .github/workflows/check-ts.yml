@@ -1,7 +1,7 @@
-name: Check TS and Run Tests
+name: Check TS
 
 concurrency:
-  group: ${{ github.workflow }}:${{ github.ref }}
+  group: ${{ github.workflow }}:check-ts:${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -15,6 +15,9 @@ env:
 
 on:
   push:
+    #    branches-ignore:
+    #      - production
+    #      - staging
     paths:
       - '.github/workflows/check-ts.yml'
       - 'src/**/*.ts'
@@ -23,24 +26,20 @@ jobs:
   main:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [ 20.x ]
-
     steps:
-      - name: Checkout V3
-        uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js v20.x
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 20.x
           cache: 'npm'
 
       - name: Install Dependencies
-        run: npm ci
+        run: npm install --ignore-scripts
 
       - name: Check TS
         run: npm run check-ts:ci

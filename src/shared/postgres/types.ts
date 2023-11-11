@@ -64,6 +64,7 @@ export type PgPoolOptions = {
 export type QueryResultRow = PgQueryResultRow;
 export type QueryResult<T extends QueryResultRow> = PgQueryResult<T> & {
   bind: any[];
+  rowCount: number;
   duration: string;
   query: string;
 };

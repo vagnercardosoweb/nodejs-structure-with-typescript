@@ -43,18 +43,18 @@ export class Repository<TRow extends QueryResultRow> {
 
   protected async findAndCountAll<T extends QueryResultRow = TRow>(
     params?: FindParams<T>,
-  ): Promise<{ count: number; rows: T[] }> {
-    const [{ count }] = await this.findAll<{ count: number }>({
+  ): Promise<{ total: number; rows: T[] }> {
+    const [{ total }] = await this.findAll<{ total: number }>({
       limit: -1,
       where: params?.where,
-      columns: ['COUNT(1)::INTEGER AS count'],
+      columns: ['COUNT(1)::INTEGER AS total'],
       groupBy: params?.groupBy,
       tableAlias: params?.tableAlias,
       binding: params?.binding,
       joins: params?.joins,
     });
     const rows = await this.findAll<T>(params);
-    return { count, rows };
+    return { total, rows };
   }
 
   protected async findOne<T = TRow>(
