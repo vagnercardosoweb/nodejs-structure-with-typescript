@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
+import { MaskValue, UnprocessableEntityError } from '@/shared';
+
 import { Cnpj } from './cnpj';
-import { MaskValue } from './mask-value';
 
 const validCnpj = '52558120000102';
 const validCnpjWithMask = MaskValue.create(validCnpj, '##.###.###/####-##');
@@ -33,15 +34,19 @@ describe('Utils CNPJ', () => {
     expect(cnpj.toString()).toEqual(validCnpj);
   });
 
-  it('deveriar criar um CNPJ válido', () => {
+  it('deveria criar um CNPJ válido', () => {
     expect(() => Cnpj.generate()).not.toThrow();
   });
 
   for (let i = 0; i < 10; i += 1) {
     const invalidCnpj = String(i).repeat(11);
     it(`deveria retornar erro com número repetidos no cnpj: ${invalidCnpj}`, () => {
-      const expectError = `CNPJ [${invalidCnpj}] invalid format`;
-      expect(() => new Cnpj(invalidCnpj)).toThrow(expectError);
+      expect(() => new Cnpj(invalidCnpj)).toThrow(
+        new UnprocessableEntityError({
+          message: `CNPJ "${invalidCnpj}" invalid format`,
+          code: 'invalid_cnpj_format',
+        }),
+      );
     });
   }
 });

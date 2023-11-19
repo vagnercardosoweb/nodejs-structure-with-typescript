@@ -33,7 +33,7 @@ export class Utils {
     while (resultSize < length) {
       const size = length - resultSize;
       const bytes = randomBytes(size);
-      result += Buffer.from(bytes).toString('base64url').slice(0, size);
+      result += bytes.toString('base64url').slice(0, size);
       resultSize = result.length;
     }
     return result;

@@ -1,7 +1,12 @@
+import { UnprocessableEntityError } from '@/shared';
+
 export class Cpf {
-  constructor(private readonly value: string) {
+  constructor(
+    protected readonly value: string,
+    validateImmediately = true,
+  ) {
     this.value = this.value.replace(/\.|-|\s/gi, '');
-    if (!this.isValid()) throw new Error(`CPF [${this.value}] invalid format`);
+    validateImmediately && this.isValidOrThrow();
   }
 
   public static generate(): Cpf {
@@ -14,7 +19,7 @@ export class Cpf {
     return new Cpf(value);
   }
 
-  private static calculateDigit(value: string, length: number): string {
+  protected static calculateDigit(value: string, length: number): string {
     let sum = 0;
     for (let i = 0; i <= length - 2; i += 1) {
       sum += Number(value.charAt(i)) * (length - i);
@@ -43,5 +48,14 @@ export class Cpf {
 
   public format(): string {
     return this.value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  }
+
+  protected isValidOrThrow(): void {
+    if (!this.isValid()) {
+      throw new UnprocessableEntityError({
+        message: `CPF "${this.value}" invalid format`,
+        code: 'invalid_cpf_format',
+      });
+    }
   }
 }

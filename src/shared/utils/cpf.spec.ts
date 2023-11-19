@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
+import { MaskValue, UnprocessableEntityError } from '@/shared';
+
 import { Cpf } from './cpf';
-import { MaskValue } from './mask-value';
 
 const validCpf = '63676209079';
 const validCpfWithMask = MaskValue.create(validCpf, '###.###.###-##');
@@ -40,8 +41,12 @@ describe('Utils CPF', () => {
   for (let i = 0; i < 10; i += 1) {
     const invalidCpf = String(i).repeat(11);
     it(`deveria retornar erro com número repetidos no cpf: ${invalidCpf}`, () => {
-      const expectError = `CPF [${invalidCpf}] invalid format`;
-      expect(() => new Cpf(invalidCpf)).toThrow(expectError);
+      expect(() => new Cpf(invalidCpf)).toThrow(
+        new UnprocessableEntityError({
+          message: `CPF "${invalidCpf}" invalid format`,
+          code: 'invalid_cpf_format',
+        }),
+      );
     });
   }
 });

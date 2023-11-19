@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { UnprocessableEntityError } from '@/shared';
+
 import { Email } from './email';
 
 describe('Utils E-MAIL', () => {
@@ -12,7 +14,10 @@ describe('Utils E-MAIL', () => {
     const values = ['mail', 'mail@', 'mail@domain', '@email', '@email.com'];
     values.forEach((mail) => {
       expect(() => new Email(mail)).toThrow(
-        `Email [${mail}] entered does not have a valid format`,
+        new UnprocessableEntityError({
+          message: `The email "${mail}" does not have a valid format.`,
+          code: 'invalid_email_format',
+        }),
       );
     });
   });

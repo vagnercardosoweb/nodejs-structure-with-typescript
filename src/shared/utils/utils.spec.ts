@@ -370,7 +370,7 @@ describe('shared/utils/utils.ts', () => {
 
   it('randomStr', () => {
     const randomStr = Utils.generateRandomString(32);
-    expect(randomStr).toStrictEqual('YQYQYQYQYQYQYQYQYQYQYQYQYQYQYQYQ');
+    expect(randomStr).toStrictEqual('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
     expect(randomStr).toHaveLength(32);
   });
 

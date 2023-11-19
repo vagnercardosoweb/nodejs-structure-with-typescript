@@ -1,24 +1,30 @@
-import { BadRequestError } from '@/shared';
+import { UnprocessableEntityError } from '@/shared';
 
 const REGEX = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
 
 export class Email {
-  constructor(private readonly value: string) {
+  constructor(
+    protected readonly value: string,
+    validateImmediately = true,
+  ) {
     this.value = this.value.toLowerCase();
-    this.validate();
+    validateImmediately && this.isValidOrThrow();
   }
 
   public toString(): string {
     return this.value;
   }
 
-  private validate(): boolean {
-    const isValid = REGEX.test(this.value);
-    if (isValid) return true;
-    throw new BadRequestError({
-      code: 'VALIDATE:EMAIL',
-      message: 'Email [{{value}}] entered does not have a valid format',
-      metadata: { value: this.value },
-    });
+  public isValid(): boolean {
+    return REGEX.test(this.value);
+  }
+
+  protected isValidOrThrow(): void {
+    if (!this.isValid()) {
+      throw new UnprocessableEntityError({
+        message: `The email "${this.value}" does not have a valid format.`,
+        code: 'invalid_email_format',
+      });
+    }
   }
 }

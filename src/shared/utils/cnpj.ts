@@ -1,7 +1,12 @@
+import { UnprocessableEntityError } from '@/shared';
+
 export class Cnpj {
-  constructor(private readonly value: string) {
+  constructor(
+    protected readonly value: string,
+    validateImmediately = true,
+  ) {
     this.value = this.value.replace(/\.|-|\/|\s/gi, '');
-    if (!this.isValid()) throw new Error(`CNPJ [${this.value}] invalid format`);
+    validateImmediately && this.isValidOrThrow();
   }
 
   public static generate(): Cnpj {
@@ -14,7 +19,7 @@ export class Cnpj {
     return new Cnpj(value);
   }
 
-  private static calculateDigit(value: string, length: number): string {
+  protected static calculateDigit(value: string, length: number): string {
     let sum = 0;
     let position = length - 7;
     for (let i = length; i >= 1; i -= 1) {
@@ -37,7 +42,7 @@ export class Cnpj {
     );
   }
 
-  private isValid(): boolean {
+  public isValid(): boolean {
     if (
       this.value.length !== 14 ||
       this.value.charAt(0).repeat(14) === this.value
@@ -49,5 +54,14 @@ export class Cnpj {
     const validThirteenDigit =
       Cnpj.calculateDigit(this.value, 13) === this.value.charAt(13);
     return validTwelveDigit && validThirteenDigit;
+  }
+
+  protected isValidOrThrow(): void {
+    if (!this.isValid()) {
+      throw new UnprocessableEntityError({
+        message: `CNPJ "${this.value}" invalid format`,
+        code: 'invalid_cnpj_format',
+      });
+    }
   }
 }
