@@ -34,7 +34,7 @@ describe('Utils CPF', () => {
     expect(cpf.toString()).toEqual(validCpf);
   });
 
-  it('deveriar criar um CPF válido', () => {
+  it('deveria criar um CPF válido', () => {
     expect(() => Cpf.generate()).not.toThrow();
   });
 
