@@ -1,24 +1,18 @@
 import { Pool, PoolClient, types } from 'pg';
 
-import {
-  DurationTime,
-  Env,
-  InternalServerError,
-  LoggerInterface,
-  LoggerMetadata,
-  LogLevel,
-  Transaction,
-  TransactionInterface,
-  Utils,
-} from '@/shared';
-
+import { DurationTime, Env, Utils } from '@/shared';
+import { HttpStatusCode, LogLevel } from '@/shared/enums';
+import { AppError, INTERNAL_SERVER_ERROR_MESSAGE } from '@/shared/errors';
+import { LoggerInterface, LoggerMetadata } from '@/shared/logger';
 import {
   FnTransaction,
   PgPoolInterface,
   PgPoolOptions,
   QueryResult,
   QueryResultRow,
-} from './types';
+  Transaction,
+  TransactionInterface,
+} from '@/shared/postgres';
 
 export class PgPool implements PgPoolInterface {
   protected client: PoolClient | null = null;
@@ -129,7 +123,12 @@ export class PgPool implements PgPoolInterface {
     } catch (e: any) {
       hasError = true;
       metadata.duration = duration.format();
-      throw new InternalServerError({
+      throw new AppError({
+        message: INTERNAL_SERVER_ERROR_MESSAGE,
+        statusCode:
+          e.code === '23505'
+            ? HttpStatusCode.CONFLICT
+            : HttpStatusCode.INTERNAL_SERVER_ERROR,
         originalError: e,
         metadata,
       });

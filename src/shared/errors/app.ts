@@ -45,6 +45,7 @@ export class AppError extends Error {
 
     if (originalError) {
       this.setProperty('originalError', {
+        ...originalError,
         name: originalError.name,
         message: Utils.replaceKeysInString(originalError.message, replaces),
         stack: originalError.stack,
