@@ -24,6 +24,11 @@ const createObjectObfuscate = () => {
     email: 'any_mail@mail.com',
     undefinedValue: undefined,
     nullValue: null,
+    testObject: {
+      name: 'any_name',
+      password: 'any_password',
+      email: 'any_mail@mail.com',
+    },
     nestedObject: {
       name: 'any_name',
       password: 'any_password',
@@ -60,6 +65,7 @@ const createObjectModifiedObfuscate = () =>
     email: 'any_mail@mail.com',
     password: constants.REDACTED_TEXT,
     nullValue: null,
+    testObject: constants.REDACTED_TEXT,
     nestedObject: {
       name: 'any_name',
       password: constants.REDACTED_TEXT,
@@ -463,10 +469,9 @@ describe('shared/utils/utils.ts', () => {
 
   describe('obfuscateValue', () => {
     it('deveria retornar o objeto modificado e manter o original', () => {
-      process.env.REDACTED_KEYS = 'password';
       const value = createObjectObfuscate();
       const expected = createObjectModifiedObfuscate();
-      const obfuscateValue = Utils.redactedRecursiveKeys(value);
+      const obfuscateValue = Utils.redactRecursiveKeys(value);
       expect(obfuscateValue).deep.equal(expected);
       expect(value).not.deep.equal(expected);
     });
@@ -485,7 +490,7 @@ describe('shared/utils/utils.ts', () => {
           password: constants.REDACTED_TEXT,
         },
       ];
-      expect(Utils.redactedRecursiveKeys(value.arrayAsObject)).deep.equal(
+      expect(Utils.redactRecursiveKeys(value.arrayAsObject)).deep.equal(
         expected,
       );
       expect(value).not.deep.equal(expected);
@@ -498,7 +503,7 @@ describe('shared/utils/utils.ts', () => {
         constants.REDACTED_TEXT,
         constants.REDACTED_TEXT,
       ];
-      expect(Utils.redactedRecursiveKeys(value.images.liveness)).deep.equal(
+      expect(Utils.redactRecursiveKeys(value.images.liveness)).deep.equal(
         expected,
       );
       expect(value).not.deep.equal(expected);
@@ -507,7 +512,7 @@ describe('shared/utils/utils.ts', () => {
     it('deveria não modificar o objeto passado com env[REDACTED_KEYS=]', () => {
       vi.spyOn(constants, 'REDACTED_KEYS', 'get').mockReturnValue([]);
       const value = createObjectObfuscate();
-      expect(Utils.redactedRecursiveKeys(value)).deep.equal(value);
+      expect(Utils.redactRecursiveKeys(value)).deep.equal(value);
     });
   });
 });

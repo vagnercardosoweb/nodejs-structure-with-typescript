@@ -130,31 +130,33 @@ export class Utils {
     return /data:image\/(.+);/gm.test(value);
   }
 
-  public static redactedRecursiveKeys<T>(data: T, keys: string[] = []): T {
+  public static redactRecursiveKeys<T>(data: T, keys: string[] = []): T {
     if (REDACTED_KEYS.length === 0) return data;
     if (!Utils.isArray(data) && !Utils.isObject(data)) return data;
 
     const result = Utils.removeUndefined(data) as any;
-    const uniqueKeys = new Set(keys.concat(REDACTED_KEYS));
+    const uniqueKeys = new Set(
+      keys.concat(REDACTED_KEYS).map((k) => k.trim().toLowerCase()),
+    );
 
     for (const key of Object.keys(result)) {
       const keyAsLower = key.toLowerCase();
 
+      if (uniqueKeys.has(keyAsLower) || Utils.isImageBase64(result[key])) {
+        result[key] = REDACTED_TEXT;
+        continue;
+      }
+
       if (Utils.isObject(result[key])) {
-        result[key] = Utils.redactedRecursiveKeys(result[key], keys);
+        result[key] = Utils.redactRecursiveKeys(result[key], keys);
         continue;
       }
 
       if (Utils.isArray(result[key])) {
         result[key] = result[key].map((row: any) => {
           if (Utils.isImageBase64(row)) return REDACTED_TEXT;
-          return Utils.redactedRecursiveKeys(row, keys);
+          return Utils.redactRecursiveKeys(row, keys);
         });
-        continue;
-      }
-
-      if (uniqueKeys.has(keyAsLower) || Utils.isImageBase64(result[key])) {
-        result[key] = REDACTED_TEXT;
       }
     }
 
