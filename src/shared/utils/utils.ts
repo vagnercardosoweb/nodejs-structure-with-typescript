@@ -293,6 +293,9 @@ export class Utils {
   }
 
   public static parseStringToJson<T = any>(json: any, defaultValue?: any): T {
+    if (Object.prototype.toString.call(json) === '[object Uint8Array]') {
+      return JSON.parse(new TextDecoder().decode(json));
+    }
     const normalizedJson = this.normalizeValue(json);
     if ([null, undefined, ''].includes(normalizedJson)) return defaultValue;
     if (typeof normalizedJson !== 'string') return normalizedJson;
@@ -313,7 +316,7 @@ export class Utils {
     if (this.isDecimal(value)) {
       return parseFloat(value);
     }
-    if (this.isNumber(value)) {
+    if (String(value)[0] !== '0' && this.isNumber(value)) {
       return Number(value);
     }
     if (value === 'true') {

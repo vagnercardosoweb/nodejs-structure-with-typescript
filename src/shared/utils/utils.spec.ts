@@ -108,12 +108,13 @@ describe('shared/utils/utils.ts', () => {
 
   it('normalizeValue', () => {
     [
-      ['1.11', 1.11],
-      ['11', 11],
+      ['1823.92', 1823.92],
+      ['81237', 81237],
       ['true', true],
       ['false', false],
       ['null', null],
       ['undefined', undefined],
+      ['019823', '019823'],
     ].forEach(([test, value]) =>
       expect(Utils.normalizeValue(test)).toBe(value),
     );
