@@ -124,6 +124,7 @@ export class PgPool implements PgPoolInterface {
       hasError = true;
       metadata.duration = duration.format();
       throw new AppError({
+        code: e.code,
         message: INTERNAL_SERVER_ERROR_MESSAGE,
         statusCode:
           e.code === '23505'
