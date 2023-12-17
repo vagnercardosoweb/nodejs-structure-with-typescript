@@ -1,6 +1,5 @@
 import swagger from 'swagger-ui-express';
 
-import { noCache } from '@/rest-api/middlewares';
 import { Route } from '@/rest-api/types';
 import { HttpMethod } from '@/shared/enums';
 
@@ -14,7 +13,7 @@ export const swaggerRoutes: Route[] = [
   {
     path: '/docs',
     method: HttpMethod.USE,
-    middlewares: [noCache, ...swagger.serve],
+    middlewares: [...swagger.serve],
     handler: swagger.setup({
       openapi: '3.1.0',
       security: [{ bearerAuth: [] }],

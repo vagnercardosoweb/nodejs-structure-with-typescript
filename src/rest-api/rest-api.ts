@@ -29,6 +29,7 @@ import {
   errorHandler,
   extractToken,
   methodOverride,
+  noCache,
   notFound,
   requestLog,
   timestamp,
@@ -142,18 +143,21 @@ export class RestApi {
       next();
     });
 
-    this.app.use(cors);
-    this.app.use(helmet());
-    this.app.use(compression());
     this.app.use(responseTime());
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
+
+    this.app.use(cors);
+    this.app.use(noCache);
+    this.app.use(helmet());
+    this.app.use(compression());
     this.app.use(cookieParser(this.secret));
+
     this.app.use(timestamp);
     this.app.use(app(this.container));
+    this.app.use(requestLog);
     this.app.use(methodOverride);
     this.app.use(extractToken);
-    this.app.use(requestLog);
 
     this.registerRoutes();
 

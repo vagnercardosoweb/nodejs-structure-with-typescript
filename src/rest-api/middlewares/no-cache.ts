@@ -10,7 +10,7 @@ export const noCache = (
   response.header('Surrogate-Control', 'no-store');
   response.header(
     'Cache-Control',
-    'no-store, no-cache, must-revalidate, proxy-revalidate',
+    'no-store, no-cache, max-age=0, must-revalidate, proxy-revalidate, private',
   );
   return next();
 };
