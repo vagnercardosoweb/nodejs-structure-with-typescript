@@ -11,7 +11,7 @@ describe('AppError', () => {
     expect(sut).toBeInstanceOf(AppError);
     expect(sut.statusCode).toBe(HttpStatusCode.INTERNAL_SERVER_ERROR);
     expect(sut.originalError?.message).toBe('message');
-    expect(sut.name).toBe('Error');
+    expect(sut.name).toBe('AppError');
   });
 
   it('should return an AppError by default', () => {
@@ -39,14 +39,14 @@ describe('AppError', () => {
     const sut = parseErrorToObject(axiosErrorMock);
     expect(sut.originalError?.message).toBe('any');
     expect(sut.metadata).toStrictEqual(mockResponse);
-    expect(sut.name).toBe('AxiosXxx');
+    expect(sut.name).toBe('AppError');
   });
 
   it('should create a standard error and perform the replace {{errorId}}', () => {
     vi.spyOn(AppError, 'generateErrorId').mockReturnValueOnce('MOCKED');
 
     const sut = parseErrorToObject(new Error('Error ID: {{errorId}}'));
-    expect(sut.message).toEqual('errors.internal_server_error');
+    expect(sut.message).toEqual(INTERNAL_SERVER_ERROR_MESSAGE);
     expect(sut.originalError?.message).toEqual('Error ID: MOCKED');
     expect(sut.errorId).toEqual('MOCKED');
   });

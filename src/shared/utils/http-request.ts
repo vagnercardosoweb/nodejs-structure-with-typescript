@@ -28,9 +28,9 @@ const makeError = (externalError: any, metadata: any) => {
     externalError instanceof AppError
       ? externalError
       : new InternalServerError({
-          code: 'HTTP_REQUEST_ERROR',
           message: externalError.message,
           originalError: externalError,
+          code: 'HTTP_REQUEST_ERROR',
         });
   error.stack = externalError.stack;
   error.metadata = metadata;

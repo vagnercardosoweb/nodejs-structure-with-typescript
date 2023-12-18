@@ -7,16 +7,17 @@ import { HttpStatusCode } from '@/shared/enums';
 import { Utils } from '@/shared/utils';
 
 export class AppError extends Error {
-  public code: string = 'DEFAULT';
+  public code = 'DEFAULT';
   public name = 'AppError';
   public message: string;
   public description?: string;
   public metadata: Metadata = {};
   public statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
   public originalError?: MyError;
-  public sendToSlack: boolean = true;
+  public shouldReplaceKeys = true;
+  public sendToSlack = true;
   public requestId?: string;
-  public logging: boolean = true;
+  public logging = true;
   public errorId: string;
 
   constructor(input: AppErrorInput = {}) {
@@ -31,23 +32,13 @@ export class AppError extends Error {
     const { originalError, ...rest } = input;
     Object.entries(rest).forEach(([k, v]) => this.setProperty(k, v));
 
-    const replaces = dottie.flatten({
-      ...input.metadata,
-      errorId: this.errorId,
-      requestId: this.requestId,
-      code: this.code,
-    });
-
-    this.setProperty(
-      'message',
-      Utils.replaceKeysInString(this.message, replaces),
-    );
+    this.setProperty('message', this.replaceKeysInString(this.message));
 
     if (originalError) {
       this.setProperty('originalError', {
         ...originalError,
         name: originalError.name,
-        message: Utils.replaceKeysInString(originalError.message, replaces),
+        message: this.replaceKeysInString(originalError.message),
         stack: originalError.stack,
       });
     }
@@ -57,6 +48,18 @@ export class AppError extends Error {
 
   public static generateErrorId(): string {
     return `V${randomInt(1_000_000_000, 9_999_999_999).toString()}C`;
+  }
+
+  private replaceKeysInString(message: string) {
+    if (!this.shouldReplaceKeys) return message;
+    return Utils.replaceKeysInString(
+      message,
+      dottie.flatten({
+        ...this.metadata,
+        errorId: this.errorId,
+        requestId: this.requestId,
+      }),
+    );
   }
 
   private setProperty(key: string, value: any) {
@@ -78,7 +81,8 @@ export type AppErrorInput = {
   description?: string;
   metadata?: Metadata;
   statusCode?: HttpStatusCode;
-  originalError?: Error;
+  originalError?: MyError;
+  shouldReplaceKeys?: boolean;
   sendToSlack?: boolean;
   requestId?: string;
   logging?: boolean;

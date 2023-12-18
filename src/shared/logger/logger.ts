@@ -25,7 +25,8 @@ class Logger implements LoggerInterface {
     if (Env.isTesting()) return;
     const timestamp = new Date().toISOString();
     if (metadata !== undefined) {
-      metadata = Utils.redactRecursiveKeys(metadata);
+      if (!metadata?.skipRedact) metadata = Utils.redactRecursiveKeys(metadata);
+      delete metadata.skipRedact;
       message = Utils.replaceKeysInString(message, metadata);
     }
     process.stdout.write(

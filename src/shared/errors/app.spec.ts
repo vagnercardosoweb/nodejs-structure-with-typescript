@@ -14,6 +14,7 @@ describe('AppError', () => {
     expect(sut.statusCode).toBe(HttpStatusCode.INTERNAL_SERVER_ERROR);
     expect(sut.originalError).toBeUndefined();
     expect(sut.sendToSlack).toBeTruthy();
+    expect(sut.shouldReplaceKeys).toBeTruthy();
     expect(sut.requestId).toBeUndefined();
     expect(sut.errorId).toBeDefined();
     expect(sut.errorId.slice(0, 1)).toEqual('V');
@@ -32,6 +33,7 @@ describe('AppError', () => {
       message: 'any_message',
       description: 'any_description',
       statusCode: HttpStatusCode.INTERNAL_SERVER_ERROR,
+      shouldReplaceKeys: false,
       sendToSlack: false,
       originalError: error,
       errorId: 'any_error_id',
@@ -51,6 +53,7 @@ describe('AppError', () => {
     expect(sut.errorId).toEqual('any_error_id');
     expect(sut.metadata).toBe(input.metadata);
     expect(sut.statusCode).toBe(input.statusCode);
+    expect(sut.shouldReplaceKeys).toBe(input.shouldReplaceKeys);
     expect(sut.requestId).toBe(input.requestId);
 
     expect(sut.originalError).toStrictEqual({
@@ -122,5 +125,16 @@ describe('AppError', () => {
   it('should create an error with the requestId', () => {
     const sut = new AppError({ message: 'any', requestId: 'any_request_id' });
     expect(sut.requestId).toStrictEqual('any_request_id');
+  });
+
+  it('should not replace message keys', () => {
+    const sut = new AppError({
+      message: 'Message with name "{{userName}}" and Error Id: "{{errorId}}"',
+      metadata: { userName: 'any name' },
+      shouldReplaceKeys: false,
+    });
+    expect(sut.message).toEqual(
+      'Message with name "{{userName}}" and Error Id: "{{errorId}}"',
+    );
   });
 });

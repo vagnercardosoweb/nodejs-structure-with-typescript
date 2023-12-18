@@ -4,7 +4,7 @@ import morgan from 'morgan';
 import { HOSTNAME, PID } from '@/config/constants';
 import { Env } from '@/shared';
 
-const bypassPaths = ['/docs', '/favicon.ico'];
+const bypassPaths = ['/docs', '/favicon'];
 
 export const requestLog = (
   request: Request,

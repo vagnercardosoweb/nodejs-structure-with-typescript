@@ -202,12 +202,9 @@ export class RestApi {
 
   protected registerRoutes() {
     for (const route of this.getRoutes()) {
-      const method = (route.method ?? HttpMethod.GET).toLowerCase();
-      const middlewares = route.middlewares ?? [];
-
-      (this.app as any)[method](
+      (this.app as any)[(route.method ?? HttpMethod.GET).toLowerCase()](
         route.path,
-        ...middlewares,
+        ...(route.middlewares ?? []),
         (request: Request, response: Response, next: NextFunction) => {
           const prototype = Object.getPrototypeOf(route.handler);
           if (prototype?.name !== AbstractHandler.name) {

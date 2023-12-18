@@ -15,11 +15,8 @@ export const parseErrorToObject = (error: any): AppError => {
     logging: true,
   });
 
-  if (error?.name) result.name = error.name;
-  if (error?.stack) result.stack = error.stack;
-
   // check axios errors
-  if (result.name.startsWith('Axios')) {
+  if (error.name.startsWith('Axios')) {
     const { status, data, config } = error.response;
     result.metadata = { status, data, config };
   }

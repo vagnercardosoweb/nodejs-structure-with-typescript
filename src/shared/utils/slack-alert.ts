@@ -1,6 +1,6 @@
 import util from 'node:util';
 
-import { HOSTNAME, PID } from '@/config/constants';
+import { HOSTNAME } from '@/config/constants';
 import {
   Env,
   HttpMethod,
@@ -42,6 +42,9 @@ export class SlackAlert {
       checkerUsers.push(...options.memberIds.split(','));
     }
 
+    const now = new Date();
+    const nodeEnv = Env.get('NODE_ENV');
+
     const response = await httpRequest({
       method: HttpMethod.POST,
       headers: {
@@ -51,41 +54,31 @@ export class SlackAlert {
       url: 'https://slack.com/api/chat.postMessage',
       body: JSON.stringify({
         channel: options.channel,
+        username: options.username,
         attachments: [
           {
+            ts: now.getTime() / 1000,
             color: this.getColor(color),
-            blocks: [
-              {
-                type: 'section',
-                text: {
-                  type: 'mrkdwn',
-                  text: util
-                    .format(
-                      '%s log from `%s` in `%s`.',
-                      checkerUsers.map((user) => `<@${user}>`).join(', '),
-                      options.username,
-                      Env.get('NODE_ENV'),
-                    )
-                    .trim(),
-                },
-                fields: Object.entries(
-                  Utils.removeUndefined({
-                    'Date': new Date().toISOString(),
-                    'Hostname / PID': util.format('%s / %s', HOSTNAME, PID),
-                    ...fields,
-                  }),
-                ).map(([title, value]) => ({
-                  type: 'mrkdwn',
-                  text: util.format('*%s*\n%s', Utils.ucFirst(title), value),
-                })),
-              },
+            footer: `[${nodeEnv}] ${options.username}`,
+            mrkdwn_in: ['text', 'fields'],
+            text: util.format(
+              '%s, new alert in `%s`.',
+              checkerUsers.map((user) => `<@${user}>`).join(', '),
+              HOSTNAME,
+            ),
+            fields: [
+              ...Object.entries(Utils.removeUndefined(fields)).map(
+                ([title, value]) => ({
+                  title: Utils.ucFirst(title),
+                  short: true,
+                  value,
+                }),
+              ),
               ...Object.entries(Utils.removeUndefined(sections)).map(
                 ([title, value]) => ({
-                  type: 'section',
-                  text: {
-                    type: 'mrkdwn',
-                    text: `*${Utils.ucFirst(title)}*\n${value}`,
-                  },
+                  title: Utils.ucFirst(title),
+                  short: false,
+                  value,
                 }),
               ),
             ],

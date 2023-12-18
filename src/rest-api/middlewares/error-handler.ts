@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
 
 import { getTranslationFromRequest } from '@/rest-api/dependencies';
-import { ContainerName, Env, Logger, SlackAlert } from '@/shared';
+import { AppError, ContainerName, Env, Logger, SlackAlert } from '@/shared';
 import { parseErrorToObject } from '@/shared/errors';
 
 export const errorHandler = (
-  error: any,
+  error: AppError,
   request: Request,
   response: Response,
   next: NextFunction,
@@ -52,6 +52,7 @@ export const errorHandler = (
   if (request.container.has(ContainerName.TRANSLATION)) {
     error.message = getTranslationFromRequest(request).get(error.message, {
       errorId: error.errorId,
+      requestId: error.requestId,
       ...error.metadata,
     });
   }

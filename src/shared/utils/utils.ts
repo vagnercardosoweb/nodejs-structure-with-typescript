@@ -3,7 +3,7 @@ import { randomBytes, randomInt, randomUUID } from 'node:crypto';
 import { promisify } from 'node:util';
 
 import { REDACTED_KEYS, REDACTED_TEXT } from '@/config/constants';
-import { BadRequestError, Env, Logger } from '@/shared';
+import { Env, Logger, UnprocessableEntityError } from '@/shared';
 import { HttpStatusCode } from '@/shared/enums';
 import { parseErrorToObject } from '@/shared/errors';
 
@@ -207,26 +207,17 @@ export class Utils {
     if (match !== null) date = new Date(y, m - 1, d, 3, 0, 0, 0);
 
     if (!date || !this.isValidDate(date)) {
-      throw new BadRequestError({
-        message:
-          'Invalid date "{{dateAsString}}", only "{{allowed}}" formats are accepted.',
-        metadata: {
-          allowed: ['DD/MM/YYYY', 'DD-MM-YYYY', 'YYYY-MM-DD'],
-          dateAsString,
-        },
+      throw new UnprocessableEntityError({
+        message: `Invalid date "${dateAsString}", only format "DD/MM/YYYY", "DD-MM-YYYY" and "YYYY-MM-DD" are allowed.`,
         sendToSlack: true,
       });
     }
 
     if (date.getDate() !== d) {
-      throw new BadRequestError({
-        message:
-          'The date "{{dateAsString}}" entered is not valid, please check.',
+      throw new UnprocessableEntityError({
+        message: `The date "${dateAsString}" entered is not valid, please check.`,
+        metadata: { date: date.toISOString() },
         sendToSlack: false,
-        metadata: {
-          dateToIsoString: date.toISOString(),
-          dateAsString,
-        },
       });
     }
 
@@ -303,7 +294,7 @@ export class Utils {
       return { ...defaultValue, ...JSON.parse(normalizedJson) };
     } catch (e: any) {
       if (Utils.isUndefined(defaultValue)) throw e;
-      Logger.error('ERROR_PARSE_JSON', parseErrorToObject(e));
+      Logger.error('Utils.parseStringToJson', parseErrorToObject(e));
       return defaultValue;
     }
   }
@@ -407,10 +398,9 @@ export class Utils {
     message: string,
     metadata: Record<string, any>,
   ): string {
-    if (!message?.trim()) return message;
-    if (message.indexOf('{{') === -1) return message;
+    if (message?.indexOf('{{') === -1) return message;
     for (const key in metadata) {
-      message = message.replace(`{{${key}}}`, metadata[key]);
+      message = message.replaceAll(`{{${key}}}`, metadata[key]);
     }
     return message;
   }

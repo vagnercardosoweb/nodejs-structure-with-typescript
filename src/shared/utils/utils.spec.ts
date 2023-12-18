@@ -255,12 +255,7 @@ describe('shared/utils/utils.ts', () => {
       Utils.parseDateFromStringWithoutTime(dateAsString),
     ).toThrowError(
       new BadRequestError({
-        message:
-          'Invalid date "{{dateAsString}}", only "{{allowed}}" formats are accepted.',
-        metadata: {
-          allowed: ['DD/MM/YYYY', 'DD-MM-YYYY', 'YYYY-MM-DD'],
-          dateAsString,
-        },
+        message: `Invalid date "${dateAsString}", only format "DD/MM/YYYY", "DD-MM-YYYY" and "YYYY-MM-DD" are allowed.`,
       }),
     );
   });
