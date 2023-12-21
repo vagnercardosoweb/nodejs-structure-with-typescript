@@ -38,13 +38,16 @@ const sendSlackAlert = async (color: string, message: string) => {
   }
 })();
 
-process.on('unhandledRejection', (reason, promise) => {
-  const message = `server exiting due to an unhandled promise: ${promise} and reason: ${reason}`;
-  Logger.error(message);
-  throw reason;
+process.on('unhandledRejection', async (reason, promise) => {
+  const message = 'server exiting due to an unhandled promise';
+  Logger.error(message, { reason, promise });
+  await sendSlackAlert('error', message);
+  process.exit(1);
 });
 
 process.on('uncaughtException', async (error: any) => {
-  Logger.error('server received uncaught exception', parseErrorToObject(error));
-  await sendSlackAlert('error', error?.message);
+  const message = `server received uncaught exception`;
+  Logger.error(message, error);
+  await sendSlackAlert('error', message);
+  process.exit(1);
 });

@@ -9,7 +9,7 @@ export const routes: Route[] = [
   {
     path: '/favicon.ico',
     method: HttpMethod.GET,
-    handler: (_: any, r: any) => r.sendStatus(HttpStatusCode.OK),
+    handler: (_: any, r: any) => r.sendStatus(HttpStatusCode.NO_CONTENT),
   },
   ...swaggerRoutes,
   ...userRoutes,

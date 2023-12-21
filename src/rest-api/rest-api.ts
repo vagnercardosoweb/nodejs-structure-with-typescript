@@ -3,22 +3,20 @@ import http from 'node:http';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import express, { Application, NextFunction, Request, Response } from 'express';
-import 'express-async-errors';
 import helmet from 'helmet';
 import httpGraceFullShutdown from 'http-graceful-shutdown';
 import responseTime from 'response-time';
 
 import { HOSTNAME } from '@/config/constants';
 import {
+  AppError,
   Container,
   ContainerInterface,
-  ContainerName,
   ContainerValue,
   DurationTime,
   Env,
   HttpMethod,
   HttpStatusCode,
-  InternalServerError,
   Utils,
 } from '@/shared';
 
@@ -51,7 +49,9 @@ export class RestApi {
     this.server = http.createServer(this.app);
     this.container = new Container();
 
-    this.initExpress();
+    this.app.set('trust proxy', true);
+    this.app.set('strict routing', true);
+    this.app.set('x-powered-by', false);
 
     this.set('secret', this.secret);
     this.set('port', this.port);
@@ -60,10 +60,6 @@ export class RestApi {
   public set(name: any, value: ContainerValue) {
     this.container.set(name, value);
     return this;
-  }
-
-  public get<T>(name: ContainerName): T {
-    return this.container.get<T>(name);
   }
 
   public beforeClose(fn: BeforeCloseFn) {
@@ -76,9 +72,9 @@ export class RestApi {
     const key = `${route.method} ${route.path}`;
 
     if (this.routes.has(key)) {
-      throw new InternalServerError({
-        message: 'Route "{{routeName}}" already exists registered',
-        metadata: { routeName: `${route.method} ${route.path}` },
+      throw new AppError({
+        message: `Route "${key}" already exists registered`,
+        code: 'ROUTE_ALREADY_EXISTS',
       });
     }
 
@@ -91,6 +87,10 @@ export class RestApi {
 
   public getExpress(): express.Application {
     return this.app;
+  }
+
+  public getContainer(): ContainerInterface {
+    return this.container;
   }
 
   public getRoutes(): Route[] {
@@ -112,17 +112,15 @@ export class RestApi {
       });
 
       this.server.on('listening', () => {
-        httpGraceFullShutdown(this.server, {
-          signals: 'SIGINT SIGTERM SIGQUIT',
-          onShutdown: async () => this.runBeforeClose(),
-          forceExit: true,
-        });
-
-        this.start();
+        this.startHandlers();
         resolve(this.server);
       });
 
       this.server.listen(this.port);
+
+      httpGraceFullShutdown(this.server, {
+        onShutdown: this.runBeforeClose.bind(this),
+      });
     });
   }
 
@@ -137,7 +135,7 @@ export class RestApi {
     });
   }
 
-  public start() {
+  public startHandlers() {
     this.app.use((request, _, next) => {
       request.durationTime = new DurationTime();
       next();
@@ -159,7 +157,7 @@ export class RestApi {
     this.app.use(methodOverride);
     this.app.use(extractToken);
 
-    this.registerRoutes();
+    this.makeRoutes();
 
     this.app.use(notFound);
     this.app.use(errorHandler);
@@ -200,23 +198,25 @@ export class RestApi {
       .end();
   }
 
-  protected registerRoutes() {
+  protected makeRoutes() {
     for (const route of this.getRoutes()) {
       (this.app as any)[(route.method ?? HttpMethod.GET).toLowerCase()](
         route.path,
         ...(route.middlewares ?? []),
         (request: Request, response: Response, next: NextFunction) => {
           const prototype = Object.getPrototypeOf(route.handler);
-          if (prototype?.name !== AbstractHandler.name) {
-            return (route.handler as any)(request, response, next);
+
+          if (prototype.name !== AbstractHandler.name) {
+            const result = (route.handler as any)(request, response, next);
+            if (result instanceof Promise) result.catch(next);
+            return result;
           }
 
           const Handler = route.handler as any;
           const handler = new Handler(request, response);
           const result = handler.handle();
 
-          const isPromise = result instanceof Promise;
-          if (isPromise) {
+          if (result instanceof Promise) {
             result
               .then((result) =>
                 this.responseHandle({
@@ -236,11 +236,5 @@ export class RestApi {
         },
       );
     }
-  }
-
-  protected initExpress() {
-    this.app.set('trust proxy', true);
-    this.app.set('strict routing', true);
-    this.app.set('x-powered-by', false);
   }
 }
