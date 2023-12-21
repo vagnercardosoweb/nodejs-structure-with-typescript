@@ -4,7 +4,6 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import express, { Application, NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
-import httpGraceFullShutdown from 'http-graceful-shutdown';
 import responseTime from 'response-time';
 
 import { HOSTNAME } from '@/config/constants';
@@ -117,10 +116,6 @@ export class RestApi {
       });
 
       this.server.listen(this.port);
-
-      httpGraceFullShutdown(this.server, {
-        onShutdown: this.runBeforeClose.bind(this),
-      });
     });
   }
 
