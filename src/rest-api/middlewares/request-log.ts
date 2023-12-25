@@ -28,6 +28,7 @@ export const requestLog = (
   request.logger.info('HTTP_REQUEST_STARTED', {
     ip: request.ip,
     path,
+    time: request.durationTime.format(),
     body,
   });
 

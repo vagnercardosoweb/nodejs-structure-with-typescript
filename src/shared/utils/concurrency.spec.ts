@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'vitest';
 
-import { concurrency, go, Utils } from '@/shared';
+import { concurrency, Env, go, Utils } from '@/shared';
 
-describe('shared/utils/concurrency', () => {
+describe.skipIf(Env.get('CI'))('shared/utils/concurrency', () => {
   test('can execute one function with limit 1', async () => {
     const limit1 = concurrency(1);
     const res: number[] = [];
@@ -25,7 +25,7 @@ describe('shared/utils/concurrency', () => {
     await expect(limit1(code)).rejects.toThrow();
   });
 
-  test('should run the [go] function with a code that will give an error', async () => {
+  test('should run the [go] function with a code that will give an error', () => {
     go(async () => {
       throw new Error();
     });

@@ -1,6 +1,6 @@
 import { randomInt } from 'node:crypto';
 
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, vi } from 'vitest';
 
 import * as constants from '@/config/constants';
 import { BadRequestError, Cnpj, Cpf, Env } from '@/shared';
@@ -100,13 +100,28 @@ const createObjectModifiedObfuscate = () =>
   });
 
 describe('shared/utils/utils.ts', () => {
-  it('uuid', () => {
+  test('uuid', () => {
     const uuid = Utils.uuid();
     expect(Utils.isUuid(uuid)).toBeTruthy();
     expect(uuid).toHaveLength(36);
   });
 
-  it('normalizeValue', () => {
+  test('calculateAge', () => {
+    let birthDate = new Date();
+    birthDate.setFullYear(birthDate.getFullYear() - 38);
+    expect(Utils.calculateAge(birthDate)).toStrictEqual(38);
+
+    birthDate = new Date('1994-12-15');
+    expect(Utils.calculateAge(birthDate)).toStrictEqual(29);
+
+    birthDate = new Date('1992-11-05');
+    expect(Utils.calculateAge(birthDate)).toStrictEqual(31);
+
+    birthDate = new Date('2018-06-16');
+    expect(Utils.calculateAge(birthDate)).toStrictEqual(5);
+  });
+
+  test('normalizeValue', () => {
     [
       ['1823.92', 1823.92],
       ['81237', 81237],
@@ -120,7 +135,7 @@ describe('shared/utils/utils.ts', () => {
     );
   });
 
-  it('dateNowToSeconds', () => {
+  test('dateNowToSeconds', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(Date.UTC(2023, 5, 13, 0, 0, 0, 0)));
     const seconds = Utils.getNowInSeconds();
@@ -128,39 +143,39 @@ describe('shared/utils/utils.ts', () => {
     vi.useRealTimers();
   });
 
-  it('ucFirst', () => {
+  test('ucFirst', () => {
     expect(Utils.ucFirst('any value')).toEqual('Any value');
   });
 
-  it('stripTags', () => {
+  test('stripTags', () => {
     expect(Utils.stripTags('<p>any value</p>')).toEqual('any value');
   });
 
-  it('removeAccents', () => {
+  test('removeAccents', () => {
     expect(Utils.removeAccents('àÀáÁâÂãÃäÄåÅ')).toEqual('aAaAaAaAaAaA');
     expect(Utils.removeAccents('áÁéÉíÍóÓúÚ')).toEqual('aAeEiIoOuU');
   });
 
-  it('toCamelCase', () => {
+  test('toCamelCase', () => {
     expect(Utils.toCamelCase('any value')).toEqual('anyValue');
     expect(Utils.toCamelCase('Any value')).toEqual('anyValue');
   });
 
-  it('toTitleCase', () => {
+  test('toTitleCase', () => {
     expect(Utils.toTitleCase('any value')).toEqual('Any Value');
   });
 
-  it('isArray', () => {
+  test('isArray', () => {
     expect(Utils.isArray(['a', 'b'])).toBeTruthy();
     expect(Utils.isArray({ a: 'b' })).toBeFalsy();
   });
 
-  it('isObject', () => {
+  test('isObject', () => {
     expect(Utils.isObject({ a: 'b', c: 1 })).toBeTruthy();
     expect(Utils.isObject(['a'])).toBeFalsy();
   });
 
-  it('sortByAsc', () => {
+  test('sortByAsc', () => {
     const tests = [
       { name: 'user', age: 90 },
       { name: 'user', age: 19 },
@@ -182,21 +197,21 @@ describe('shared/utils/utils.ts', () => {
     ]);
   });
 
-  it('valueToBase64', () => {
+  test('valueToBase64', () => {
     expect(Utils.valueToBase64('any_value')).toEqual('YW55X3ZhbHVl');
   });
 
-  it('base64ToValue', () => {
+  test('base64ToValue', () => {
     expect(Utils.base64ToValue('YW55X3ZhbHVl')).toEqual('any_value');
   });
 
-  it('randomNumber', () => {
+  test('randomNumber', () => {
     expect(Utils.randomNumber(1000, 9999)).toBeDefined();
     expect(randomInt).toHaveBeenCalledTimes(1);
     expect(randomInt).toHaveBeenCalledWith(1000, 9999);
   });
 
-  it('removeLinesAndSpaceFromSql', () => {
+  test('removeLinesAndSpaceFromSql', () => {
     expect(
       Utils.normalizeSqlQuery(`SELECT *
                                FROM users
@@ -204,7 +219,7 @@ describe('shared/utils/utils.ts', () => {
     ).toStrictEqual('SELECT * FROM users WHERE 1 = 1');
   });
 
-  it('formatDateYYYYMMDD (UTC+0)', () => {
+  test('formatDateYYYYMMDD (UTC+0)', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2023-07-31T21:00:00.000Z'));
 
@@ -217,7 +232,7 @@ describe('shared/utils/utils.ts', () => {
     vi.useRealTimers();
   });
 
-  it('formatDateYYYYMMDD (America/Los_Angeles)', () => {
+  test('formatDateYYYYMMDD (America/Los_Angeles)', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2023-07-31T07:00:00.000Z'));
 
@@ -231,7 +246,7 @@ describe('shared/utils/utils.ts', () => {
     vi.useRealTimers();
   });
 
-  it('formatDateYYYYMMDD (America/Sao_Paulo)', () => {
+  test('formatDateYYYYMMDD (America/Sao_Paulo)', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2023-08-01T02:59:59Z'));
 
@@ -244,12 +259,12 @@ describe('shared/utils/utils.ts', () => {
     vi.useRealTimers();
   });
 
-  it('parseDateFromStringWithoutTime: success', () => {
+  test('parseDateFromStringWithoutTime: success', () => {
     const expected = Utils.parseDateFromStringWithoutTime('2023-06-15');
     expect(expected).toStrictEqual(new Date(2023, 5, 15, 3, 0, 0, 0));
   });
 
-  it('parseDateFromStringWithoutTime: invalid format', () => {
+  test('parseDateFromStringWithoutTime: invalid format', () => {
     const dateAsString = '2023-08-03T00:00:00Z';
     expect(() =>
       Utils.parseDateFromStringWithoutTime(dateAsString),
@@ -260,7 +275,7 @@ describe('shared/utils/utils.ts', () => {
     );
   });
 
-  it('parseDateFromStringWithoutTime: invalid day', () => {
+  test('parseDateFromStringWithoutTime: invalid day', () => {
     const dateAsString = '2023-02-31';
     expect(() =>
       Utils.parseDateFromStringWithoutTime(dateAsString),
@@ -275,7 +290,7 @@ describe('shared/utils/utils.ts', () => {
     );
   });
 
-  it('parseNameToParts', () => {
+  test('parseNameToParts', () => {
     const name = 'Vagner dos Santos Cardoso';
     const { firstName, middleName, lastName } = Utils.parseNameToParts(name);
     expect(firstName).toEqual('Vagner');
@@ -283,12 +298,12 @@ describe('shared/utils/utils.ts', () => {
     expect(lastName).toEqual('Cardoso');
   });
 
-  it('isUndefined', () => {
+  test('isUndefined', () => {
     expect(Utils.isUndefined(undefined)).toBeTruthy();
     expect(Utils.isUndefined('1')).toBeFalsy();
   });
 
-  it('removeUndefined', () => {
+  test('removeUndefined', () => {
     const object = {
       number: 0,
       string: 'string',
@@ -325,7 +340,7 @@ describe('shared/utils/utils.ts', () => {
     expect(Utils.removeUndefined(object)).toStrictEqual(expected);
   });
 
-  it('normalizeMoneyFromString', () => {
+  test('normalizeMoneyFromString', () => {
     [
       ['R$ 1.11', 1.11],
       ['R$ 29,28', 29.28],
@@ -336,7 +351,7 @@ describe('shared/utils/utils.ts', () => {
     });
   });
 
-  it('toDecimal', () => {
+  test('toDecimal', () => {
     [
       [111, 1.11],
       [2928, 29.28],
@@ -348,7 +363,7 @@ describe('shared/utils/utils.ts', () => {
     });
   });
 
-  it('toCents', () => {
+  test('toCents', () => {
     [
       [1.11, 111],
       [29.28, 2928],
@@ -360,23 +375,23 @@ describe('shared/utils/utils.ts', () => {
     });
   });
 
-  it('isUndefined', () => {
+  test('isUndefined', () => {
     expect(Utils.isUndefined(undefined)).toBeTruthy();
     expect(Utils.isUndefined('1')).toBeFalsy();
   });
 
-  it('roundNumber', () => {
+  test('roundNumber', () => {
     expect(Utils.roundNumber(1982.8712, 2)).toStrictEqual(1982.87);
     expect(Utils.roundNumber(1982.8712, 4)).toStrictEqual(198287.12);
   });
 
-  it('randomStr', () => {
+  test('randomStr', () => {
     const randomStr = Utils.generateRandomString(32);
     expect(randomStr).toStrictEqual('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
     expect(randomStr).toHaveLength(32);
   });
 
-  it('convertObjectKeyToLowerCase', () => {
+  test('convertObjectKeyToLowerCase', () => {
     const input = {
       'Name': 'any',
       'X-ID-Token': 'any',
@@ -393,7 +408,7 @@ describe('shared/utils/utils.ts', () => {
     expect(Utils.convertObjectKeyToLowerCase(input)).not.deep.equal(input);
   });
 
-  it('rangeCharacters', () => {
+  test('rangeCharacters', () => {
     let characters = Utils.rangeCharacters('a', 'z');
     expect(characters).toStrictEqual('abcdefghijklmnopqrstuvwxyz');
     characters = Utils.rangeCharacters('g', 'i');
@@ -402,25 +417,25 @@ describe('shared/utils/utils.ts', () => {
     expect(characters).toStrictEqual('abcdefg');
   });
 
-  it('hashFromString', () => {
+  test('hashFromString', () => {
     expect(Utils.hashFromString('a')).toStrictEqual(177604);
     expect(Utils.hashFromString('texto mais longo')).toStrictEqual(2826721860);
     expect(Utils.hashFromString('js,ts,golang')).toStrictEqual(1177950551);
     expect(Utils.hashFromString('c')).toStrictEqual(177606);
   });
 
-  it('isStatusError valida com os que retorna true', () => {
+  test('isStatusError valida com os que retorna true', () => {
     const statusErrors = Utils.rangeNumbers(199, 0);
     statusErrors.concat(Utils.rangeNumbers(200, 400));
     statusErrors.forEach((s) => expect(Utils.isStatusError(s)).toBeTruthy());
   });
 
-  it('isStatusError valida os que returna false', () => {
+  test('isStatusError valida os que returna false', () => {
     const statusErrors = Utils.rangeNumbers(200, 200);
     statusErrors.forEach((s) => expect(Utils.isStatusError(s)).toBeFalsy());
   });
 
-  it('cloneObject', () => {
+  test('cloneObject', () => {
     const object = { name: 'vagner', age: 29 };
     const clone = Utils.cloneObject(object);
     clone.name = 'vagner cardoso';
@@ -431,7 +446,7 @@ describe('shared/utils/utils.ts', () => {
     expect(object.age).toStrictEqual(29);
   });
 
-  it('onlyNumber', () => {
+  test('onlyNumber', () => {
     for (let i = 0; i < 50; i += 1) {
       const cpf = Cpf.generate();
       expect(Utils.onlyNumber(cpf.format())).toEqual(cpf.toString());
@@ -443,7 +458,7 @@ describe('shared/utils/utils.ts', () => {
     }
   });
 
-  it('parseDate', () => {
+  test('parseDate', () => {
     const validDates: Record<string, Date> = {
       '01/01/2023': new Date(2023, 0, 1, 3, 0, 0, 0),
       '07-02-2023': new Date(2023, 1, 7, 3, 0, 0, 0),
@@ -464,7 +479,7 @@ describe('shared/utils/utils.ts', () => {
   });
 
   describe('obfuscateValue', () => {
-    it('deveria retornar o objeto modificado e manter o original', () => {
+    test('deveria retornar o objeto modificado e manter o original', () => {
       const value = createObjectObfuscate();
       const expected = createObjectModifiedObfuscate();
       const obfuscateValue = Utils.redactRecursiveKeys(value);
@@ -472,7 +487,7 @@ describe('shared/utils/utils.ts', () => {
       expect(value).not.deep.equal(expected);
     });
 
-    it('deveria retornar o array de objeto modificado e manter o original', () => {
+    test('deveria retornar o array de objeto modificado e manter o original', () => {
       const value = createObjectObfuscate();
       const expected = [
         {
@@ -492,7 +507,7 @@ describe('shared/utils/utils.ts', () => {
       expect(value).not.deep.equal(expected);
     });
 
-    it('deveria retornar o array de imageBase64 modificado e manter o original', () => {
+    test('deveria retornar o array de imageBase64 modificado e manter o original', () => {
       const value = createObjectObfuscate();
       const expected = [
         constants.REDACTED_TEXT,
@@ -505,7 +520,7 @@ describe('shared/utils/utils.ts', () => {
       expect(value).not.deep.equal(expected);
     });
 
-    it('deveria não modificar o objeto passado com env[REDACTED_KEYS=]', () => {
+    test('deveria não modificar o objeto passado com env[REDACTED_KEYS=]', () => {
       vi.spyOn(constants, 'REDACTED_KEYS', 'get').mockReturnValue([]);
       const value = createObjectObfuscate();
       expect(Utils.redactRecursiveKeys(value)).deep.equal(value);

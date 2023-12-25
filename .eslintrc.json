@@ -56,9 +56,9 @@
     ]
   },
   "settings": {
-    "import/extensions": [".ts", ".js", ".d.ts"],
+    "import/extensions": [".ts", ".js", ".d.ts", ".mjs", ".mts"],
     "import/parsers": {
-      "@typescript-eslint/parser": [".ts", ".js", ".d.ts"]
+      "@typescript-eslint/parser": [".ts", ".js", ".d.ts", ".mjs", ".mjs"]
     },
     "import/resolver": {
       "typescript": {
