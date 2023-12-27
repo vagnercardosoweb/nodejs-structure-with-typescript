@@ -47,10 +47,8 @@ describe('shared/container', () => {
     const id = 'no_exist_key';
     expect(() => container.get(id)).toThrowError(
       new InternalServerError({
+        message: `Container value "${id}" has not been defined`,
         code: 'CONTAINER:NOT_EXIST',
-        message: 'Container value [{{id}}] has not been defined',
-        sendToSlack: true,
-        metadata: { id },
       }),
     );
   });

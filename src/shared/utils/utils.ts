@@ -3,9 +3,10 @@ import { randomBytes, randomInt, randomUUID } from 'node:crypto';
 import { promisify } from 'node:util';
 
 import { REDACTED_KEYS, REDACTED_TEXT } from '@/config/constants';
-import { Env, Logger, UnprocessableEntityError } from '@/shared';
 import { HttpStatusCode } from '@/shared/enums';
-import { parseErrorToObject } from '@/shared/errors';
+import { Env } from '@/shared/env';
+import { parseErrorToObject, UnprocessableEntityError } from '@/shared/errors';
+import { Logger } from '@/shared/logger';
 
 export class Utils {
   public static DAY_IN_SECONDS = 86400;
@@ -217,7 +218,6 @@ export class Utils {
       throw new UnprocessableEntityError({
         message: `The date "${dateAsString}" entered is not valid, please check.`,
         metadata: { date: date.toISOString() },
-        sendToSlack: false,
       });
     }
 

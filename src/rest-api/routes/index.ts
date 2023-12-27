@@ -2,7 +2,7 @@ import { HealthyHandler } from '@/rest-api/handlers/healthy';
 import { userRoutes } from '@/rest-api/routes/user';
 import { swaggerRoutes } from '@/rest-api/swagger';
 import { Route } from '@/rest-api/types';
-import { HttpMethod, HttpStatusCode } from '@/shared';
+import { HttpMethod, HttpStatusCode } from '@/shared/enums';
 
 export const routes: Route[] = [
   { path: '/', method: HttpMethod.GET, handler: HealthyHandler },

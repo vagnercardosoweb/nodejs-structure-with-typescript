@@ -1,6 +1,5 @@
 import { HttpStatusCode } from '@/shared/enums';
-
-import { AppError, AppErrorInput } from './app';
+import { AppError, AppErrorInput } from '@/shared/errors';
 
 export class RateLimiterError extends AppError {
   public name = 'RateLimiterError';

@@ -38,7 +38,7 @@ export const rateLimiter =
     if (hits > limit) {
       const retryAfter = Math.ceil((resetTime - Date.now()) / 1000);
       response.setHeader('Retry-After', Math.max(0, retryAfter));
-      throw new RateLimiterError({ metadata: { ip: request.ip } });
+      throw new RateLimiterError({ replaceKeys: { ip: request.ip } });
     }
 
     return next();

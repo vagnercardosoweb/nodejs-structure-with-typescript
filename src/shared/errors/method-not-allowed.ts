@@ -1,11 +1,9 @@
 import { HttpStatusCode } from '@/shared/enums';
+import { AppError, AppErrorInput } from '@/shared/errors';
 
-import { AppError, AppErrorInput } from './app';
-
-type Input = Omit<AppErrorInput, 'message'> & {
-  path: string;
+type Input = AppErrorInput & {
   method: string;
-  message?: string;
+  path: string;
 };
 
 export class MethodNotAllowedError extends AppError {
@@ -14,7 +12,7 @@ export class MethodNotAllowedError extends AppError {
   constructor({ path, method, ...input }: Input) {
     super({
       code: 'METHOD_NOT_ALLOWED',
-      metadata: { path, method },
+      replaceKeys: { path, method },
       statusCode: HttpStatusCode.METHOD_NOT_ALLOWED,
       message: 'errors.method_not_allowed',
       sendToSlack: false,

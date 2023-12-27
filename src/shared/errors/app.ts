@@ -2,7 +2,7 @@ import { randomInt } from 'node:crypto';
 
 import dottie from 'dottie';
 
-import { INTERNAL_SERVER_ERROR_MESSAGE } from '@/shared';
+import { INTERNAL_SERVER_ERROR_MESSAGE } from '@/config/constants';
 import { HttpStatusCode } from '@/shared/enums';
 import { Utils } from '@/shared/utils';
 
@@ -13,8 +13,9 @@ export class AppError extends Error {
   public description?: string;
   public metadata: Metadata = {};
   public statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
-  public originalError?: MyError;
+  public originalError?: OriginalError;
   public shouldReplaceKeys = true;
+  public replaceKeys: Metadata = {};
   public sendToSlack = true;
   public requestId?: string;
   public logging = true;
@@ -31,6 +32,17 @@ export class AppError extends Error {
 
     const { originalError, ...rest } = input;
     Object.entries(rest).forEach(([k, v]) => this.setProperty(k, v));
+
+    this.setProperty(
+      'replaceKeys',
+      this.shouldReplaceKeys
+        ? dottie.flatten({
+            errorId: this.errorId,
+            requestId: this.requestId,
+            ...this.replaceKeys,
+          })
+        : {},
+    );
 
     this.setProperty('message', this.replaceKeysInString(this.message));
 
@@ -52,14 +64,7 @@ export class AppError extends Error {
 
   private replaceKeysInString(message: string) {
     if (!this.shouldReplaceKeys) return message;
-    return Utils.replaceKeysInString(
-      message,
-      dottie.flatten({
-        ...this.metadata,
-        errorId: this.errorId,
-        requestId: this.requestId,
-      }),
-    );
+    return Utils.replaceKeysInString(message, this.replaceKeys);
   }
 
   private setProperty(key: string, value: any) {
@@ -73,16 +78,23 @@ export class AppError extends Error {
   }
 }
 
-type MyError = { name?: string; message: string; stack?: string };
+type OriginalError = {
+  name?: string;
+  message: string;
+  stack?: string;
+};
+
 type Metadata = Record<string, any>;
+
 export type AppErrorInput = {
   code?: string;
   message?: string;
   description?: string;
   metadata?: Metadata;
   statusCode?: HttpStatusCode;
-  originalError?: MyError;
+  originalError?: OriginalError;
   shouldReplaceKeys?: boolean;
+  replaceKeys?: Metadata;
   sendToSlack?: boolean;
   requestId?: string;
   logging?: boolean;

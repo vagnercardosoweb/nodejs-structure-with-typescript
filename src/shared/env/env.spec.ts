@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { NodeEnv } from '../enums';
-import { Env } from './env';
+import { NodeEnv } from '@/shared/enums';
+import { Env } from '@/shared/env';
 
 describe('Env', () => {
   beforeEach(() => {
-    process.env.TEST = 'TEST';
     process.env.NODE_ENV = NodeEnv.TEST;
+    process.env.TEST = 'TEST';
   });
 
   it('should retrieve a correct env', () => {
@@ -15,7 +15,7 @@ describe('Env', () => {
 
   it('should retrieve an env with default value', () => {
     const defaultValue = 'default value';
-    expect(Env.get('NO_EXIST0', defaultValue)).toEqual(defaultValue);
+    expect(Env.get('NO_EXIST', defaultValue)).toEqual(defaultValue);
   });
 
   it('should check if an env exists and return true', () => {
@@ -42,8 +42,16 @@ describe('Env', () => {
 
   it('should should try to retrieve a required env and return an error', () => {
     expect(() => Env.required('NO_EXIST')).toThrow(
-      'Missing environment variable: NO_EXIST',
+      'The environment variable "NO_EXIST" is required.',
     );
+  });
+
+  it('should return the UTC timezone', () => {
+    expect(Env.getTimezoneUtc()).toEqual('UTC');
+  });
+
+  it('should return the BRL timezone', () => {
+    expect(Env.getTimezoneBrl()).toEqual('America/Sao_Paulo');
   });
 
   it('should check the NODE_ENV if it is local', () => {

@@ -1,3 +1,8 @@
+import {
+  PAGINATION_DEFAULT_LIMIT,
+  PAGINATION_DEFAULT_PAGE,
+} from '@/config/constants';
+
 export type PaginationResult = {
   rows: any[];
   perPage: number;
@@ -8,21 +13,19 @@ export type PaginationResult = {
   prevPage: number;
 };
 
-const DEFAULT_LIMIT = 50;
-const DEFAULT_PAGE = 1;
-
 export class Pagination {
   public offset = 0;
 
   constructor(
-    public readonly limit = DEFAULT_LIMIT,
-    public readonly page = DEFAULT_PAGE,
+    public readonly limit = PAGINATION_DEFAULT_LIMIT,
+    public readonly page = PAGINATION_DEFAULT_PAGE,
   ) {
     this.offset = (page - 1) * limit;
   }
 
   public static fromRequest(request: any) {
-    const { limit = DEFAULT_LIMIT, page = DEFAULT_PAGE } = request.query;
+    const { limit = PAGINATION_DEFAULT_LIMIT, page = PAGINATION_DEFAULT_PAGE } =
+      request.query;
     return new Pagination(Number(limit), Number(page));
   }
 

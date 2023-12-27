@@ -15,9 +15,6 @@ env:
 
 on:
   push:
-    #    branches-ignore:
-    #      - production
-    #      - staging
     paths:
       - '.github/workflows/check-ts.yml'
       - 'src/**/*.ts'

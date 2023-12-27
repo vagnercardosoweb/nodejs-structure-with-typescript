@@ -18,6 +18,7 @@ export const errorHandler = (
 
   const requestId = request.context?.requestId;
   if (!error.requestId) error.requestId = requestId;
+  error.replaceKeys.requestId = error.requestId;
 
   if (!request.logger) request.logger = Logger.withId(requestId);
   if (error.logging) {
@@ -25,6 +26,7 @@ export const errorHandler = (
       ip: request.ip,
       path: `${requestMethod} ${requestUrl}`,
       routePath: request.route?.path,
+      time: request.durationTime.format(),
       headers: request.headers,
       body: request.body,
       error,
@@ -50,11 +52,10 @@ export const errorHandler = (
   }
 
   if (request.container.has(ContainerName.TRANSLATION)) {
-    error.message = getTranslationFromRequest(request).get(error.message, {
-      errorId: error.errorId,
-      requestId: error.requestId,
-      ...error.metadata,
-    });
+    error.message = getTranslationFromRequest(request).get(
+      error.message,
+      error.replaceKeys,
+    );
   }
 
   return response.status(error.statusCode).json(

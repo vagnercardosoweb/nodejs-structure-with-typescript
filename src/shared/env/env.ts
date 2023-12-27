@@ -20,8 +20,7 @@ export class Env {
     const value = this.get(key, defaultValue);
     if (Utils.isUndefined(value)) {
       throw new InternalServerError({
-        message: 'Missing environment variable: {{key}}',
-        metadata: { key },
+        message: `The environment variable "${key}" is required.`,
       });
     }
     return value;

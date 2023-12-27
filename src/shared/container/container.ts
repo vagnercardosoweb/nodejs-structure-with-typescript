@@ -15,10 +15,8 @@ export class Container implements ContainerInterface {
 
     if (!this.items.has(id)) {
       throw new InternalServerError({
+        message: `Container value "${id}" has not been defined`,
         code: 'CONTAINER:NOT_EXIST',
-        message: 'Container value [{{id}}] has not been defined',
-        sendToSlack: true,
-        metadata: { id },
       });
     }
 

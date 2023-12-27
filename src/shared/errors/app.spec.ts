@@ -1,25 +1,29 @@
 import { describe, expect, it } from 'vitest';
 
-import { AppError, AppErrorInput, HttpStatusCode } from '@/shared';
+import { INTERNAL_SERVER_ERROR_MESSAGE } from '@/config/constants';
+import { HttpStatusCode } from '@/shared/enums';
+import { AppError, AppErrorInput } from '@/shared/errors';
 
-describe('AppError', () => {
+describe('shared/errors/app', () => {
   it('create error with default properties', () => {
     const sut = new AppError();
 
     expect(sut.code).toBe('DEFAULT');
     expect(sut.name).toBe('AppError');
-    expect(sut.message).toBe('errors.internal_server_error');
+    expect(sut.message).toBe(INTERNAL_SERVER_ERROR_MESSAGE);
     expect(sut.description).toBeUndefined();
     expect(sut.metadata).toEqual({});
     expect(sut.statusCode).toBe(HttpStatusCode.INTERNAL_SERVER_ERROR);
     expect(sut.originalError).toBeUndefined();
     expect(sut.sendToSlack).toBeTruthy();
     expect(sut.shouldReplaceKeys).toBeTruthy();
+    expect(sut.replaceKeys).toBeTruthy();
     expect(sut.requestId).toBeUndefined();
-    expect(sut.errorId).toBeDefined();
+
+    expect(sut.errorId).toHaveLength(12);
     expect(sut.errorId.slice(0, 1)).toEqual('V');
     expect(sut.errorId.slice(-1)).toEqual('C');
-    expect(sut.errorId).toHaveLength(12);
+
     expect(sut.stack).toEqual(expect.any(String));
     expect(sut.logging).toBeTruthy();
     expect(sut.stack).toBeDefined();
@@ -33,10 +37,11 @@ describe('AppError', () => {
       message: 'any_message',
       description: 'any_description',
       statusCode: HttpStatusCode.INTERNAL_SERVER_ERROR,
-      shouldReplaceKeys: false,
       sendToSlack: false,
       originalError: error,
       errorId: 'any_error_id',
+      shouldReplaceKeys: false,
+      replaceKeys: {},
       logging: true,
       metadata: {
         any_prop: 'any_value',
@@ -53,8 +58,10 @@ describe('AppError', () => {
     expect(sut.errorId).toEqual('any_error_id');
     expect(sut.metadata).toBe(input.metadata);
     expect(sut.statusCode).toBe(input.statusCode);
-    expect(sut.shouldReplaceKeys).toBe(input.shouldReplaceKeys);
     expect(sut.requestId).toBe(input.requestId);
+
+    expect(sut.shouldReplaceKeys).toBeFalsy();
+    expect(sut.replaceKeys).toEqual({});
 
     expect(sut.originalError).toStrictEqual({
       name: error.name,
@@ -95,7 +102,7 @@ describe('AppError', () => {
     const errorId = 'mocked_id';
     const sut = new AppError({
       message: 'Message with name "{{userName}}" and Error Id: "{{errorId}}"',
-      metadata: { userName: 'any name' },
+      replaceKeys: { userName: 'any name' },
       errorId,
     });
     expect(sut.message).toEqual(
@@ -106,7 +113,7 @@ describe('AppError', () => {
   it('should replace do {{NESTED_ANY}} in the error message', () => {
     const sut = new AppError({
       message: 'Message with name "{{user.name}}"',
-      metadata: { user: { name: 'any name' } },
+      replaceKeys: { user: { name: 'any name' } },
     });
     expect(sut.message).toEqual('Message with name "any name"');
   });
@@ -125,16 +132,5 @@ describe('AppError', () => {
   it('should create an error with the requestId', () => {
     const sut = new AppError({ message: 'any', requestId: 'any_request_id' });
     expect(sut.requestId).toStrictEqual('any_request_id');
-  });
-
-  it('should not replace message keys', () => {
-    const sut = new AppError({
-      message: 'Message with name "{{userName}}" and Error Id: "{{errorId}}"',
-      metadata: { userName: 'any name' },
-      shouldReplaceKeys: false,
-    });
-    expect(sut.message).toEqual(
-      'Message with name "{{userName}}" and Error Id: "{{errorId}}"',
-    );
   });
 });

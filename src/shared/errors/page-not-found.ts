@@ -1,11 +1,9 @@
 import { HttpStatusCode } from '@/shared/enums';
+import { AppError, AppErrorInput } from '@/shared/errors';
 
-import { AppError, AppErrorInput } from './app';
-
-type Input = Omit<AppErrorInput, 'message'> & {
-  path: string;
+type Input = AppErrorInput & {
   method: string;
-  message?: string;
+  path: string;
 };
 
 export class PageNotFoundError extends AppError {
@@ -14,7 +12,7 @@ export class PageNotFoundError extends AppError {
   constructor({ path, method, ...input }: Input) {
     super({
       code: 'PAGE_NOT_FOUND',
-      metadata: { path, method },
+      replaceKeys: { path, method },
       statusCode: HttpStatusCode.NOT_FOUND,
       message: 'errors.page_not_found',
       sendToSlack: false,

@@ -24,9 +24,8 @@ export class EventManager implements EventManagerInterface {
 
     if (this.handlers[eventName].includes(handler)) {
       throw new InternalServerError({
-        message:
-          'The handler for the event "{{eventName}}" has already been registered',
-        metadata: { eventName },
+        message: `The handler for the event "${eventName}" has already been registered`,
+        code: 'EVENT_MANAGER_ALREADY_REGISTERED',
       });
     }
 

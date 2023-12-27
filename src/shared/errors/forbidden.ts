@@ -1,6 +1,5 @@
 import { HttpStatusCode } from '@/shared/enums';
-
-import { AppError, AppErrorInput } from './app';
+import { AppError, AppErrorInput } from '@/shared/errors';
 
 export class ForbiddenError extends AppError {
   public name = 'ForbiddenError';

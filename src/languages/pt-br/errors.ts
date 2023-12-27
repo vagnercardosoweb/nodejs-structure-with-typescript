@@ -8,8 +8,9 @@ export const errors = {
   forbidden:
     'Acesso não permitido, se o problema persistir entre em contato com nosso suporte e informe o código "{{errorId}}".',
   unprocessable_entity: 'unprocessable_entity',
-  rate_limiter: 'Muitas requisições do IP {{ip}}. Por favor tente mais tarde.',
-  not_found: 'not_found',
+  rate_limiter:
+    'Muitas requisições do IP "{{ip}}". Por favor tente mais tarde.',
+  not_found: 'Recurso solicitado não encontrado',
   not_acceptable: 'not_acceptable',
   gateway_timeout: 'gateway_timeout',
   bad_request: 'bad_request',

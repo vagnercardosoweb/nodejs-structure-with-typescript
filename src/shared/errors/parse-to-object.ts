@@ -1,9 +1,29 @@
-import { AppError } from '@/shared';
+import { z } from 'zod';
+
+import {
+  INTERNAL_SERVER_ERROR_MESSAGE,
+  UNAUTHORIZED_ERROR_MESSAGE,
+} from '@/config/constants';
+import { AppError } from '@/shared/errors';
+
+import { zodError } from './zod';
 
 export const parseErrorToObject = (error: any): AppError => {
   if (error instanceof AppError) return error;
+  if (error instanceof z.ZodError) return zodError(error);
+
+  let message = INTERNAL_SERVER_ERROR_MESSAGE;
+
+  // from cognito
+  if (error?.$metadata?.httpStatusCode) {
+    error.statusCode = error.$metadata.httpStatusCode;
+    if (error.name === 'NotAuthorizedException') {
+      message = UNAUTHORIZED_ERROR_MESSAGE;
+    }
+  }
 
   const result = new AppError({
+    message,
     code: error?.code,
     errorId: error?.errorId,
     metadata: error?.metadata,

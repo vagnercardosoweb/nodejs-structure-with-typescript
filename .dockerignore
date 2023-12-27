@@ -4,4 +4,6 @@ node_modules/
 .idea/
 tests/
 aws-infra/
-coverage
+coverage/
+kubernetes/
+.github/

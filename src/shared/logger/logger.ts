@@ -25,13 +25,17 @@ class Logger implements LoggerInterface {
     if (Env.isTesting()) return;
     const timestamp = new Date().toISOString();
     if (metadata !== undefined) {
-      if (!metadata?.skipRedact) metadata = Utils.redactRecursiveKeys(metadata);
-      delete metadata.skipRedact;
+      if (!metadata?.$skipRedact) {
+        metadata = Utils.redactRecursiveKeys(metadata);
+      }
+      delete metadata.$skipRedact;
       message = Utils.replaceKeysInString(message, metadata);
     }
+    const logId = metadata?.$logId ?? this.id;
+    delete metadata?.$logId;
     process.stdout.write(
       `${JSON.stringify({
-        id: this.id,
+        id: logId,
         level,
         pid: PID,
         hostname: HOSTNAME,

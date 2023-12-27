@@ -1,10 +1,10 @@
 import crypto from 'node:crypto';
 
 export class Encryption {
-  private readonly size = 32;
-  private readonly algorithm = 'aes-256-gcm';
+  protected readonly size = 32;
+  protected readonly algorithm = 'aes-256-gcm';
 
-  constructor(private readonly secretKey: string) {}
+  constructor(protected readonly secretKey: string) {}
 
   public async encrypt(payload: any): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -55,7 +55,7 @@ export class Encryption {
     });
   }
 
-  private getPayload(value: string): {
+  protected getPayload(value: string): {
     iv: Buffer;
     encrypted: Buffer;
     salt: Buffer;
@@ -71,7 +71,7 @@ export class Encryption {
     };
   }
 
-  private generateKey(salt: Buffer): Buffer {
+  protected generateKey(salt: Buffer): Buffer {
     const result = crypto.pbkdf2Sync(
       this.secretKey,
       salt,

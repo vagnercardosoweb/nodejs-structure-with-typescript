@@ -1,8 +1,7 @@
 import { Pool, PoolClient, types } from 'pg';
 
-import { DurationTime, Env, Utils } from '@/shared';
+import { AppError, DurationTime, Env, Utils } from '@/shared';
 import { HttpStatusCode, LogLevel } from '@/shared/enums';
-import { AppError, INTERNAL_SERVER_ERROR_MESSAGE } from '@/shared/errors';
 import { LoggerInterface, LoggerMetadata } from '@/shared/logger';
 import {
   FnTransaction,
@@ -125,7 +124,6 @@ export class PgPool implements PgPoolInterface {
       metadata.duration = duration.format();
       throw new AppError({
         code: e.code,
-        message: INTERNAL_SERVER_ERROR_MESSAGE,
         statusCode:
           e.code === '23505'
             ? HttpStatusCode.CONFLICT

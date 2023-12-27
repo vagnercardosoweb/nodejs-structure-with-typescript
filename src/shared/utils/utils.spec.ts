@@ -283,9 +283,7 @@ describe('shared/utils/utils.ts', () => {
       new BadRequestError({
         message:
           'The date "{{dateAsString}}" entered is not valid, please check.',
-        metadata: {
-          dateAsString,
-        },
+        replaceKeys: { dateAsString },
       }),
     );
   });

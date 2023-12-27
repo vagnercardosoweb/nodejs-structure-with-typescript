@@ -17,3 +17,9 @@ export const RATE_LIMITER_SKIP_SUCCESS =
 export const RATE_LIMITER_EXPIRES_SECONDS = Number(
   process.env.RATE_LIMITER_EXPIRES_SECONDS || '60',
 );
+
+export const INTERNAL_SERVER_ERROR_MESSAGE = 'errors.internal_server_error';
+export const UNAUTHORIZED_ERROR_MESSAGE = 'errors.unauthorized';
+
+export const PAGINATION_DEFAULT_LIMIT = 50;
+export const PAGINATION_DEFAULT_PAGE = 1;

@@ -43,9 +43,8 @@ describe('EventManager', () => {
     eventManager.register(eventName, handler);
     expect(() => eventManager.register(eventName, handler)).toThrowError(
       new InternalServerError({
-        message:
-          'The handler for the event "{{eventName}}" has already been registered',
-        metadata: { eventName },
+        code: 'EVENT_MANAGER_ALREADY_REGISTERED',
+        message: `The handler for the event "${eventName}" has already been registered`,
       }),
     );
   });

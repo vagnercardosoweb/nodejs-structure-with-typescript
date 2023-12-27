@@ -91,15 +91,11 @@ export class BaseRepository<TRow extends QueryResultRow> {
       if (totalWhereBinding !== bindingLength) {
         if (params.rejectOnEmpty) params.rejectOnEmpty = undefined as any;
         throw new InternalServerError({
-          code: 'BASE_REPOSITORY:DIFERENCE_BINDING',
+          code: 'DATABASE:REPOSITORY:DIFERENCE_BINDING',
           message:
-            'The query bind is incorrect, needs to have {{totalWhereBinding}}' +
-            ' values and received {{bindingLength}}.',
-          metadata: {
-            totalWhereBinding,
-            bindingLength,
-            params,
-          },
+            `The query bind is incorrect, needs to have "${totalWhereBinding}"` +
+            ` values and received "${bindingLength}".`,
+          metadata: { params },
         });
       }
     }

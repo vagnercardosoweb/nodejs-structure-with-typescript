@@ -1,6 +1,6 @@
+import { UNAUTHORIZED_ERROR_MESSAGE } from '@/config/constants';
 import { HttpStatusCode } from '@/shared/enums';
-
-import { AppError, AppErrorInput } from './app';
+import { AppError, AppErrorInput } from '@/shared/errors';
 
 export class UnauthorizedError extends AppError {
   public name = 'UnauthorizedError';
@@ -9,7 +9,7 @@ export class UnauthorizedError extends AppError {
     super({
       code: 'UNAUTHORIZED',
       statusCode: HttpStatusCode.UNAUTHORIZED,
-      message: 'errors.unauthorized',
+      message: UNAUTHORIZED_ERROR_MESSAGE,
       sendToSlack: false,
       ...input,
     });
