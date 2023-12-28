@@ -1,10 +1,12 @@
-import { InternalServerError, NodeEnv, Utils } from '@/shared';
+import { Common } from '@/shared/common';
+import { NodeEnv } from '@/shared/enums';
+import { InternalServerError } from '@/shared/errors';
 
 export class Env {
   public static get(key: string, defaultValue?: any) {
     const value = process.env[key];
     if (!value?.trim()) return defaultValue;
-    return Utils.normalizeValue(value);
+    return Common.normalizeValue(value);
   }
 
   public static has(key: string): boolean {
@@ -13,15 +15,15 @@ export class Env {
 
   public static set(key: string, value: any, override = true) {
     if (!override && process.env.hasOwnProperty(key)) return;
-    process.env[key] = Utils.normalizeValue(value);
+    process.env[key] = Common.normalizeValue(value);
   }
 
   public static required(key: string, defaultValue?: any) {
     const value = this.get(key, defaultValue);
-    if (Utils.isUndefined(value)) {
-      throw new InternalServerError({
-        message: `The environment variable "${key}" is required.`,
-      });
+    if (Common.isUndefined(value)) {
+      throw InternalServerError.fromMessage(
+        `The environment variable "${key}" is required.`,
+      );
     }
     return value;
   }

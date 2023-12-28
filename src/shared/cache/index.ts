@@ -1,3 +1,3 @@
 export { RedisCache } from './redis';
-export { CacheInterface } from './cache';
+export { CacheInterface, CacheDefaultValue } from './cache';
 export { InMemoryCache } from './inmemory';

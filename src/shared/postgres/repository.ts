@@ -1,6 +1,7 @@
 import { QueryResultRow } from 'pg';
 
-import { InternalServerError, NotFoundError, Utils } from '@/shared';
+import { Common } from '@/shared/common';
+import { InternalServerError, NotFoundError } from '@/shared/errors';
 
 import { PgPoolInterface } from './types';
 
@@ -73,8 +74,7 @@ export class BaseRepository<TRow extends QueryResultRow> {
     ) {
       const rejectOnEmpty = (<any>params).rejectOnEmpty;
       if (typeof rejectOnEmpty === 'object') throw rejectOnEmpty;
-      const message = rejectOnEmpty ?? 'Resource not found';
-      throw new NotFoundError({ message });
+      throw NotFoundError.fromMessage(rejectOnEmpty ?? 'Resource not found');
     }
     return result.at(0) ?? null;
   }
@@ -105,7 +105,7 @@ export class BaseRepository<TRow extends QueryResultRow> {
   }
 
   protected async create(data: Omit<TRow, 'id'>): Promise<TRow> {
-    data = Utils.removeUndefined(data);
+    data = Common.removeUndefined(data);
     if (this.createdAt && !data.hasOwnProperty(this.createdAt)) {
       (data as any)[this.createdAt] = 'NOW()';
     }
@@ -125,7 +125,7 @@ export class BaseRepository<TRow extends QueryResultRow> {
     where,
     binding,
   }: UpdateParams<T>): Promise<T> {
-    data = Utils.removeUndefined(data);
+    data = Common.removeUndefined(data);
 
     if (this.updatedAt && !data.hasOwnProperty(this.updatedAt)) {
       (data as any)[this.updatedAt] = 'NOW()';

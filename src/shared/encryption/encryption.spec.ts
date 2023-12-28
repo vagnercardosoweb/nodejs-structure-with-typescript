@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { Encryption, Utils } from '@/shared';
+import { Common } from '@/shared/common';
+import { Encryption } from '@/shared/encryption';
 
 const encryption = new Encryption('any_key');
 
-describe('Encryption', () => {
+describe('shared/encryption', () => {
   it('should reject when encrypting', async () => {
     vi.spyOn(encryption as any, 'generateKey').mockReturnValueOnce('any');
     expect(() => encryption.encrypt('any_value')).rejects.toThrowError(
@@ -20,7 +21,7 @@ describe('Encryption', () => {
 
   it('should create an encryption and validate the payload', async () => {
     const encrypted = await encryption.encrypt('any_value');
-    const payload = Utils.parseStringToJson(Utils.base64ToValue(encrypted));
+    const payload = Common.parseStringToJson(Common.base64ToValue(encrypted));
     expect(payload.iv).toBeDefined();
     expect(payload.salt).toBeDefined();
     expect(payload.encrypted).toBeDefined();

@@ -1,8 +1,11 @@
 import { Pool, PoolClient, types } from 'pg';
 
-import { AppError, DurationTime, Env, Utils } from '@/shared';
-import { HttpStatusCode, LogLevel } from '@/shared/enums';
-import { LoggerInterface, LoggerMetadata } from '@/shared/logger';
+import { Common } from '@/shared/common';
+import { DurationTime } from '@/shared/duration-time';
+import { HttpStatusCode } from '@/shared/enums';
+import { Env } from '@/shared/env';
+import { AppError } from '@/shared/errors';
+import { LoggerInterface, LoggerMetadata, LogLevel } from '@/shared/logger';
 import {
   FnTransaction,
   PgPoolInterface,
@@ -96,7 +99,7 @@ export class PgPool implements PgPoolInterface {
     bind: any[] = [],
   ): Promise<QueryResult<T>> {
     const client = this.client ?? this.pool;
-    query = Utils.normalizeSqlQuery(query);
+    query = Common.normalizeSqlQuery(query);
     const metadata = {
       name: this.options.appName,
       type: this.client !== null ? 'TX' : 'POOL',
@@ -170,7 +173,7 @@ export class PgPool implements PgPoolInterface {
 
   protected clone(): PgPool {
     if (this.hasCloned) return this;
-    const cloned = Utils.cloneObject(this);
+    const cloned = Common.cloneObject(this);
     cloned.hasCloned = true;
     return cloned;
   }

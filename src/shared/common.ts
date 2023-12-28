@@ -8,7 +8,7 @@ import { Env } from '@/shared/env';
 import { parseErrorToObject, UnprocessableEntityError } from '@/shared/errors';
 import { Logger } from '@/shared/logger';
 
-export class Utils {
+export class Common {
   public static DAY_IN_SECONDS = 86400;
 
   public static uuid(): string {
@@ -97,7 +97,7 @@ export class Utils {
 
   public static isNumber(value: string | number): boolean {
     let result = /^\d+$/.test(value?.toString());
-    if (!result) result = Utils.isDecimal(value);
+    if (!result) result = Common.isDecimal(value);
     return result;
   }
 
@@ -127,15 +127,15 @@ export class Utils {
   }
 
   public static isImageBase64(value: string): boolean {
-    if (!Utils.isString(value)) return false;
+    if (!Common.isString(value)) return false;
     return /data:image\/(.+);/gm.test(value);
   }
 
   public static redactRecursiveKeys<T>(data: T, keys: string[] = []): T {
     if (REDACTED_KEYS.length === 0) return data;
-    if (!Utils.isArray(data) && !Utils.isObject(data)) return data;
+    if (!Common.isArray(data) && !Common.isObject(data)) return data;
 
-    const result = Utils.removeUndefined(data) as any;
+    const result = Common.removeUndefined(data) as any;
     const uniqueKeys = new Set(
       keys.concat(REDACTED_KEYS).map((k) => k.trim().toLowerCase()),
     );
@@ -143,20 +143,20 @@ export class Utils {
     for (const key of Object.keys(result)) {
       const keyAsLower = key.toLowerCase();
 
-      if (uniqueKeys.has(keyAsLower) || Utils.isImageBase64(result[key])) {
+      if (uniqueKeys.has(keyAsLower) || Common.isImageBase64(result[key])) {
         result[key] = REDACTED_TEXT;
         continue;
       }
 
-      if (Utils.isObject(result[key])) {
-        result[key] = Utils.redactRecursiveKeys(result[key], keys);
+      if (Common.isObject(result[key])) {
+        result[key] = Common.redactRecursiveKeys(result[key], keys);
         continue;
       }
 
-      if (Utils.isArray(result[key])) {
+      if (Common.isArray(result[key])) {
         result[key] = result[key].map((row: any) => {
-          if (Utils.isImageBase64(row)) return REDACTED_TEXT;
-          return Utils.redactRecursiveKeys(row, keys);
+          if (Common.isImageBase64(row)) return REDACTED_TEXT;
+          return Common.redactRecursiveKeys(row, keys);
         });
       }
     }
@@ -209,14 +209,16 @@ export class Utils {
 
     if (!date || !this.isValidDate(date)) {
       throw new UnprocessableEntityError({
-        message: `Invalid date "${dateAsString}", only format "DD/MM/YYYY", "DD-MM-YYYY" and "YYYY-MM-DD" are allowed.`,
+        message:
+          `Invalid date "${dateAsString}", only format` +
+          ' "DD/MM/YYYY", "DD-MM-YYYY" and "YYYY-MM-DD" are allowed.',
         sendToSlack: true,
       });
     }
 
     if (date.getDate() !== d) {
       throw new UnprocessableEntityError({
-        message: `The date "${dateAsString}" entered is not valid, please check.`,
+        message: `The date "${dateAsString}" entered is not valid.`,
         metadata: { date: date.toISOString() },
       });
     }
@@ -233,7 +235,7 @@ export class Utils {
   }
 
   public static isValidPhone(value: string): boolean {
-    const phone = Utils.onlyNumber(value);
+    const phone = Common.onlyNumber(value);
     return phone.length === 11;
   }
 
@@ -262,7 +264,7 @@ export class Utils {
     return value.substring(0, limit) + end;
   }
 
-  public static async sleep(ms = 1): Promise<void> {
+  public static async sleep(ms = 0): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, ms));
   }
 
@@ -272,7 +274,7 @@ export class Utils {
   ) {
     do {
       if (await condition()) return;
-      await Utils.sleep(internal);
+      await Common.sleep(internal);
     } while (true);
   }
 
@@ -293,7 +295,7 @@ export class Utils {
     try {
       return { ...defaultValue, ...JSON.parse(normalizedJson) };
     } catch (e: any) {
-      if (Utils.isUndefined(defaultValue)) throw e;
+      if (Common.isUndefined(defaultValue)) throw e;
       Logger.error('Utils.parseStringToJson', parseErrorToObject(e));
       return defaultValue;
     }
@@ -422,14 +424,14 @@ export class Utils {
   }
 
   public static createBrlDate(date?: Date): Date {
-    return Utils.createDateWithTimezone(
+    return Common.createDateWithTimezone(
       date ?? new Date(),
       Env.getTimezoneBrl(),
     );
   }
 
   public static createUtcDate(date?: Date): Date {
-    return Utils.createDateWithTimezone(
+    return Common.createDateWithTimezone(
       date ?? new Date(),
       Env.getTimezoneUtc(),
     );
@@ -441,11 +443,11 @@ export class Utils {
 
   public static getDiffDays(start: Date, end: Date): number {
     const diffInMs = Math.abs(end.getTime() - start.getTime());
-    return Math.ceil(diffInMs / (Utils.DAY_IN_SECONDS * 1000));
+    return Math.ceil(diffInMs / (Common.DAY_IN_SECONDS * 1000));
   }
 
   public static generateSlug(value: string): string {
-    return Utils.removeAccents(value)
+    return Common.removeAccents(value)
       .toLowerCase()
       .replace(/[^a-zA-Z0-9]/g, '-')
       .replace(/-{2,}/g, '-')
@@ -453,7 +455,7 @@ export class Utils {
   }
 
   public static scapeSql(text: string) {
-    return Utils.removeAccents(text).replace(/'/g, "''").toLocaleLowerCase();
+    return Common.removeAccents(text).replace(/'/g, "''").toLocaleLowerCase();
   }
 }
 

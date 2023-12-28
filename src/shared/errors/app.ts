@@ -3,8 +3,8 @@ import { randomInt } from 'node:crypto';
 import dottie from 'dottie';
 
 import { INTERNAL_SERVER_ERROR_MESSAGE } from '@/config/constants';
+import { Common } from '@/shared/common';
 import { HttpStatusCode } from '@/shared/enums';
-import { Utils } from '@/shared/utils';
 
 export class AppError extends Error {
   public code = 'DEFAULT';
@@ -62,12 +62,16 @@ export class AppError extends Error {
     return `V${randomInt(1_000_000_000, 9_999_999_999).toString()}C`;
   }
 
-  private replaceKeysInString(message: string) {
-    if (!this.shouldReplaceKeys) return message;
-    return Utils.replaceKeysInString(message, this.replaceKeys);
+  public static fromMessage(message: string) {
+    return new this({ message });
   }
 
-  private setProperty(key: string, value: any) {
+  protected replaceKeysInString(message: string) {
+    if (!this.shouldReplaceKeys) return message;
+    return Common.replaceKeysInString(message, this.replaceKeys);
+  }
+
+  protected setProperty(key: string, value: any) {
     if (value === undefined) return;
     Object.defineProperty(this, key, {
       writable: true,

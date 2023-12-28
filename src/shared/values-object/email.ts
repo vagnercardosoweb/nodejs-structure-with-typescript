@@ -1,4 +1,4 @@
-import { UnprocessableEntityError } from '@/shared';
+import { UnprocessableEntityError } from '@/shared/errors';
 
 const REGEX = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
 

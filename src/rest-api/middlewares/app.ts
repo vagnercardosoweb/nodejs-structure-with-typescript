@@ -2,14 +2,18 @@ import { randomUUID } from 'node:crypto';
 
 import { NextFunction, Request, Response } from 'express';
 
-import {
-  CacheInterface,
-  ContainerName,
-  Logger,
-  PgPoolInterface,
-  Translation,
-} from '@/shared';
-import { ContainerInterface } from '@/shared/container';
+import { DEFAULT_LOCALE } from '@/config/constants';
+import { CacheInterface } from '@/shared/cache';
+import { ContainerInterface, ContainerName } from '@/shared/container';
+import { Logger } from '@/shared/logger';
+import { PgPoolInterface } from '@/shared/postgres';
+import { TranslationInterface } from '@/shared/translation';
+
+const getAcceptLanguage = (request: Request) => {
+  const language = request.acceptsLanguages().at(0) ?? '*';
+  if (language === '*') return DEFAULT_LOCALE;
+  return language.trim().toLowerCase();
+};
 
 export const app =
   (container: ContainerInterface) =>
@@ -23,27 +27,19 @@ export const app =
     request.logger = Logger.withId(requestId);
     request.container.set(ContainerName.LOGGER, request.logger);
 
-    let language =
-      request
-        .acceptsLanguages()
-        .map((language) => language.toLowerCase())
-        .at(0) ?? '*';
-    if (language === '*') language = 'pt-br';
-
     request.context = {
       jwt: {} as Request['context']['jwt'],
       awsTraceId: request.header('x-amzn-trace-id'),
       awsRequestId: request.header('x-amzn-requestid'),
+      language: getAcceptLanguage(request),
       requestId,
-      language,
     };
 
-    request.container.set(
-      ContainerName.TRANSLATION,
-      container
-        .get<Translation>(ContainerName.TRANSLATION)
-        .withLocale(language),
-    );
+    const translation = container
+      .get<TranslationInterface>(ContainerName.TRANSLATION)
+      .withLocale(request.context.language);
+    request.container.set(ContainerName.TRANSLATION, translation);
+    request.context.language = translation.getLocale();
 
     request.container.set(
       ContainerName.CACHE_CLIENT,

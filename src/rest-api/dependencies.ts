@@ -4,25 +4,15 @@ import { Request } from 'express';
 
 import { setupEventManager } from '@/config/event-manager';
 import { setupTranslation } from '@/config/translation';
-import type {
-  CacheInterface,
-  EventManagerInterface,
-  JwtInterface,
-  LoggerInterface,
-  PgPoolInterface,
-  TranslationInterface,
-} from '@/shared';
-import {
-  ContainerName,
-  Env,
-  Jwt,
-  Logger,
-  Migrator,
-  PgPool,
-  RedisCache,
-} from '@/shared';
-
-import { RestApi } from './rest-api';
+import { RestApi } from '@/rest-api/rest-api';
+import { CacheInterface, RedisCache } from '@/shared/cache';
+import { ContainerName } from '@/shared/container';
+import { Env } from '@/shared/env';
+import { EventManagerInterface } from '@/shared/event-manager';
+import { Jwt, JwtInterface } from '@/shared/jwt';
+import { Logger, LoggerInterface } from '@/shared/logger';
+import { Migrator, PgPool, PgPoolInterface } from '@/shared/postgres';
+import { TranslationInterface } from '@/shared/translation';
 
 export const setupDependencies = async (restApi: RestApi) => {
   const pgPool = await PgPool.fromEnvironment(

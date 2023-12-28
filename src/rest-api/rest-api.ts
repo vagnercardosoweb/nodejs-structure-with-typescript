@@ -7,17 +7,16 @@ import helmet from 'helmet';
 import responseTime from 'response-time';
 
 import { HOSTNAME } from '@/config/constants';
+import { Common } from '@/shared/common';
 import {
-  AppError,
   Container,
   ContainerInterface,
   ContainerValue,
-  DurationTime,
-  Env,
-  HttpMethod,
-  HttpStatusCode,
-  Utils,
-} from '@/shared';
+} from '@/shared/container';
+import { DurationTime } from '@/shared/duration-time';
+import { HttpMethod, HttpStatusCode } from '@/shared/enums';
+import { Env } from '@/shared/env';
+import { AppError } from '@/shared/errors';
 
 import { AbstractHandler } from './handler';
 import {
@@ -187,8 +186,8 @@ export class RestApi {
         hostname: HOSTNAME,
         requestId: request.context.requestId,
         userAgent: request.headers['user-agent'],
-        brlDate: Utils.createBrlDate(),
-        utcDate: Utils.createUtcDate(),
+        brlDate: Common.createBrlDate(),
+        utcDate: Common.createUtcDate(),
       })
       .end();
   }

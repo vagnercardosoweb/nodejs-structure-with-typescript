@@ -23,7 +23,7 @@ const parseZodMessage = (issue: ZodIssue): string => {
     issue.code === ZodIssueCode.too_big ||
     issue.code === ZodIssueCode.too_small
   ) {
-    let key = issue.inclusive ? 'inclusive' : 'not-inclusive';
+    let key = issue.inclusive ? 'inclusive' : 'not_inclusive';
     if (issue.exact) key = 'exact';
     const translateKey = `schema.${issue.code}.${issue.type}.${key}`;
 

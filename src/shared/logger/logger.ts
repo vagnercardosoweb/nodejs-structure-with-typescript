@@ -1,13 +1,9 @@
 import process from 'node:process';
 
 import { HOSTNAME, PID } from '@/config/constants';
-import {
-  Env,
-  LoggerInterface,
-  LoggerMetadata,
-  LogLevel,
-  Utils,
-} from '@/shared';
+import { Common } from '@/shared/common';
+import { Env } from '@/shared/env';
+import { LoggerInterface, LoggerMetadata, LogLevel } from '@/shared/logger';
 
 class Logger implements LoggerInterface {
   constructor(private readonly id: string) {}
@@ -26,10 +22,10 @@ class Logger implements LoggerInterface {
     const timestamp = new Date().toISOString();
     if (metadata !== undefined) {
       if (!metadata?.$skipRedact) {
-        metadata = Utils.redactRecursiveKeys(metadata);
+        metadata = Common.redactRecursiveKeys(metadata);
       }
       delete metadata.$skipRedact;
-      message = Utils.replaceKeysInString(message, metadata);
+      message = Common.replaceKeysInString(message, metadata);
     }
     const logId = metadata?.$logId ?? this.id;
     delete metadata?.$logId;

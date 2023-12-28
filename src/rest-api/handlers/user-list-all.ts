@@ -1,9 +1,9 @@
 import { UserRepository } from '@/repositories';
 import { AbstractHandler } from '@/rest-api/handler';
 import { UserListAllSvc } from '@/services';
-import { Pagination } from '@/shared';
+import { Pagination } from '@/shared/pagination';
 
-export class ListAllHandler extends AbstractHandler {
+export class UserListAllHandler extends AbstractHandler {
   public async handle() {
     const pagination = Pagination.fromRequest(this.request);
     const userListSvc = new UserListAllSvc(new UserRepository(this.pgPool));

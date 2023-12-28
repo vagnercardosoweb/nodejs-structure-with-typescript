@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { PgPoolInterface } from '@/shared';
+import { PgPoolInterface } from '@/shared/postgres';
 
 enum Prefix {
   DOWN = 'down',

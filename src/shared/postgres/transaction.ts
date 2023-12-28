@@ -1,9 +1,9 @@
+import { InternalServerError } from '@/shared/errors';
 import {
   HandleHook,
-  InternalServerError,
   PgPoolInterface,
   TransactionInterface,
-} from '@/shared';
+} from '@/shared/postgres';
 
 export class Transaction implements TransactionInterface {
   protected started = false;

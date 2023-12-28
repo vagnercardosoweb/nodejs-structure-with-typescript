@@ -1,7 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { ContainerName, Env, JwtInterface } from '@/shared';
+import { ContainerName } from '@/shared/container';
+import { Env } from '@/shared/env';
 import { UnauthorizedError } from '@/shared/errors';
+import { JwtInterface } from '@/shared/jwt';
 
 export const withToken = async (
   request: Request,

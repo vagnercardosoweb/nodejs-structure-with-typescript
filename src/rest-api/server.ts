@@ -6,7 +6,10 @@ import process from 'node:process';
 import { setupDependencies } from '@/rest-api/dependencies';
 import { RestApi } from '@/rest-api/rest-api';
 import { routes } from '@/rest-api/routes';
-import { Env, Logger, parseErrorToObject, SlackAlert } from '@/shared';
+import { Env } from '@/shared/env';
+import { parseErrorToObject } from '@/shared/errors';
+import { Logger } from '@/shared/logger';
+import { SlackAlert } from '@/shared/slack-alert';
 
 const restApi = new RestApi(Env.required('PORT'), Env.required('APP_KEY'));
 const serverId = `V${randomInt(1_000_000_000, 9_999_999_999).toString()}C`;

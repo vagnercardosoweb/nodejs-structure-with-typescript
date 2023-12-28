@@ -1,1 +1,1 @@
-export { UserListAllSvc } from './user/list-all';
+export { UserListAllSvc } from './user-list-all';

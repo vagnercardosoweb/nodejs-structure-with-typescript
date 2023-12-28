@@ -3,7 +3,7 @@ import {
   QueryResultRow as PgQueryResultRow,
 } from 'pg';
 
-import { LoggerInterface } from '@/shared';
+import { LoggerInterface } from '@/shared/logger';
 
 export type HandleHook = (pgPool: PgPoolInterface) => Promise<void> | void;
 

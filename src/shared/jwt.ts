@@ -7,16 +7,17 @@ import {
   VerifyOptions,
 } from 'jsonwebtoken';
 
-import { Env, InternalServerError } from '@/shared';
-import { Utils } from '@/shared/utils';
+import { Common } from '@/shared/common';
+import { Env } from '@/shared/env';
+import { InternalServerError } from '@/shared/errors';
 
 export class Jwt implements JwtInterface {
   private get publicKey() {
-    return Utils.base64ToValue(Env.required('JWT_PUBLIC_KEY'));
+    return Common.base64ToValue(Env.required('JWT_PUBLIC_KEY'));
   }
 
   private get secretKey() {
-    return Utils.base64ToValue(Env.required('JWT_PRIVATE_KEY'));
+    return Common.base64ToValue(Env.required('JWT_PRIVATE_KEY'));
   }
 
   private get algorithm(): Algorithm {

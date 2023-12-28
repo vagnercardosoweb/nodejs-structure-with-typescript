@@ -1,5 +1,5 @@
 import ptBR from '@/languages/pt-br';
-import { Translation } from '@/shared';
+import { Translation } from '@/shared/translation';
 
 export const setupTranslation = () => {
   const translation = new Translation();

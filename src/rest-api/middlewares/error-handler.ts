@@ -1,8 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
 
 import { getTranslationFromRequest } from '@/rest-api/dependencies';
-import { AppError, ContainerName, Env, Logger, SlackAlert } from '@/shared';
-import { parseErrorToObject } from '@/shared/errors';
+import { ContainerName } from '@/shared/container';
+import { Env } from '@/shared/env';
+import { AppError, parseErrorToObject } from '@/shared/errors';
+import { Logger } from '@/shared/logger';
+import { SlackAlert } from '@/shared/slack-alert';
 
 export const errorHandler = (
   error: AppError,

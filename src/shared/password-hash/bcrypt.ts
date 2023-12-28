@@ -1,8 +1,7 @@
 import bcrypt from 'bcryptjs';
 
-import { Env } from '@/shared';
-
-import { PasswordHash } from './index';
+import { Env } from '@/shared/env';
+import { PasswordHash } from '@/shared/password-hash';
 
 export class PasswordHashBcrypt implements PasswordHash {
   public async compare(
@@ -17,7 +16,7 @@ export class PasswordHashBcrypt implements PasswordHash {
     return bcrypt.hash(planTextPassword, salt);
   }
 
-  private async generateSalt(): Promise<string> {
+  protected async generateSalt(): Promise<string> {
     const rounds = Env.get('BCRYPT_SALT_ROUNDS', 12);
     return bcrypt.genSalt(rounds);
   }

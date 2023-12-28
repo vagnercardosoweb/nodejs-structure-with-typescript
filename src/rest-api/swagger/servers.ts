@@ -1,4 +1,4 @@
-import { Env } from '@/shared';
+import { Env } from '@/shared/env';
 
 export default [
   {

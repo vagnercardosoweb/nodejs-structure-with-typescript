@@ -1,46 +1,46 @@
 import { describe, expect, it } from 'vitest';
 
-import { MaskValue, UnprocessableEntityError } from '@/shared';
-
-import { Cpf } from './cpf';
+import { UnprocessableEntityError } from '@/shared/errors';
+import { MaskValue } from '@/shared/mask-value';
+import { Cpf } from '@/shared/values-object';
 
 const validCpf = '63676209079';
 const validCpfWithMask = MaskValue.create(validCpf, '###.###.###-##');
 
-describe('Utils CPF', () => {
-  it('deveria verificar se um cpf é válido', () => {
+describe('shared/values-object/cpf.js', () => {
+  it('should check if a cpf is valid', () => {
     expect(() => new Cpf(validCpf)).not.toThrow();
   });
 
-  it('deveria dar erro ao validar o último digito do cpf', () => {
+  it('should give an error when validating the last digit of the CPF', () => {
     expect(() => new Cpf(`${validCpf.slice(0, 9)}71`)).toThrow();
   });
 
-  it('deveria dar erro ao validar o penúltimo digito do cpf', () => {
+  it('should give an error when validating the penultimate digit of the CPF', () => {
     expect(() => new Cpf(`${validCpf.slice(0, 9)}19`)).toThrow();
   });
 
-  it('deveria retornar true ao validar um cpf válido com mascara', () => {
+  it('should return true when validating a valid cpf with mask', () => {
     expect(() => new Cpf(validCpfWithMask)).not.toThrow();
   });
 
-  it('deveria adicionar a mascara no cpf informado', () => {
+  it('should add the mask to the CPF provided', () => {
     const cpf = new Cpf(validCpf);
     expect(cpf.format()).toEqual(validCpfWithMask);
   });
 
-  it('deveria remover a mascara do cpf informado', () => {
+  it('should remove the mask from the CPF provided', () => {
     const cpf = new Cpf(validCpfWithMask);
     expect(cpf.toString()).toEqual(validCpf);
   });
 
-  it('deveria criar um CPF válido', () => {
+  it('should create a valid CPF', () => {
     expect(() => Cpf.generate()).not.toThrow();
   });
 
   for (let i = 0; i < 10; i += 1) {
     const invalidCpf = String(i).repeat(11);
-    it(`deveria retornar erro com número repetidos no cpf: ${invalidCpf}`, () => {
+    it(`should return an error with repeated numbers in the cpf "${invalidCpf}"`, () => {
       expect(() => new Cpf(invalidCpf)).toThrow(
         new UnprocessableEntityError({
           message: `CPF "${invalidCpf}" invalid format`,

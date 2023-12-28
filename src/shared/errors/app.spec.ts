@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import { INTERNAL_SERVER_ERROR_MESSAGE } from '@/config/constants';
 import { HttpStatusCode } from '@/shared/enums';
-import { AppError, AppErrorInput } from '@/shared/errors';
+import { AppError, AppErrorInput, UnauthorizedError } from '@/shared/errors';
 
-describe('shared/errors/app', () => {
+describe('shared/errors', () => {
   it('create error with default properties', () => {
     const sut = new AppError();
 
@@ -85,6 +85,19 @@ describe('shared/errors/app', () => {
     sut.errorId = 'other_error_id';
     expect(sut.errorId).toEqual('other_error_id');
     expect(sut.errorId).toHaveLength(14);
+  });
+
+  it('should create an instance of "AppError" with the "fromMessage" method', () => {
+    const sut = AppError.fromMessage('any_message');
+    expect(sut.statusCode).toBe(HttpStatusCode.INTERNAL_SERVER_ERROR);
+    expect(sut.message).toEqual('any_message');
+    expect(sut.name).toBe('AppError');
+  });
+
+  it('should create an instance of "UnauthorizedError" with the "fromMessage" method', () => {
+    const sut = UnauthorizedError.fromMessage('any_message');
+    expect(sut.statusCode).toBe(HttpStatusCode.UNAUTHORIZED);
+    expect(sut.name).toBe('UnauthorizedError');
   });
 
   it('should return name as CustomError', () => {

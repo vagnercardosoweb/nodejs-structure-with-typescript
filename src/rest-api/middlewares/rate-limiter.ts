@@ -6,7 +6,8 @@ import {
   RATE_LIMITER_SKIP_SUCCESS,
 } from '@/config/constants';
 import { getCacheClientFromRequest } from '@/rest-api/dependencies';
-import { HttpStatusCode, RateLimiterError } from '@/shared';
+import { HttpStatusCode } from '@/shared/enums';
+import { RateLimiterError } from '@/shared/errors';
 
 export const rateLimiter =
   (

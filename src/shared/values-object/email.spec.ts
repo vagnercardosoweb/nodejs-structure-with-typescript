@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
-import { UnprocessableEntityError } from '@/shared';
+import { UnprocessableEntityError } from '@/shared/errors';
 
 import { Email } from './email';
 
-describe('Utils E-MAIL', () => {
-  it('deveria verificar se o e-mail informado é válido', () => {
+describe('shared/values-object/email.js', () => {
+  it('should check if the email provided is valid', () => {
     expect(() => new Email('any@email.com')).not.toThrow();
     expect(() => new Email('any@email.com.br')).not.toThrow();
   });
 
-  it('deveria verificar se o e-mail informado não é válido', () => {
+  it('should check if the email provided is not valid', () => {
     const values = ['mail', 'mail@', 'mail@domain', '@email', '@email.com'];
     values.forEach((mail) => {
       expect(() => new Email(mail)).toThrow(
@@ -22,7 +22,7 @@ describe('Utils E-MAIL', () => {
     });
   });
 
-  it('deveria recuperar o e-mail informado com método toString', () => {
+  it('should retrieve the email entered with the toString method', () => {
     const values = [
       'any_mail@mail.com',
       'ANY_MAIL2@MAIL.COM',

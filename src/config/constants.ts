@@ -4,6 +4,8 @@ import process from 'node:process';
 export const PID = process.pid;
 export const HOSTNAME = os.hostname();
 
+export const DEFAULT_LOCALE = process.env.DEFAULT_LOCALE || 'pt-br';
+
 export const REDACTED_KEYS = (process.env.REDACTED_KEYS || '').split(',');
 export const REDACTED_TEXT = process.env.REDACTED_TEXT || '[Redacted]';
 

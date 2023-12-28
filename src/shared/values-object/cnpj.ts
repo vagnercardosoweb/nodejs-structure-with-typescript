@@ -1,4 +1,4 @@
-import { UnprocessableEntityError } from '@/shared';
+import { UnprocessableEntityError } from '@/shared/errors';
 
 export class Cnpj {
   constructor(

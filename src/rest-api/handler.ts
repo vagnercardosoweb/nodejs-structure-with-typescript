@@ -1,14 +1,11 @@
 import type { Request, Response } from 'express';
 
-import type {
-  CacheInterface,
-  ContainerInterface,
-  EventManagerInterface,
-  LoggerInterface,
-  PgPoolInterface,
-  TranslationInterface,
-} from '@/shared';
-import { ContainerName } from '@/shared';
+import { CacheInterface } from '@/shared/cache';
+import { ContainerInterface, ContainerName } from '@/shared/container';
+import { EventManagerInterface } from '@/shared/event-manager';
+import { LoggerInterface } from '@/shared/logger';
+import { PgPoolInterface } from '@/shared/postgres';
+import { TranslationInterface } from '@/shared/translation';
 
 export abstract class AbstractHandler {
   protected readonly context: Request['context'];

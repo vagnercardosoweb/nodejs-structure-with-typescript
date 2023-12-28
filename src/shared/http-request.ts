@@ -1,18 +1,18 @@
 import http, { IncomingHttpHeaders } from 'node:http';
 import https, { RequestOptions } from 'node:https';
 
-import { LoggerInterface } from '@/shared';
+import { Common } from '@/shared/common';
 import { HttpMethod, HttpStatusCode } from '@/shared/enums';
 import {
   AppError,
   GatewayTimeoutError,
   InternalServerError,
 } from '@/shared/errors';
-import { Utils } from '@/shared/utils';
+import { LoggerInterface } from '@/shared/logger';
 
 export interface HttpRequest extends RequestOptions {
   body?: string;
-  method?: HttpMethod;
+  method: HttpMethod;
   logger?: LoggerInterface;
   url: string;
 }
@@ -41,8 +41,9 @@ export const httpRequest = async <T = any>(
   options: HttpRequest,
 ): Promise<HttpResponse<T>> => {
   const { url, body, logger, ...rest } = options;
+
+  delete options.logger;
   const httpInstance = url.startsWith('https://') ? https : http;
-  rest.method = rest.method ?? HttpMethod.GET;
 
   if (logger) logger.info('HTTP_REQUEST_STARTED', options);
 
@@ -55,7 +56,7 @@ export const httpRequest = async <T = any>(
         const data = Buffer.concat(chunks).toString().trim();
         const { statusCode = HttpStatusCode.OK, headers } = res;
         resolve({
-          body: Utils.parseStringToJson(data),
+          body: Common.parseStringToJson(data),
           statusCode: Number(statusCode),
           headers,
         });

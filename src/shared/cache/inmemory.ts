@@ -1,6 +1,5 @@
+import { CacheDefaultValue, CacheInterface } from '@/shared/cache';
 import { Logger, LoggerInterface } from '@/shared/logger';
-
-import { CacheDefaultValue, CacheInterface } from './cache';
 
 export class InMemoryCache implements CacheInterface {
   protected readonly logger = Logger;

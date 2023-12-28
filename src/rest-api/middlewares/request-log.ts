@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import morgan from 'morgan';
 
 import { HOSTNAME, PID } from '@/config/constants';
-import { Env } from '@/shared';
+import { Env } from '@/shared/env';
 
 const bypassPaths = ['/docs', '/favicon'];
 

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { Translation } from './index';
+import { Translation } from '@/shared/translation';
 
 const localePtbr: Record<string, any> = {
   key: 'key_ptbr',

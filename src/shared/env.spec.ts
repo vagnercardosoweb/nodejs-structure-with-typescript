@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { NodeEnv } from '@/shared/enums';
 import { Env } from '@/shared/env';
 
-describe('Env', () => {
+describe('shared/env.ts', () => {
   beforeEach(() => {
     process.env.NODE_ENV = NodeEnv.TEST;
     process.env.TEST = 'TEST';

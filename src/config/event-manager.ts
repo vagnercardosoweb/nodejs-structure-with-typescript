@@ -1,4 +1,4 @@
-import { EventManager } from '@/shared';
+import { EventManager } from '@/shared/event-manager';
 
 export const setupEventManager = () => {
   const eventManager = new EventManager();

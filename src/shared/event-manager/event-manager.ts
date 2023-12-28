@@ -1,25 +1,16 @@
-import { InternalServerError, Logger, LoggerInterface, Utils } from '@/shared';
-
-interface Event<T> {
-  name: string;
-  createdAt: Date;
-  payload: T;
-}
-
-type Handler = (event: Event<any>) => Promise<void> | void;
-
-export interface EventManagerInterface {
-  register(eventName: string, handler: Handler): void;
-  dispatch<T>(eventName: string, payload: T): void;
-  remove(eventName: string, handler: Handler): void;
-  clear(): void;
-}
+import { InternalServerError } from '@/shared/errors';
+import {
+  EventManagerHandler,
+  EventManagerInput,
+  EventManagerInterface,
+} from '@/shared/event-manager';
+import { Logger, LoggerInterface } from '@/shared/logger';
 
 export class EventManager implements EventManagerInterface {
-  protected handlers: Record<string, Handler[]> = {};
+  protected handlers: Record<string, EventManagerHandler<any>[]> = {};
   protected logger: LoggerInterface = Logger.withId('EVENT_MANAGER');
 
-  public register(eventName: string, handler: Handler): void {
+  public register<T>(eventName: string, handler: EventManagerHandler<T>): void {
     if (!this.handlers[eventName]) this.handlers[eventName] = [];
 
     if (this.handlers[eventName].includes(handler)) {
@@ -38,7 +29,7 @@ export class EventManager implements EventManagerInterface {
     for (const handler of this.handlers[eventName]) {
       const event = {
         name: eventName,
-        createdAt: Utils.createUtcDate(),
+        createdAt: new Date(),
         payload,
       };
 
@@ -52,10 +43,10 @@ export class EventManager implements EventManagerInterface {
     }
   }
 
-  public remove(eventName: string, handler: Handler): void {
+  public remove<T>(eventName: string, handler: EventManagerHandler<T>): void {
     if (!this.handlers[eventName]) return;
 
-    const filterFn = (h: Handler) => h !== handler;
+    const filterFn = (h: EventManagerHandler<T>) => h !== handler;
     this.handlers[eventName] = this.handlers[eventName].filter(filterFn);
 
     if (!this.handlers[eventName].length) delete this.handlers[eventName];
@@ -65,13 +56,18 @@ export class EventManager implements EventManagerInterface {
     this.handlers = {};
   }
 
-  protected logError(event: Event<any>, err: any): void {
+  protected logError(event: EventManagerInput<any>, error: any): void {
+    const logId = event.payload?.$logId;
+    delete event.payload?.$logId;
+
     this.logger.error('DISPATCH_ERROR', {
       event,
-      originalError: {
-        name: err.name,
-        message: err.message,
-        stack: err.stack,
+      $logId: logId,
+      error: {
+        ...error,
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
       },
     });
   }

@@ -30,64 +30,60 @@ export const schema = {
     'O campo "{{path}}" aceita apenas os valores "{{options}}".',
   [ZodIssueCode.too_small]: {
     array: {
-      'exact':
+      exact:
         'O campo "{{path}}" deve conter exatamente "{{minimum}}" elemento(s).',
-      'inclusive':
+      inclusive:
         'O campo "{{path}}" deve conter no mínimo "{{minimum}}" elemento(s).',
-      'not-inclusive':
+      not_inclusive:
         'O campo "{{path}}" deve conter mais de "{{minimum}}" elemento(s).',
     },
     string: {
-      'exact':
+      exact:
         'O campo "{{path}}" deve conter exatamente "{{minimum}}" caracter(es).',
-      'inclusive':
+      inclusive:
         'O campo "{{path}}" deve conter pelo menos "{{minimum}}" caracter(es).',
-      'not-inclusive':
+      not_inclusive:
         'O campo "{{path}}" deve conter mais de "{{minimum}}" caracter(es).',
     },
     number: {
-      'exact':
+      exact:
         'O campo "{{path}}" deve conter exatamente "{{minimum}}" caracter(es).',
-      'inclusive':
-        'O campo "{{path}}" deve ser maior ou igual a "{{minimum}}".',
-      'not-inclusive': 'O campo "{{path}}" deve ser maior que "{{minimum}}".',
+      inclusive: 'O campo "{{path}}" deve ser maior ou igual a "{{minimum}}".',
+      not_inclusive: 'O campo "{{path}}" deve ser maior que "{{minimum}}".',
     },
     date: {
-      'exact': 'O campo "{{path}}" deve ser exatamente "{{isoDate}}".',
-      'inclusive':
-        'O campo "{{path}}" deve ser maior ou igual a "{{isoDate}}".',
-      'not-inclusive': 'O campo "{{path}}" deve ser maior que "{{isoDate}}".',
+      exact: 'O campo "{{path}}" deve ser exatamente "{{isoDate}}".',
+      inclusive: 'O campo "{{path}}" deve ser maior ou igual a "{{isoDate}}".',
+      not_inclusive: 'O campo "{{path}}" deve ser maior que "{{isoDate}}".',
     },
   },
   [ZodIssueCode.too_big]: {
     array: {
-      'exact':
+      exact:
         'O campo "{{path}}" deve conter exatamente "{{maximum}}" elemento(s).',
-      'inclusive':
+      inclusive:
         'O campo "{{path}}" deve conter no máximo "{{maximum}}" elemento(s).',
-      'not-inclusive':
+      not_inclusive:
         'O campo "{{path}}" deve conter menos de "{{maximum}}" elemento(s).',
     },
     string: {
-      'exact':
+      exact:
         'O campo "{{path}}" deve conter exatamente "{{maximum}}" caracter(es).',
-      'inclusive':
+      inclusive:
         'O campo "{{path}}" pode conter no máximo "{{maximum}}" caracter(es).',
-      'not-inclusive':
+      not_inclusive:
         'O campo "{{path}}" deve conter menos que "{{maximum}}" caracter(es).',
     },
     number: {
-      'exact':
+      exact:
         'O campo "{{path}}" deve conter exatamente "{{maximum}}" caracter(es).',
-      'inclusive':
-        'O campo "{{path}}" deve ser menor ou igual a "{{maximum}}".',
-      'not-inclusive': 'O campo "{{path}}" deve ser menor que "{{maximum}}".',
+      inclusive: 'O campo "{{path}}" deve ser menor ou igual a "{{maximum}}".',
+      not_inclusive: 'O campo "{{path}}" deve ser menor que "{{maximum}}".',
     },
     date: {
-      'exact': 'O campo "{{path}}" deve ser exatamente "{{isoDate}}".',
-      'inclusive':
-        'O campo "{{path}}" deve ser menor ou igual a "{{isoDate}}".',
-      'not-inclusive': 'O campo "{{path}}" deve ser menor que "{{isoDate}}".',
+      exact: 'O campo "{{path}}" deve ser exatamente "{{isoDate}}".',
+      inclusive: 'O campo "{{path}}" deve ser menor ou igual a "{{isoDate}}".',
+      not_inclusive: 'O campo "{{path}}" deve ser menor que "{{isoDate}}".',
     },
   },
 };

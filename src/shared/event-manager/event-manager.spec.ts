@@ -1,13 +1,15 @@
-import { EventManager, InternalServerError, Utils } from '@/shared';
+import { Common } from '@/shared/common';
+import { InternalServerError } from '@/shared/errors';
+import { EventManager } from '@/shared/event-manager';
 
 let eventManager: EventManager;
 
-describe('EventManager', () => {
+describe('shared/event-manager', () => {
   beforeEach(() => {
     eventManager = new EventManager();
   });
 
-  it('deveria registrar um evento ', () => {
+  it('should register an event', () => {
     const handler = vi.fn();
     const eventName = 'test';
     eventManager.register(eventName, handler);
@@ -16,7 +18,7 @@ describe('EventManager', () => {
     expect(handlers[eventName][0]).toStrictEqual(handler);
   });
 
-  it('deveria remover os eventos registrados', () => {
+  it('should remove the registered events', () => {
     const handler = vi.fn();
     const handler2 = vi.fn();
     const eventName = 'test';
@@ -37,7 +39,7 @@ describe('EventManager', () => {
     expect(handlers).toStrictEqual({});
   });
 
-  it('deveria lançar um erro ao registrar mais de um evento com mesmo handler', () => {
+  it('should throw an error when registering more than one event with the same handler', () => {
     const handler = vi.fn();
     const eventName = 'test';
     eventManager.register(eventName, handler);
@@ -49,7 +51,7 @@ describe('EventManager', () => {
     );
   });
 
-  it('deveria limpar todos os eventos', () => {
+  it('should clear all events', () => {
     const handler = vi.fn();
     const handler2 = vi.fn();
     const eventName = 'test';
@@ -61,7 +63,7 @@ describe('EventManager', () => {
     expect((eventManager as any).handlers).toStrictEqual({});
   });
 
-  it('deveria registrar um evento e realizar o disparar', () => {
+  it('should register an event and trigger it', () => {
     const handler = vi.fn();
     const eventName = 'test';
 
@@ -76,13 +78,14 @@ describe('EventManager', () => {
     });
   });
 
-  it('deveria disparar um evento (sync) que lança um erro e não propaga para o chamador e verificar se realizou o log', () => {
+  it('should trigger an event (sync) that throws an error and does not propagate to the caller and check if the log was performed', () => {
     const eventName = 'test';
     const loggerSpy = vi.spyOn((eventManager as any).logger, 'error');
 
     const handler = vi.fn();
+    const error = new Error('test');
     handler.mockImplementation(() => {
-      throw new Error('test');
+      throw error;
     });
 
     eventManager.register(eventName, handler);
@@ -91,20 +94,20 @@ describe('EventManager', () => {
 
     expect(loggerSpy).toBeCalledTimes(1);
     expect(loggerSpy).toBeCalledWith('DISPATCH_ERROR', {
+      error: {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      },
       event: {
         name: eventName,
         createdAt: expect.any(Date),
         payload: { id: 'id' },
       },
-      originalError: {
-        name: 'Error',
-        message: 'test',
-        stack: expect.any(String),
-      },
     });
   });
 
-  it('deveria disparar um evento (async) que lança um erro e não propaga para o chamador e verificar se realizou o log', async () => {
+  it('should trigger an event (async) that throws an error and does not propagate to the caller and check if the log was performed', async () => {
     const eventName = 'test';
     const loggerSpy = vi.spyOn((eventManager as any).logger, 'error');
 
@@ -117,7 +120,7 @@ describe('EventManager', () => {
     expect(() => eventManager.dispatch(eventName, { id: 'id' })).not.toThrow();
     expect(handler).toBeCalledTimes(1);
 
-    await Utils.sleep(10);
+    await Common.sleep(0);
 
     expect(loggerSpy).toBeCalledTimes(1);
     expect(loggerSpy).toBeCalledWith('DISPATCH_ERROR', {
@@ -126,7 +129,7 @@ describe('EventManager', () => {
         createdAt: expect.any(Date),
         payload: { id: 'id' },
       },
-      originalError: {
+      error: {
         name: 'Error',
         message: 'test',
         stack: expect.any(String),
@@ -134,11 +137,11 @@ describe('EventManager', () => {
     });
   });
 
-  it('deveria tentar remover um evento que não existe', () => {
+  it('should try to remove an event that does not exist', () => {
     expect(() => eventManager.remove('test', vi.fn())).not.toThrowError();
   });
 
-  it('deveria tentar disparar um evento que não existe', () => {
+  it("should try to trigger an event that doesn't exist", () => {
     expect(() => eventManager.dispatch('test', vi.fn())).not.toThrowError();
   });
 });

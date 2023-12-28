@@ -1,4 +1,4 @@
-import { LoggerInterface } from '@/shared';
+import { LoggerInterface } from '@/shared/logger';
 
 export interface CacheInterface {
   set<T>(key: string, value: T, expireInSeconds?: number): Promise<void>;

@@ -1,8 +1,5 @@
-import {
-  ContainerInterface,
-  ContainerValue,
-  InternalServerError,
-} from '@/shared';
+import { ContainerInterface, ContainerValue } from '@/shared/container';
+import { InternalServerError } from '@/shared/errors';
 
 export class Container implements ContainerInterface {
   public items = new Map<string, any>();

@@ -1,8 +1,10 @@
 import { describe, expect, test } from 'vitest';
 
-import { concurrency, Env, go, Utils } from '@/shared';
+import { Common } from '@/shared/common';
+import { concurrency, go } from '@/shared/concurrency';
+import { Env } from '@/shared/env';
 
-describe.skipIf(Env.get('CI'))('shared/utils/concurrency', () => {
+describe.skipIf(Env.get('CI'))('shared/concurrency.ts', () => {
   test('can execute one function with limit 1', async () => {
     const limit1 = concurrency(1);
     const res: number[] = [];
@@ -51,7 +53,7 @@ describe.skipIf(Env.get('CI'))('shared/utils/concurrency', () => {
         const limit1 = concurrency(1);
         const res: number[] = [];
         const create = (value: number) => async () => {
-          await Utils.sleep(Math.round(Math.random() * 10) + 1);
+          await Common.sleep(Math.round(Math.random() * 10) + 1);
           res.push(value);
         };
         await Promise.all([
@@ -82,7 +84,7 @@ describe.skipIf(Env.get('CI'))('shared/utils/concurrency', () => {
               return async () => {
                 running[index] = true;
                 await assert();
-                await Utils.sleep(Math.round(Math.random() * 10) + 1);
+                await Common.sleep(Math.round(Math.random() * 10) + 1);
                 await assert();
                 running[index] = false;
               };
@@ -109,7 +111,7 @@ describe.skipIf(Env.get('CI'))('shared/utils/concurrency', () => {
               return async () => {
                 if (index !== expectedIndex) throw new Error('Wrong order');
                 expectedIndex++;
-                await Utils.sleep(Math.round(Math.random() * 10) + 1);
+                await Common.sleep(Math.round(Math.random() * 10) + 1);
               };
             };
             const promises: Promise<any>[] = [];

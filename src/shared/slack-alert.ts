@@ -1,13 +1,11 @@
 import util from 'node:util';
 
 import { HOSTNAME } from '@/config/constants';
-import {
-  Env,
-  HttpMethod,
-  httpRequest,
-  InternalServerError,
-  Utils,
-} from '@/shared';
+import { Common } from '@/shared/common';
+import { HttpMethod } from '@/shared/enums';
+import { Env } from '@/shared/env';
+import { InternalServerError } from '@/shared/errors';
+import { httpRequest } from '@/shared/http-request';
 
 type Input = {
   color?: 'error' | 'warning' | 'info' | 'success' | string;
@@ -67,16 +65,16 @@ export class SlackAlert {
               HOSTNAME,
             ),
             fields: [
-              ...Object.entries(Utils.removeUndefined(fields)).map(
+              ...Object.entries(Common.removeUndefined(fields)).map(
                 ([title, value]) => ({
-                  title: Utils.ucFirst(title),
+                  title: Common.ucFirst(title),
                   short: true,
                   value,
                 }),
               ),
-              ...Object.entries(Utils.removeUndefined(sections)).map(
+              ...Object.entries(Common.removeUndefined(sections)).map(
                 ([title, value]) => ({
-                  title: Utils.ucFirst(title),
+                  title: Common.ucFirst(title),
                   short: false,
                   value,
                 }),

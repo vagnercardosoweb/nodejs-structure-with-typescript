@@ -1,6 +1,7 @@
 import { expect } from 'vitest';
 
-import { Container, InternalServerError } from '@/shared';
+import { Container } from '@/shared/container';
+import { InternalServerError } from '@/shared/errors';
 
 const arrayAsArray = [[{ name: 'any_name' }], [1, 2, 3], ['a', 'b', 'c']];
 const testCases = {
@@ -26,7 +27,7 @@ const testCases = {
 };
 
 describe('shared/container', () => {
-  it('deveria adicionar uma classe construtora ao container', () => {
+  it('should add a constructor class to the container', () => {
     const container = new Container();
     const testInstance = new (class Test {
       public test() {
@@ -42,7 +43,7 @@ describe('shared/container', () => {
     expect(container.items.has('class')).toBeFalsy();
   });
 
-  it('deveria lançar um erro ao tentar recuperar um item que não foi registrado', () => {
+  it('should throw an error when trying to retrieve an item that has not been registered', () => {
     const container = new Container();
     const id = 'no_exist_key';
     expect(() => container.get(id)).toThrowError(
@@ -53,7 +54,7 @@ describe('shared/container', () => {
     );
   });
 
-  it('deveria criar, recuperar e recriar um item já resolvido', () => {
+  it('should create, retrieve and recreate an already resolved item', () => {
     const container = new Container();
     container.set('key', 'value');
 
@@ -68,7 +69,7 @@ describe('shared/container', () => {
     expect(container.items.has('key')).toBeTruthy();
   });
 
-  it('deveria recuperar um item já resolvido no método [get]', () => {
+  it('should retrieve an item already resolved in the [get] method', () => {
     const container = new Container();
     container.set('key', 'value');
     expect(container.resolved.has('key')).toBeFalsy();
@@ -80,14 +81,14 @@ describe('shared/container', () => {
     expect(container.items.has('key')).toBeFalsy();
   });
 
-  it('deveria verifica se um item existe com método [has] sem ser resolvido', () => {
+  it('should check if an item exists with method [has] without being resolved', () => {
     const container = new Container();
     container.set('key', 'value');
     expect(container.resolved.has('key')).toBeFalsy();
     expect(container.has('key')).toBeTruthy();
   });
 
-  it('deveria verifica se um item existe com método [has] resolvido', () => {
+  it('should check if an item exists with method [has] resolved', () => {
     const container = new Container();
     container.set('key', 'value');
     expect(container.get('key')).toStrictEqual('value');
@@ -95,12 +96,12 @@ describe('shared/container', () => {
     expect(container.has('key')).toBeTruthy();
   });
 
-  it('deveria verifica se um item não existe com método [has]', () => {
+  it('should check if an item does not exist with [has] method', () => {
     const container = new Container();
     expect(container.has('key')).toBeFalsy();
   });
 
-  it('deveria realizar o clone do objeto do container', () => {
+  it('should clone the container object', () => {
     const container = new Container();
     container.set('key', 'value');
 
@@ -118,7 +119,7 @@ describe('shared/container', () => {
   });
 
   Object.entries(testCases).forEach(([key, value]) => {
-    it(`deveria criar e validar o item com a chave [${key}] nos registros`, () => {
+    it(`should create and validate the item with the key [${key}] in the records`, () => {
       const container = new Container();
       container.set(key, value);
 

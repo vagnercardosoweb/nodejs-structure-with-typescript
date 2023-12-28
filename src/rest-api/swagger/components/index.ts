@@ -1,4 +1,4 @@
-import { HttpStatusCode } from '@/shared';
+import { HttpStatusCode } from '@/shared/enums';
 
 export default {
   responses: {

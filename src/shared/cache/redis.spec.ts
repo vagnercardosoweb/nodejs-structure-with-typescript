@@ -1,7 +1,8 @@
 import IORedis from 'ioredis';
 import { beforeEach, describe, expect, it, Mocked, vi } from 'vitest';
 
-import { Logger, RedisCache } from '@/shared';
+import { RedisCache } from '@/shared/cache';
+import { Logger } from '@/shared/logger';
 
 vi.mock('ioredis', () => {
   const client = vi.fn();
@@ -38,84 +39,84 @@ describe('shared/cache/redis', () => {
     redisClient = new IORedis() as any;
   });
 
-  it('deveria conectar com sucesso', async () => {
+  it('should connect successfully', async () => {
     await expect(cacheClient.connect()).resolves.toBeTruthy();
     expect(redisClient.connect).toHaveBeenCalledTimes(1);
     expect((cacheClient as any).connected).toBeTruthy();
   });
 
-  it('deveria executar apenas 1x a conexão', async () => {
+  it('should only perform 1x connection', async () => {
     await cacheClient.connect();
     await cacheClient.connect();
     expect(redisClient.connect).toHaveBeenCalledTimes(1);
   });
 
-  it('deveria fechar a conexão com sucesso', async () => {
+  it('should close the connection successfully', async () => {
     await cacheClient.connect();
     await expect(cacheClient.close()).resolves;
     expect(redisClient.quit).toHaveBeenCalledTimes(1);
     expect((cacheClient as any).connected).toBeFalsy();
   });
 
-  it('deveria executar apenas 1x o fechamento da conexão', async () => {
+  it('should only close the connection once', async () => {
     await cacheClient.connect();
     await cacheClient.close();
     await cacheClient.close();
     expect(redisClient.quit).toHaveBeenCalledTimes(1);
   });
 
-  it('deveria criar uma instância com ":" no final do prefix', () => {
+  it('should create an instance with ":" at the end of the prefix', () => {
     cacheClient = new RedisCache(logger, { keyPrefix: 'cache:' } as any);
     expect((cacheClient as any).keyPrefix).toStrictEqual('cache:');
   });
 
-  it('deveria criar uma instância com base nas variáveis de ambiente', () => {
+  it('should create an instance based on environment variables', () => {
     expect(() => RedisCache.fromEnvironment(logger)).not.toThrow();
   });
 
-  it(`deveria recuperar um cache com uma chave que não existe e retornar null`, () => {
+  it(`should retrieve a cache with a key that doesn't exist and return "null"`, () => {
     redisClient.get.mockResolvedValue(null);
     expect(cacheClient.get('any_key')).resolves.toBe(null);
     expect(redisClient.get).toHaveBeenCalledTimes(1);
   });
 
-  it(`deveria recuperar um cache existente`, () => {
+  it('should retrieve an existing cache', () => {
     redisClient.get.mockResolvedValue(JSON.stringify(testValues[7]));
     expect(cacheClient.get('key')).resolves.toStrictEqual(testValues[7]);
     expect(redisClient.get).toHaveBeenCalledTimes(1);
   });
 
-  it('deveria limpar todo cache com sucesso', async () => {
+  it('should clear all cache successfully', async () => {
     redisClient.flushdb.mockResolvedValue('OK');
     await expect(cacheClient.clear()).resolves.toBeTruthy();
     expect(redisClient.flushdb).toHaveBeenCalledTimes(1);
   });
 
-  it('deveria retornar false ao recuperar um cache que não existe', async () => {
+  it('should return false when retrieving a cache that does not exist', async () => {
     redisClient.exists.mockResolvedValue(0);
     await expect(cacheClient.has('key')).resolves.toBeFalsy();
     expect(redisClient.exists).toHaveBeenCalledWith('key');
     expect(redisClient.exists).toHaveBeenCalledTimes(1);
   });
 
-  it('deveria retornar true ao recuperar um cache que existe', async () => {
+  it('should return true when retrieving a cache that exists', async () => {
     redisClient.exists.mockResolvedValue(1);
     await expect(cacheClient.has('key')).resolves.toBeTruthy();
   });
 
-  it('deveria retornar true ao remover um cache que existe', async () => {
+  it('should return true when removing a cache that exists', async () => {
     redisClient.del.mockResolvedValue(1);
     await expect(cacheClient.delete('key')).resolves.toBeTruthy();
     expect(redisClient.del).toHaveBeenCalledWith('key');
     expect(redisClient.del).toHaveBeenCalledTimes(1);
   });
 
-  it('deveria retornar false ao remover um cache que não existe', async () => {
+  it('should return false when removing a cache that does not exist', async () => {
     redisClient.del.mockResolvedValue(1);
     await expect(cacheClient.delete('key')).resolves.toBeTruthy();
   });
 
-  it('deveria remover o cache com base em um prefix', async () => {
+  it('should remove cache based on a prefix', async () => {
     const keys = ['key:1', 'key:2'];
     redisClient.keys.mockResolvedValue(keys.map((k) => `cache:${k}`));
     await cacheClient.deleteByPrefix('key:*');
@@ -130,7 +131,7 @@ describe('shared/cache/redis', () => {
     });
   });
 
-  it('deveria recupera valores com prefix na chave do cache', async () => {
+  it('should retrieve values with prefix in the cache key', async () => {
     const keys = ['key:1', 'key:2'];
     redisClient.keys.mockResolvedValue(keys.map((k) => `cache:${k}`));
 
@@ -147,7 +148,7 @@ describe('shared/cache/redis', () => {
     });
   });
 
-  it(`deveria configurar um cache com expiração`, async () => {
+  it('should configure an expiring cache', async () => {
     await cacheClient.set('any_key', testValues[0], 60);
 
     expect(redisClient.set).toHaveBeenCalledTimes(1);
@@ -159,7 +160,7 @@ describe('shared/cache/redis', () => {
     );
   });
 
-  it('deveria criar uma instância do cache com outro logger id', () => {
+  it('should create a cache instance with another logger id', () => {
     const clone = cacheClient.withLogger(Logger.withId('other_id'));
     expect((clone as any).logger.id).toStrictEqual('other_id');
     expect(clone).not.toStrictEqual(cacheClient);
@@ -168,7 +169,7 @@ describe('shared/cache/redis', () => {
   for (let value of testValues) {
     const valueType = Object.prototype.toString.call(value);
 
-    it(`deveria recuperar um cache com uma chave que não existe com tipo de dados: ${valueType}`, async () => {
+    it(`should retrieve a cache with a key that does not exist with data type "${valueType}"`, async () => {
       redisClient.get.mockResolvedValue(null);
 
       const result = await cacheClient.get('key', value);
@@ -179,7 +180,7 @@ describe('shared/cache/redis', () => {
       expect(redisClient.get).toHaveBeenCalledWith('key');
     });
 
-    it(`deveria criar um cache e retornar o mesmo valor com o tipo de dados: ${valueType}`, async () => {
+    it(`should create a cache and return the same value with the data type "${valueType}"`, async () => {
       await cacheClient.set('key', value);
 
       expect(redisClient.set).toHaveBeenCalledTimes(1);
