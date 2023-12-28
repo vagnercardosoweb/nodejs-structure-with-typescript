@@ -1,7 +1,8 @@
 require('../dist/config/module-alias');
 
 const path = require('node:path');
-const { Logger, Migrator, PgPool } = require('@/shared');
+const { Migrator, PgPool } = require('@/shared/postgres');
+const { Logger } = require('@/shared/logger');
 
 (async () => {
   const logger = Logger.withId('DB_MIGRATOR');
