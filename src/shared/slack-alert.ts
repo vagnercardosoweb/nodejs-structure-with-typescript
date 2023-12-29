@@ -38,7 +38,7 @@ export class SlackAlert {
 
     if (!options.enabled) return;
 
-    const membersIdFromEnv = Env.get('SLACK_MEMBERS_ID', '').splice(',');
+    const membersIdFromEnv = Env.get('SLACK_MEMBERS_ID', '').split(',');
     const membersIdUnique = Array.from(
       new Set<string>([...memberIds, ...membersIdFromEnv]),
     );
