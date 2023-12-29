@@ -1,8 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { INTERNAL_SERVER_ERROR_MESSAGE } from '@/config/constants';
 import { HttpStatusCode } from '@/shared/enums';
-import { AppError, parseErrorToObject } from '@/shared/errors';
+import {
+  AppError,
+  INTERNAL_SERVER_ERROR_MESSAGE,
+  parseErrorToObject,
+} from '@/shared/errors';
 
 describe('AppError', () => {
   it('should parse the default error to the AppError', () => {

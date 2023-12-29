@@ -4,11 +4,12 @@ import {
   EventManagerInput,
   EventManagerInterface,
 } from '@/shared/event-manager';
-import { Logger, LoggerInterface } from '@/shared/logger';
+import { LoggerInterface } from '@/shared/logger';
 
 export class EventManager implements EventManagerInterface {
   protected handlers: Record<string, EventManagerHandler<any>[]> = {};
-  protected logger: LoggerInterface = Logger.withId('EVENT_MANAGER');
+
+  public constructor(protected readonly logger: LoggerInterface) {}
 
   public register<T>(eventName: string, handler: EventManagerHandler<T>): void {
     if (!this.handlers[eventName]) this.handlers[eventName] = [];

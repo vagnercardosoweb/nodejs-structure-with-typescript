@@ -5,23 +5,23 @@ export class Container implements ContainerInterface {
   public items = new Map<string, any>();
   public resolved = new Map<string, any>();
 
-  public get<T>(id: string): T {
-    if (this.resolved.has(id)) {
-      return this.resolved.get(id);
+  public get<T>(name: string): T {
+    if (this.resolved.has(name)) {
+      return this.resolved.get(name);
     }
 
-    if (!this.items.has(id)) {
+    if (!this.items.has(name)) {
       throw new InternalServerError({
-        message: `Container value "${id}" has not been defined`,
+        message: `Container value "${name}" has not been defined`,
         code: 'CONTAINER:NOT_EXIST',
       });
     }
 
-    const item = this.items.get(id);
+    const item = this.items.get(name);
     const resolved = typeof item === 'function' ? item.call(this) : item;
 
-    this.resolved.set(id, resolved);
-    this.items.delete(id);
+    this.resolved.set(name, resolved);
+    this.items.delete(name);
 
     return resolved;
   }
@@ -33,14 +33,14 @@ export class Container implements ContainerInterface {
     return container;
   }
 
-  public has(id: string): boolean {
-    if (this.resolved.has(id)) return true;
-    if (this.items.has(id)) return true;
+  public has(name: string): boolean {
+    if (this.resolved.has(name)) return true;
+    if (this.items.has(name)) return true;
     return false;
   }
 
-  public set(id: string, value: ContainerValue): void {
-    this.items.set(id, value);
-    if (this.resolved.has(id)) this.resolved.delete(id);
+  public set(name: string, value: ContainerValue): void {
+    this.items.set(name, value);
+    if (this.resolved.has(name)) this.resolved.delete(name);
   }
 }

@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { INTERNAL_SERVER_ERROR_MESSAGE } from '@/config/constants';
 import { HttpStatusCode } from '@/shared/enums';
-import { AppError, AppErrorInput, UnauthorizedError } from '@/shared/errors';
+import {
+  AppError,
+  AppErrorInput,
+  INTERNAL_SERVER_ERROR_MESSAGE,
+  UnauthorizedError,
+} from '@/shared/errors';
 
 describe('shared/errors', () => {
   it('create error with default properties', () => {

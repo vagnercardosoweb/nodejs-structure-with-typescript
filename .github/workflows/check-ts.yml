@@ -6,7 +6,6 @@ concurrency:
 
 env:
   REDIS_PORT: '6379'
-  CHECK_ENVFILE: 'false'
   REDIS_HOST: 'localhost'
   REDACTED_KEYS: 'password,testObject'
   TZ_UTC: 'UTC'

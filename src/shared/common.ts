@@ -1,12 +1,11 @@
 import childProcess from 'node:child_process';
+import console from 'node:console';
 import { randomBytes, randomInt, randomUUID } from 'node:crypto';
 import { promisify } from 'node:util';
 
-import { REDACTED_KEYS, REDACTED_TEXT } from '@/config/constants';
 import { HttpStatusCode } from '@/shared/enums';
 import { Env } from '@/shared/env';
-import { parseErrorToObject, UnprocessableEntityError } from '@/shared/errors';
-import { Logger } from '@/shared/logger';
+import { UnprocessableEntityError } from '@/shared/errors';
 
 export class Common {
   public static DAY_IN_SECONDS = 86400;
@@ -129,39 +128,6 @@ export class Common {
   public static isImageBase64(value: string): boolean {
     if (!Common.isString(value)) return false;
     return /data:image\/(.+);/gm.test(value);
-  }
-
-  public static redactRecursiveKeys<T>(data: T, keys: string[] = []): T {
-    if (REDACTED_KEYS.length === 0) return data;
-    if (!Common.isArray(data) && !Common.isObject(data)) return data;
-
-    const result = Common.removeUndefined(data) as any;
-    const uniqueKeys = new Set(
-      keys.concat(REDACTED_KEYS).map((k) => k.trim().toLowerCase()),
-    );
-
-    for (const key of Object.keys(result)) {
-      const keyAsLower = key.toLowerCase();
-
-      if (uniqueKeys.has(keyAsLower) || Common.isImageBase64(result[key])) {
-        result[key] = REDACTED_TEXT;
-        continue;
-      }
-
-      if (Common.isObject(result[key])) {
-        result[key] = Common.redactRecursiveKeys(result[key], keys);
-        continue;
-      }
-
-      if (Common.isArray(result[key])) {
-        result[key] = result[key].map((row: any) => {
-          if (Common.isImageBase64(row)) return REDACTED_TEXT;
-          return Common.redactRecursiveKeys(row, keys);
-        });
-      }
-    }
-
-    return result;
   }
 
   public static parseNameToParts(name: string) {
@@ -296,7 +262,7 @@ export class Common {
       return { ...defaultValue, ...JSON.parse(normalizedJson) };
     } catch (e: any) {
       if (Common.isUndefined(defaultValue)) throw e;
-      Logger.error('Utils.parseStringToJson', parseErrorToObject(e));
+      console.error('Common.parseStringToJson', e);
       return defaultValue;
     }
   }

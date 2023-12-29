@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import morgan from 'morgan';
 
-import { HOSTNAME, PID } from '@/config/constants';
-import { Env } from '@/shared/env';
+import { constants } from '@/config/constants';
+import { getLoggerFromRequest } from '@/rest-api/dependencies';
+import { ContainerName } from '@/shared/container';
 
 const bypassPaths = ['/docs', '/favicon'];
 
@@ -13,21 +14,23 @@ export const requestLog = (
 ) => {
   const requestUrl = request.path;
   if (
-    Env.isTesting() ||
     requestUrl === '/' ||
+    constants.IS_TESTING ||
     bypassPaths.some((path) => requestUrl.startsWith(path))
   ) {
     return next();
   }
 
   const path = `${request.method.toUpperCase()} ${requestUrl}`;
-  const body = Env.get('SHOW_BODY_HTTP_REQUEST_LOGGER', false)
+  const serverId = request.container.get<string>(ContainerName.SERVER_ID);
+  const body = constants.SHOW_BODY_HTTP_REQUEST_LOGGER
     ? request.body
     : undefined;
 
-  request.logger.info('HTTP_REQUEST_STARTED', {
+  getLoggerFromRequest(request).info('HTTP_REQUEST_STARTED', {
     ip: request.ip,
     path,
+    serverId,
     time: request.durationTime.format(),
     body,
   });
@@ -39,14 +42,15 @@ export const requestLog = (
     return JSON.stringify({
       id: tokens.res(req, res, 'x-request-id'),
       level: statusCode < 200 || statusCode >= 400 ? 'ERROR' : 'INFO',
-      pid: PID,
-      hostname: HOSTNAME,
+      pid: constants.PID,
+      hostname: constants.HOSTNAME,
       timestamp: tokens.date(req, res, 'iso'),
       message: 'HTTP_REQUEST_COMPLETED',
       metadata: {
         ip: tokens['remote-addr'](req, res),
         path,
         routePath,
+        serverId,
         length: tokens.res(req, res, 'content-length'),
         version: tokens['http-version'](req, res),
         referrer: tokens.referrer(req, res),

@@ -1,19 +1,15 @@
 import 'vitest/globals';
 
-import type {
-  ContainerInterface,
-  DurationTimeInterface,
-  JwtDecoded,
-  LoggerInterface,
-} from '@/shared';
+import type { ContainerInterface } from '@/shared/container';
+import type { DurationTimeInterface } from '@/shared/duration-time';
+import type { JwtDecoded } from '@/shared/jwt';
 
 declare global {
   export namespace Express {
     export interface Request {
-      logger: LoggerInterface;
       container: ContainerInterface;
-      originalMethod?: string;
       durationTime: DurationTimeInterface;
+      originalMethod?: string;
       context: {
         language: string;
         requestId: string;

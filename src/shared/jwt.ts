@@ -1,65 +1,50 @@
 import {
   Algorithm,
-  JwtPayload,
+  JwtPayload as JwtPayloadOriginal,
+  Secret,
   sign,
   SignOptions,
   verify,
   VerifyOptions,
 } from 'jsonwebtoken';
 
-import { Common } from '@/shared/common';
-import { Env } from '@/shared/env';
 import { InternalServerError } from '@/shared/errors';
 
 export class Jwt implements JwtInterface {
-  private get publicKey() {
-    return Common.base64ToValue(Env.required('JWT_PUBLIC_KEY'));
-  }
+  protected static ALGORITHM: Algorithm = 'RS256';
+  protected static EXPIRES_IN = 604800; // 7 days
 
-  private get secretKey() {
-    return Common.base64ToValue(Env.required('JWT_PRIVATE_KEY'));
-  }
+  public constructor(
+    protected readonly privateKey: Secret,
+    protected readonly publicKey: Secret,
+  ) {}
 
-  private get algorithm(): Algorithm {
-    return 'RS256';
-  }
-
-  private get expiresIn() {
-    const expiresIn7day = 604800;
-    return Env.get('JWT_EXPIRES_IN_SECONDS', expiresIn7day);
-  }
-
-  private get audience() {
-    return Env.required('JWT_AUDIENCE');
-  }
-
-  private get issuer() {
-    return Env.required('JWT_ISSUER');
-  }
-
-  public encode(payload: JwtEncoded, options?: SignOptions): string {
-    if (!payload.sub) {
+  public encode(
+    input: JwtPayload,
+    options?: Omit<SignOptions, 'algorithm'>,
+  ): string {
+    if (!input.sub) {
       throw new InternalServerError({
         message: 'When creating a token, the "sub" is mandatory.',
-        metadata: { payload, options },
+        metadata: { input, options },
       });
     }
-    return sign(payload, this.secretKey, {
-      algorithm: this.algorithm,
-      expiresIn: this.expiresIn,
+    const expiresIn = options?.expiresIn ?? Jwt.EXPIRES_IN;
+    return sign(input, this.privateKey, {
+      expiresIn,
       allowInsecureKeySizes: true,
-      audience: this.audience,
-      issuer: this.issuer,
       ...options,
+      algorithm: Jwt.ALGORITHM,
     });
   }
 
-  public decode(token: string, options?: VerifyOptions): JwtDecoded {
+  public decode(
+    token: string,
+    options?: Omit<VerifyOptions, 'algorithms'>,
+  ): JwtDecoded {
     const decoded = verify(token, this.publicKey, {
-      algorithms: [this.algorithm],
-      audience: this.audience,
-      issuer: this.issuer,
       ...options,
+      algorithms: [Jwt.ALGORITHM],
     }) as JwtDecoded;
     if (!decoded.sub) {
       throw new InternalServerError({
@@ -71,18 +56,14 @@ export class Jwt implements JwtInterface {
   }
 }
 
-type JwtEncoded = {
-  meta?: Record<string, any>;
-  sub: any;
-};
-
-export interface JwtDecoded extends JwtPayload {
+export type JwtPayload = JwtPayloadOriginal & { sub: any };
+export type JwtDecoded = JwtPayloadOriginal & {
   iat: number;
   exp: number;
   sub: any;
-}
+};
 
 export interface JwtInterface {
-  encode(payload: JwtEncoded, options?: SignOptions): string;
+  encode(payload: JwtPayload, options?: SignOptions): string;
   decode(token: string, options?: VerifyOptions): JwtDecoded;
 }

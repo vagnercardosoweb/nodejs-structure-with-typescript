@@ -1,4 +1,4 @@
-export { default as Logger } from './logger';
+export { Logger } from './logger';
 
 export enum LogLevel {
   INFO = 'INFO',
@@ -10,15 +10,16 @@ export enum LogLevel {
 export type LoggerMetadata = {
   $logId?: string;
   $skipRedact?: boolean;
+  $redactedKeys?: string[];
   [key: string]: any;
 };
 
 export interface LoggerInterface {
   getId(): string;
   withId(id: string): LoggerInterface;
-  log(level: LogLevel, message: string, metadata?: LoggerMetadata): void;
   error(message: string, metadata?: LoggerMetadata): void;
   critical(message: string, metadata?: LoggerMetadata): void;
   info(message: string, metadata?: LoggerMetadata): void;
   warn(message: string, metadata?: LoggerMetadata): void;
+  log(level: LogLevel, message: string, metadata?: LoggerMetadata): void;
 }

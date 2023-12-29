@@ -2,38 +2,52 @@ import path from 'node:path';
 
 import { Request } from 'express';
 
+import { constants } from '@/config/constants';
 import { setupEventManager } from '@/config/event-manager';
 import { setupTranslation } from '@/config/translation';
 import { RestApi } from '@/rest-api/rest-api';
 import { CacheInterface, RedisCache } from '@/shared/cache';
 import { ContainerName } from '@/shared/container';
-import { Env } from '@/shared/env';
 import { EventManagerInterface } from '@/shared/event-manager';
 import { Jwt, JwtInterface } from '@/shared/jwt';
-import { Logger, LoggerInterface } from '@/shared/logger';
+import { LoggerInterface } from '@/shared/logger';
+import {
+  PasswordHashBcrypt,
+  PasswordHashInterface,
+} from '@/shared/password-hash';
 import { Migrator, PgPool, PgPoolInterface } from '@/shared/postgres';
 import { TranslationInterface } from '@/shared/translation';
 
-export const setupDependencies = async (restApi: RestApi) => {
-  const pgPool = await PgPool.fromEnvironment(
-    Logger.withId('PG_POOL'),
-  ).connect();
+export const setupDependencies = async (
+  restApi: RestApi,
+  logger: LoggerInterface,
+) => {
+  restApi.set(ContainerName.LOGGER, logger);
+
+  const pgPool = await PgPool.fromEnvironment(logger).connect();
   restApi.set(ContainerName.PG_POOL, pgPool).beforeClose(() => pgPool.close());
 
-  const cacheClient = await RedisCache.fromEnvironment(
-    Logger.withId('REDIS'),
-  ).connect();
+  const cacheClient = await RedisCache.fromEnvironment(logger).connect();
   restApi
     .set(ContainerName.CACHE_CLIENT, cacheClient)
     .beforeClose(() => cacheClient.close());
 
-  restApi.set(ContainerName.TRANSLATION, setupTranslation());
-  restApi.set(ContainerName.EVENT_MANAGER, setupEventManager());
-  restApi.set(ContainerName.JWT, new Jwt());
+  restApi.set(
+    ContainerName.PASSWORD_HASH,
+    new PasswordHashBcrypt(constants.BCRYPT_SALT_ROUNDS),
+  );
 
-  if (Env.get('DB_EXECUTE_MIGRATION_ON_STARTED', true)) {
+  restApi.set(ContainerName.TRANSLATION, setupTranslation(logger));
+  restApi.set(ContainerName.EVENT_MANAGER, setupEventManager(logger));
+
+  restApi.set(
+    ContainerName.JWT,
+    new Jwt(constants.JWT_PRIVATE_KEY, constants.JWT_PUBLIC_KEY),
+  );
+
+  if (constants.DB_MIGRATION_ON_STARTED) {
     await new Migrator(
-      pgPool.withLogger(Logger.withId('DB_MIGRATOR')),
+      pgPool.withLogger(logger),
       path.resolve('migrations'),
     ).up();
   }
@@ -56,3 +70,9 @@ export const getCacheClientFromRequest = (request: Request) =>
 
 export const getPgPoolFromRequest = (request: Request) =>
   request.container.get<PgPoolInterface>(ContainerName.PG_POOL);
+
+export const getPasswordHashFromRequest = (request: Request) =>
+  request.container.get<PasswordHashInterface>(ContainerName.PASSWORD_HASH);
+
+export const getRequestIdFromRequest = (request: Request) =>
+  request.container.get<string>(ContainerName.REQUEST_ID);

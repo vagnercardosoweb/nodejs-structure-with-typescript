@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
 import {
+  AppError,
   INTERNAL_SERVER_ERROR_MESSAGE,
   UNAUTHORIZED_ERROR_MESSAGE,
-} from '@/config/constants';
-import { AppError } from '@/shared/errors';
+} from '@/shared/errors';
 
 import { zodError } from './zod';
 

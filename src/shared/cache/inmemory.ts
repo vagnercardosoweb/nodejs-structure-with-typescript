@@ -2,8 +2,8 @@ import { CacheDefaultValue, CacheInterface } from '@/shared/cache';
 import { Logger, LoggerInterface } from '@/shared/logger';
 
 export class InMemoryCache implements CacheInterface {
-  protected readonly logger = Logger;
-  private readonly cached = new Map<string, Cached>();
+  protected readonly logger = new Logger('InMemoryCache');
+  protected readonly cached = new Map<string, Cached>();
 
   public async clear(): Promise<boolean> {
     this.cached.clear();

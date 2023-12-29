@@ -12,8 +12,4 @@ if (environment !== 'test' && !existsSync(envFinalPath)) {
   envFinalPath = resolve(rootPath, '.env');
 }
 
-if (process.env.CHECK_ENVFILE === 'true' && !existsSync(envFinalPath)) {
-  throw new Error(`File "${envFinalPath}" doest not exists.`);
-}
-
 config({ path: envFinalPath, encoding: 'utf-8' });

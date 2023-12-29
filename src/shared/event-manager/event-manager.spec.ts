@@ -1,12 +1,13 @@
 import { Common } from '@/shared/common';
 import { InternalServerError } from '@/shared/errors';
 import { EventManager } from '@/shared/event-manager';
+import { Logger } from '@/shared/logger';
 
 let eventManager: EventManager;
 
 describe('shared/event-manager', () => {
   beforeEach(() => {
-    eventManager = new EventManager();
+    eventManager = new EventManager(new Logger('test'));
   });
 
   it('should register an event', () => {

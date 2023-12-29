@@ -1,6 +1,6 @@
 export { PasswordHashBcrypt } from './bcrypt';
 
-export interface PasswordHash {
+export interface PasswordHashInterface {
   create(plainTexPassword: string): Promise<string>;
   compare(plainTextPassword: string, hashedPassword: string): Promise<boolean>;
 }

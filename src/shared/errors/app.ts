@@ -2,9 +2,9 @@ import { randomInt } from 'node:crypto';
 
 import dottie from 'dottie';
 
-import { INTERNAL_SERVER_ERROR_MESSAGE } from '@/config/constants';
 import { Common } from '@/shared/common';
 import { HttpStatusCode } from '@/shared/enums';
+import { INTERNAL_SERVER_ERROR_MESSAGE } from '@/shared/errors';
 
 export class AppError extends Error {
   public code = 'DEFAULT';

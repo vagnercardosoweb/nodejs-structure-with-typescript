@@ -63,7 +63,7 @@ export class RedisCache implements CacheInterface {
 
   public async connect(): Promise<RedisCache> {
     if (this.connected) return this;
-    this.logger.info('CONNECTING');
+    this.logger.info('redis connection');
     await this.client.connect();
     this.connected = true;
     return this;
@@ -80,7 +80,7 @@ export class RedisCache implements CacheInterface {
 
   public async close(): Promise<void> {
     if (!this.connected) return;
-    this.logger.info('CLOSING');
+    this.logger.info('redis closing');
     await this.client.quit();
     this.connected = false;
   }

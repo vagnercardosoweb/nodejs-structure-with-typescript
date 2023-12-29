@@ -33,7 +33,7 @@ host [http://localhost:3000](http://localhost:3000)
 Before the steps below, you must generate the `build` with the `npm run build` command if it is not
 a `production` build.
 
-If the environment variable `DB_EXECUTE_MIGRATION_ON_STARTED` is set to `true` as
+If the environment variable `DB_MIGRATION_ON_STARTED` is set to `true` as
 migrations will be automatically executed when starting the server, otherwise you can
 run manually with the command `NODE_ENV={value} npm run migrator:up`.
 

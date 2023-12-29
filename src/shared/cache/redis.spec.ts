@@ -19,7 +19,7 @@ vi.mock('ioredis', () => {
 
 describe('shared/cache/redis', () => {
   let cacheClient: RedisCache;
-  const logger = Logger.withId('REDIS');
+  const logger = new Logger('test');
   let redisClient: Mocked<IORedis>;
 
   const testValues = [
@@ -161,7 +161,7 @@ describe('shared/cache/redis', () => {
   });
 
   it('should create a cache instance with another logger id', () => {
-    const clone = cacheClient.withLogger(Logger.withId('other_id'));
+    const clone = cacheClient.withLogger(new Logger('other_id'));
     expect((clone as any).logger.id).toStrictEqual('other_id');
     expect(clone).not.toStrictEqual(cacheClient);
   });

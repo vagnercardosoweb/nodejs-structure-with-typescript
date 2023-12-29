@@ -1,40 +1,42 @@
+import os from 'node:os';
 import process from 'node:process';
 
-import { HOSTNAME, PID } from '@/config/constants';
-import { Common } from '@/shared/common';
-import { Env } from '@/shared/env';
 import { LoggerInterface, LoggerMetadata, LogLevel } from '@/shared/logger';
+import { redactRecursiveKeys } from '@/shared/redact-keys';
 
-class Logger implements LoggerInterface {
-  constructor(private readonly id: string) {}
-
-  public withId(id: string) {
-    if (id === undefined) id = 'APP';
-    return new Logger(id);
-  }
+export class Logger implements LoggerInterface {
+  constructor(protected readonly id: string) {}
 
   public getId(): string {
     return this.id;
   }
 
+  public withId(id: string): LoggerInterface {
+    return new Logger(id);
+  }
+
   public log(level: LogLevel, message: string, metadata?: LoggerMetadata) {
-    if (Env.isTesting()) return;
-    const timestamp = new Date().toISOString();
-    if (metadata !== undefined) {
-      if (!metadata?.$skipRedact) {
-        metadata = Common.redactRecursiveKeys(metadata);
-      }
-      delete metadata.$skipRedact;
-      message = Common.replaceKeysInString(message, metadata);
-    }
-    const logId = metadata?.$logId ?? this.id;
+    if (process.env.NODE_ENV === 'test') return;
+
+    const skipRedact = metadata?.$skipRedact || false;
+    const redactedKeys = metadata?.$redactedKeys || [];
+    const logId = metadata?.$logId || this.id;
+
+    delete metadata?.$skipRedact;
+    delete metadata?.$redactedKeys;
     delete metadata?.$logId;
+
+    const timestamp = new Date().toISOString();
+    metadata = !skipRedact
+      ? redactRecursiveKeys(metadata, redactedKeys)
+      : metadata;
+
     process.stdout.write(
       `${JSON.stringify({
         id: logId,
         level,
-        pid: PID,
-        hostname: HOSTNAME,
+        pid: process.env.pid,
+        hostname: os.hostname(),
         timestamp,
         message,
         metadata,
@@ -58,5 +60,3 @@ class Logger implements LoggerInterface {
     this.log(LogLevel.WARN, message, metadata);
   }
 }
-
-export default new Logger('APP');

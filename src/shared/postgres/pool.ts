@@ -84,12 +84,13 @@ export class PgPool implements PgPoolInterface {
 
   public async close(): Promise<void> {
     if (this.closed) return;
-    this.log(LogLevel.INFO, 'DB_CLOSING');
+    this.log(LogLevel.INFO, 'pg closing');
     await this.pool.end();
     this.closed = true;
   }
 
   public async connect(): Promise<PgPoolInterface> {
+    this.log(LogLevel.INFO, 'pg connecting');
     await this.query('SELECT 1 + 1;');
     return this;
   }
@@ -136,7 +137,7 @@ export class PgPool implements PgPoolInterface {
       });
     } finally {
       const logLevel = hasError ? LogLevel.ERROR : LogLevel.INFO;
-      this.log(logLevel, 'DB_QUERY', metadata);
+      this.log(logLevel, 'pg query', metadata);
     }
   }
 
@@ -161,7 +162,7 @@ export class PgPool implements PgPoolInterface {
 
   public release() {
     if (this.client === null) return;
-    this.log(LogLevel.INFO, 'DB_RELEASING');
+    this.log(LogLevel.INFO, 'pg release');
     this.client.release();
     this.client = null;
   }

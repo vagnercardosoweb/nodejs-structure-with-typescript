@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { InMemoryCache } from '@/shared/cache';
-import { Logger } from '@/shared/logger';
 
 describe('shared/cache/in-memory', () => {
   let inMemoryCache: InMemoryCache;
@@ -37,12 +36,6 @@ describe('shared/cache/in-memory', () => {
 
   it('should create an empty cache instance', () => {
     expect((inMemoryCache as any).cached.size).toBe(0);
-  });
-
-  it('should create a cache instance with another logger id', () => {
-    expect(inMemoryCache.withLogger(Logger.withId('test'))).toStrictEqual(
-      inMemoryCache,
-    );
   });
 
   it('should clear all cache', async () => {

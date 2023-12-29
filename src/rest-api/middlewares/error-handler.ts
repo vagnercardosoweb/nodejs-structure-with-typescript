@@ -1,10 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { getTranslationFromRequest } from '@/rest-api/dependencies';
+import { constants } from '@/config/constants';
+import {
+  getLoggerFromRequest,
+  getTranslationFromRequest,
+} from '@/rest-api/dependencies';
 import { ContainerName } from '@/shared/container';
-import { Env } from '@/shared/env';
 import { AppError, parseErrorToObject } from '@/shared/errors';
-import { Logger } from '@/shared/logger';
 import { SlackAlert } from '@/shared/slack-alert';
 
 export const errorHandler = (
@@ -13,22 +15,25 @@ export const errorHandler = (
   response: Response,
   next: NextFunction,
 ) => {
-  if (response.headersSent) return next(error);
+  if (response.headersSent || !request.context?.requestId) return next(error);
   error = parseErrorToObject(error);
 
   const requestUrl = request.originalUrl || request.url;
   const requestMethod = request.method.toUpperCase();
 
-  const requestId = request.context?.requestId;
+  const requestId = request.context.requestId;
   if (!error.requestId) error.requestId = requestId;
   error.replaceKeys.requestId = error.requestId;
 
-  if (!request.logger) request.logger = Logger.withId(requestId);
+  const serverId = request.container.get<string>(ContainerName.SERVER_ID);
+  const logger = getLoggerFromRequest(request);
+
   if (error.logging) {
-    request.logger.error('HTTP_REQUEST_ERROR', {
+    logger.error('HTTP_REQUEST_ERROR', {
       ip: request.ip,
       path: `${requestMethod} ${requestUrl}`,
       routePath: request.route?.path,
+      serverId,
       time: request.durationTime.format(),
       headers: request.headers,
       body: request.body,
@@ -40,6 +45,7 @@ export const errorHandler = (
     SlackAlert.send({
       color: 'error',
       sections: {
+        'ServerId': serverId,
         'RequestId': requestId,
         'RequestInfo': `[${error.statusCode}] ${requestMethod} ${requestUrl}`,
         'ErrorCode / ErrorId': `${error.code} / ${error.errorId}`,
@@ -47,7 +53,7 @@ export const errorHandler = (
         'Description': requestId ? error?.description : 'Unexpected error',
       },
     }).catch((e) => {
-      request.logger.error('SEND_ALERT_SLACK_ERROR', {
+      logger.error('SEND_ALERT_SLACK_ERROR', {
         slackError: parseErrorToObject(e),
         originalError: error,
       });
@@ -62,7 +68,7 @@ export const errorHandler = (
   }
 
   return response.status(error.statusCode).json(
-    Env.isLocal()
+    constants.IS_LOCAL
       ? error
       : {
           name: error.name,

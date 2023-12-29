@@ -1,6 +1,7 @@
-import { INTERNAL_SERVER_ERROR_MESSAGE } from '@/config/constants';
 import { HttpStatusCode } from '@/shared/enums';
 import { AppError, AppErrorInput } from '@/shared/errors';
+
+export const INTERNAL_SERVER_ERROR_MESSAGE = 'errors.internal_server_error';
 
 export class InternalServerError extends AppError {
   public name = 'InternalServerError';

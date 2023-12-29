@@ -1,6 +1,6 @@
+import os from 'node:os';
 import util from 'node:util';
 
-import { HOSTNAME } from '@/config/constants';
 import { Common } from '@/shared/common';
 import { HttpMethod } from '@/shared/enums';
 import { Env } from '@/shared/env';
@@ -8,15 +8,16 @@ import { InternalServerError } from '@/shared/errors';
 import { httpRequest } from '@/shared/http-request';
 
 type Input = {
-  color?: 'error' | 'warning' | 'info' | 'success' | string;
-  checkerUsers?: string[];
+  color: 'error' | 'warning' | 'info' | 'success' | string;
+  memberIds?: string[];
   sections: Record<string, any>;
   fields?: Record<string, any>;
   options?: {
-    token?: string;
-    username?: string;
-    memberIds?: string;
-    channel?: string;
+    token: string;
+    username: string;
+    enabled: boolean;
+    memberIds: string[];
+    channel: string;
   };
 };
 
@@ -26,19 +27,21 @@ export class SlackAlert {
       fields = {},
       sections,
       color = 'info',
-      checkerUsers = [],
+      memberIds = [],
       options = {
-        token: Env.get('SLACK_TOKEN'),
-        channel: Env.get('SLACK_CHANNEL'),
-        memberIds: Env.get('SLACK_MEMBERS_ID'),
-        username: Env.get('SLACK_USERNAME', Env.get('APPLICATION_NAME')),
+        token: Env.get('SLACK_TOKEN', ''),
+        enabled: Env.get('SLACK_ENABLED', false),
+        username: Env.get('SLACK_USERNAME', ''),
+        channel: Env.get('SLACK_CHANNEL', ''),
       },
     } = input;
 
-    if (!options.token?.trim() || !options.channel?.trim()) return;
-    if (options.memberIds?.length) {
-      checkerUsers.push(...options.memberIds.split(','));
-    }
+    if (!options.enabled) return;
+
+    const membersIdFromEnv = Env.get('SLACK_MEMBERS_ID', '').splice(',');
+    const membersIdUnique = Array.from(
+      new Set<string>([...memberIds, ...membersIdFromEnv]),
+    );
 
     const now = new Date();
     const nodeEnv = Env.get('NODE_ENV');
@@ -61,8 +64,8 @@ export class SlackAlert {
             mrkdwn_in: ['text', 'fields'],
             text: util.format(
               '%s, new alert in `%s`.',
-              checkerUsers.map((user) => `<@${user}>`).join(', '),
-              HOSTNAME,
+              membersIdUnique.map((user) => `<@${user}>`).join(', '),
+              os.hostname(),
             ),
             fields: [
               ...Object.entries(Common.removeUndefined(fields)).map(

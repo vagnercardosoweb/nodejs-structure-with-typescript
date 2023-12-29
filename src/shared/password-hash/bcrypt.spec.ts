@@ -1,13 +1,15 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { PasswordHash, PasswordHashBcrypt } from '@/shared/password-hash';
+import {
+  PasswordHashBcrypt,
+  PasswordHashInterface,
+} from '@/shared/password-hash';
 
 describe('shared/password-hash', () => {
-  process.env.BCRYPT_SALT_ROUNDS = '1';
-  let sut: PasswordHash;
+  let sut: PasswordHashInterface;
 
   beforeEach(() => {
-    sut = new PasswordHashBcrypt();
+    sut = new PasswordHashBcrypt(1);
   });
 
   it('should correctly hash a password', async () => {

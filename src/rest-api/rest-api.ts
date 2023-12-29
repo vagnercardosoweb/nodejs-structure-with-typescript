@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import http from 'node:http';
 
 import compression from 'compression';
@@ -6,19 +7,8 @@ import express, { Application, NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import responseTime from 'response-time';
 
-import { HOSTNAME } from '@/config/constants';
-import { Common } from '@/shared/common';
-import {
-  Container,
-  ContainerInterface,
-  ContainerValue,
-} from '@/shared/container';
-import { DurationTime } from '@/shared/duration-time';
-import { HttpMethod, HttpStatusCode } from '@/shared/enums';
-import { Env } from '@/shared/env';
-import { AppError } from '@/shared/errors';
-
-import { AbstractHandler } from './handler';
+import { constants } from '@/config/constants';
+import { AbstractHandler } from '@/rest-api/handler';
 import {
   app,
   cors,
@@ -29,13 +19,27 @@ import {
   notFound,
   requestLog,
   timestamp,
-} from './middlewares';
-import { BeforeCloseFn, Route } from './types';
+} from '@/rest-api/middlewares';
+import { BeforeCloseFn, Route } from '@/rest-api/types';
+import { Common } from '@/shared/common';
+import {
+  Container,
+  ContainerInterface,
+  ContainerName,
+  ContainerValue,
+} from '@/shared/container';
+import { DurationTime } from '@/shared/duration-time';
+import { HttpMethod, HttpStatusCode } from '@/shared/enums';
+import { Env } from '@/shared/env';
+import { AppError } from '@/shared/errors';
+import { Logger, LoggerInterface } from '@/shared/logger';
 
 export class RestApi {
   protected readonly app: Application;
   protected readonly routes = new Map<string, Route>();
+  protected readonly serverId = randomUUID();
   protected readonly container: ContainerInterface;
+  protected readonly logger: LoggerInterface;
   protected readonly beforeCloseFn: BeforeCloseFn[] = [];
   protected readonly server: http.Server;
 
@@ -45,17 +49,21 @@ export class RestApi {
   ) {
     this.app = express();
     this.server = http.createServer(this.app);
+
     this.container = new Container();
+    this.logger = new Logger(this.serverId);
 
     this.app.set('trust proxy', true);
     this.app.set('strict routing', true);
     this.app.set('x-powered-by', false);
 
-    this.set('secret', this.secret);
-    this.set('port', this.port);
+    this.set(ContainerName.PORT, this.port);
+    this.set(ContainerName.LOGGER, this.logger);
+    this.set(ContainerName.SERVER_ID, this.serverId);
+    this.set(ContainerName.APP_KEY, this.secret);
   }
 
-  public set(name: any, value: ContainerValue) {
+  public set(name: ContainerName, value: ContainerValue) {
     this.container.set(name, value);
     return this;
   }
@@ -89,6 +97,14 @@ export class RestApi {
 
   public getContainer(): ContainerInterface {
     return this.container;
+  }
+
+  public getServerId(): string {
+    return this.serverId;
+  }
+
+  public getLogger(): LoggerInterface {
+    return this.logger;
   }
 
   public getRoutes(): Route[] {
@@ -130,12 +146,14 @@ export class RestApi {
   }
 
   public startHandlers() {
+    this.app.use(responseTime());
+
     this.app.use((request, _, next) => {
       request.durationTime = new DurationTime();
+      request.container = this.container.clone();
       next();
     });
 
-    this.app.use(responseTime());
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
 
@@ -146,7 +164,7 @@ export class RestApi {
     this.app.use(cookieParser(this.secret));
 
     this.app.use(timestamp);
-    this.app.use(app(this.container));
+    this.app.use(app);
     this.app.use(requestLog);
     this.app.use(methodOverride);
     this.app.use(extractToken);
@@ -183,7 +201,7 @@ export class RestApi {
         duration: request.durationTime.format(),
         timezone: Env.getTimezoneUtc(),
         environment: Env.get('NODE_ENV'),
-        hostname: HOSTNAME,
+        hostname: constants.HOSTNAME,
         requestId: request.context.requestId,
         userAgent: request.headers['user-agent'],
         brlDate: Common.createBrlDate(),

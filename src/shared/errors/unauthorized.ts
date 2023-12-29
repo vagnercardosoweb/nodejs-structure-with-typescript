@@ -1,6 +1,7 @@
-import { UNAUTHORIZED_ERROR_MESSAGE } from '@/config/constants';
 import { HttpStatusCode } from '@/shared/enums';
 import { AppError, AppErrorInput } from '@/shared/errors';
+
+export const UNAUTHORIZED_ERROR_MESSAGE = 'errors.unauthorized';
 
 export class UnauthorizedError extends AppError {
   public name = 'UnauthorizedError';
