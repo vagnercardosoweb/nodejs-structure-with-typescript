@@ -1,5 +1,7 @@
+import { environments } from '@/config/environments';
+
 export default {
-  title: 'API Documentation',
-  description: 'API Documentation for the application',
-  version: '1.0.0',
+  title: environments.APP_NAME,
+  description: 'API Documentation for the Application',
+  version: environments.APP_NAME,
 };

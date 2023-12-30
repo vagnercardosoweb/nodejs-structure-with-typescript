@@ -10,14 +10,14 @@ export const withToken = async (
   _response: Response,
   next: NextFunction,
 ) => {
-  const { token } = request.context.jwt;
+  const { token } = request.jwt;
   if (!token?.trim()) throw new UnauthorizedError({ code: 'JwtTokenIsEmpty' });
   if (token === Env.get('API_KEY')) return next();
   if (token.split('.').length !== 3) {
     throw new UnauthorizedError({ code: 'JwtTokenInvalidFormat' });
   }
   try {
-    request.context.jwt = request.container
+    request.jwt = request.container
       .get<JwtInterface>(ContainerName.JWT)
       .decode(token) as any;
   } catch (e: any) {

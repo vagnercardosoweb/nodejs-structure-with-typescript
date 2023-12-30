@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import morgan from 'morgan';
 
-import { constants } from '@/config/constants';
-import { getLoggerFromRequest } from '@/rest-api/dependencies';
+import { getLoggerFromRequest } from '@/config/dependencies';
+import { environments } from '@/config/environments';
 import { ContainerName } from '@/shared/container';
 
 const bypassPaths = ['/docs', '/favicon'];
@@ -15,15 +15,16 @@ export const requestLog = (
   const requestUrl = request.path;
   if (
     requestUrl === '/' ||
-    constants.IS_TESTING ||
+    environments.IS_TESTING ||
     bypassPaths.some((path) => requestUrl.startsWith(path))
   ) {
+    request.skipRequestLog = true;
     return next();
   }
 
   const path = `${request.method.toUpperCase()} ${requestUrl}`;
   const serverId = request.container.get<string>(ContainerName.SERVER_ID);
-  const body = constants.SHOW_BODY_HTTP_REQUEST_LOGGER
+  const body = environments.SHOW_BODY_HTTP_REQUEST_LOGGER
     ? request.body
     : undefined;
 
@@ -42,8 +43,8 @@ export const requestLog = (
     return JSON.stringify({
       id: tokens.res(req, res, 'x-request-id'),
       level: statusCode < 200 || statusCode >= 400 ? 'ERROR' : 'INFO',
-      pid: constants.PID,
-      hostname: constants.HOSTNAME,
+      pid: environments.PID,
+      hostname: environments.HOSTNAME,
       timestamp: tokens.date(req, res, 'iso'),
       message: 'HTTP_REQUEST_COMPLETED',
       metadata: {

@@ -1,20 +1,17 @@
 import swagger from 'swagger-ui-express';
 
-import { Route } from '@/rest-api/types';
-import { HttpMethod } from '@/shared/enums';
+import { RestApi } from '@/rest-api/rest-api';
+import components from '@/rest-api/swagger/components';
+import info from '@/rest-api/swagger/info';
+import paths from '@/rest-api/swagger/paths';
+import servers from '@/rest-api/swagger/servers';
+import tags from '@/rest-api/swagger/tags';
 
-import components from './components';
-import info from './info';
-import paths from './paths';
-import servers from './servers';
-import tags from './tags';
-
-export const swaggerRoutes: Route[] = [
-  {
-    path: '/docs',
-    method: HttpMethod.USE,
-    middlewares: [...swagger.serve],
-    handler: swagger.setup({
+export const setupSwagger = (restApi: RestApi) => {
+  restApi.getExpress().use(
+    '/docs',
+    swagger.serve,
+    swagger.setup({
       openapi: '3.1.0',
       security: [{ bearerAuth: [] }],
       externalDocs: {},
@@ -24,5 +21,5 @@ export const swaggerRoutes: Route[] = [
       servers,
       tags,
     }),
-  },
-];
+  );
+};

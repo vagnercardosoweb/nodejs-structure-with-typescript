@@ -3,25 +3,26 @@ import http from 'node:http';
 
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
-import express, { Application, NextFunction, Request, Response } from 'express';
+import express, {
+  type Application,
+  type NextFunction,
+  type Request,
+  type Response,
+} from 'express';
 import helmet from 'helmet';
 import responseTime from 'response-time';
 
-import { constants } from '@/config/constants';
-import { AbstractHandler } from '@/rest-api/handler';
 import {
   app,
   cors,
   errorHandler,
-  extractToken,
   methodOverride,
   noCache,
   notFound,
   requestLog,
   timestamp,
 } from '@/rest-api/middlewares';
-import { BeforeCloseFn, Route } from '@/rest-api/types';
-import { Common } from '@/shared/common';
+import { BeforeCloseFn, type Handler, type Route } from '@/rest-api/types';
 import {
   Container,
   ContainerInterface,
@@ -30,7 +31,6 @@ import {
 } from '@/shared/container';
 import { DurationTime } from '@/shared/duration-time';
 import { HttpMethod, HttpStatusCode } from '@/shared/enums';
-import { Env } from '@/shared/env';
 import { AppError } from '@/shared/errors';
 import { Logger, LoggerInterface } from '@/shared/logger';
 
@@ -73,9 +73,13 @@ export class RestApi {
     return this;
   }
 
-  public addRoute(route: Route): void {
-    route.method = route.method.toUpperCase() as HttpMethod;
-    const key = `${route.method} ${route.path}`;
+  public addRoute(
+    method: HttpMethod,
+    path: string,
+    ...handlers: Handler[]
+  ): void {
+    method = method.toUpperCase() as HttpMethod;
+    const key = `${method} ${path}`;
 
     if (this.routes.has(key)) {
       throw new AppError({
@@ -84,7 +88,11 @@ export class RestApi {
       });
     }
 
-    this.routes.set(key, route);
+    this.routes.set(key, {
+      method,
+      handlers: handlers.map(this.asyncHandler.bind(this)),
+      path,
+    });
   }
 
   public getServer(): http.Server {
@@ -151,23 +159,23 @@ export class RestApi {
     this.app.use((request, _, next) => {
       request.durationTime = new DurationTime();
       request.container = this.container.clone();
+      request.skipRequestLog = false;
       next();
     });
 
-    this.app.use(express.json());
-    this.app.use(express.urlencoded({ extended: true }));
-
     this.app.use(cors);
     this.app.use(noCache);
-    this.app.use(helmet());
-    this.app.use(compression());
-    this.app.use(cookieParser(this.secret));
-
     this.app.use(timestamp);
+    this.app.use(helmet());
+
+    this.app.use(express.json());
+    this.app.use(express.urlencoded({ extended: true }));
+    this.app.use(cookieParser(this.secret));
+    this.app.use(compression());
+
     this.app.use(app);
     this.app.use(requestLog);
     this.app.use(methodOverride);
-    this.app.use(extractToken);
 
     this.makeRoutes();
 
@@ -181,71 +189,38 @@ export class RestApi {
     await Promise.all(this.beforeCloseFn.map((fn) => fn()));
   }
 
-  protected responseHandle({
-    request,
-    response,
-    result,
-  }: {
-    request: Request;
-    response: Response;
-    result: any;
-  }) {
-    if (result?.hasOwnProperty('socket')) return result.end();
-    if (!result) return response.sendStatus(HttpStatusCode.NO_CONTENT);
+  protected responseHandler(result: any, response: Response) {
+    if (response.headersSent) return;
+    if (!result) return response.status(HttpStatusCode.NO_CONTENT).end();
+    if (!result.hasOwnProperty('writeHead')) return response.json(result);
+    return response.end();
+  }
 
-    response
-      .json({
-        data: result,
-        path: `${request.method} ${request.originalUrl}`,
-        ipAddress: request.ip,
-        duration: request.durationTime.format(),
-        timezone: Env.getTimezoneUtc(),
-        environment: Env.get('NODE_ENV'),
-        hostname: constants.HOSTNAME,
-        requestId: request.context.requestId,
-        userAgent: request.headers['user-agent'],
-        brlDate: Common.createBrlDate(),
-        utcDate: Common.createUtcDate(),
-      })
-      .end();
+  protected asyncHandler(fn: Handler) {
+    return (request: Request, response: Response, next: NextFunction) => {
+      try {
+        const result = fn(request, response, next);
+        if (result instanceof Promise) {
+          return result
+            .then((result) => this.responseHandler(result, response))
+            .catch(next);
+        }
+        return this.responseHandler(result, response);
+      } catch (e) {
+        return next(e);
+      }
+    };
   }
 
   protected makeRoutes() {
     for (const route of this.getRoutes()) {
-      (this.app as any)[(route.method ?? HttpMethod.GET).toLowerCase()](
+      const middlewares =
+        route.handlers.length > 1 ? route.handlers.slice(0, 1) : [];
+      const handle = route.handlers[route.handlers.length - 1];
+      (this.app as any)[route.method.toLowerCase()](
         route.path,
-        ...(route.middlewares ?? []),
-        (request: Request, response: Response, next: NextFunction) => {
-          const prototype = Object.getPrototypeOf(route.handler);
-
-          if (prototype.name !== AbstractHandler.name) {
-            const result = (route.handler as any)(request, response, next);
-            if (result instanceof Promise) result.catch(next);
-            return result;
-          }
-
-          const Handler = route.handler as any;
-          const handler = new Handler(request, response);
-          const result = handler.handle();
-
-          if (result instanceof Promise) {
-            result
-              .then((result) =>
-                this.responseHandle({
-                  request,
-                  response,
-                  result,
-                }),
-              )
-              .catch(next);
-          } else {
-            this.responseHandle({
-              request,
-              response,
-              result,
-            });
-          }
-        },
+        ...middlewares,
+        handle,
       );
     }
   }

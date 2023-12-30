@@ -24,7 +24,26 @@ export class EventManager implements EventManagerInterface {
     this.handlers[eventName].push(handler);
   }
 
-  public dispatch<T>(eventName: string, payload: T): void {
+  public async dispatchSync<T, R>(eventName: string, payload: T): Promise<R[]> {
+    if (!this.handlers[eventName]) return [];
+    const results: R[] = [];
+
+    for (const handler of this.handlers[eventName]) {
+      let result = handler({
+        name: eventName,
+        createdAt: new Date(),
+        payload,
+      });
+
+      const isPromise = result instanceof Promise;
+      if (isPromise) result = await result;
+      results.push(result as R);
+    }
+
+    return results;
+  }
+
+  public dispatchAsync<T>(eventName: string, payload: T): void {
     if (!this.handlers[eventName]) return;
 
     for (const handler of this.handlers[eventName]) {

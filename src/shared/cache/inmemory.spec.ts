@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { InMemoryCache } from '@/shared/cache';
+import { Logger } from '@/shared/logger';
 
 describe('shared/cache/in-memory', () => {
   let inMemoryCache: InMemoryCache;
@@ -43,6 +44,16 @@ describe('shared/cache/in-memory', () => {
     expect((inMemoryCache as any).cached.size).toBe(1);
     await inMemoryCache.clear();
     expect((inMemoryCache as any).cached.size).toBe(0);
+  });
+
+  it('should create a cache instance with another logger id', () => {
+    const clone = inMemoryCache.withLogger(new Logger('other_id'));
+    expect((clone as any).logger.id).toStrictEqual('InMemoryCache');
+    expect(clone).toStrictEqual(inMemoryCache);
+  });
+
+  it('should return the logger instance', () => {
+    expect(inMemoryCache.getLogger()).toBeInstanceOf(Logger);
   });
 
   it('should create a new cache without passing the expiration seconds', async () => {

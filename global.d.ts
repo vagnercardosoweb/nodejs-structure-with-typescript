@@ -2,7 +2,7 @@ import 'vitest/globals';
 
 import type { ContainerInterface } from '@/shared/container';
 import type { DurationTimeInterface } from '@/shared/duration-time';
-import type { JwtDecoded } from '@/shared/jwt';
+import { JwtDecoded } from '@/shared/jwt';
 
 declare global {
   export namespace Express {
@@ -10,15 +10,15 @@ declare global {
       container: ContainerInterface;
       durationTime: DurationTimeInterface;
       originalMethod?: string;
-      context: {
-        language: string;
-        requestId: string;
-        awsTraceId?: string;
-        awsRequestId?: string;
-        jwt: JwtDecoded & {
-          token: string;
-          type: string;
-        };
+      awsTraceId: string;
+      authorizationToken: string;
+      skipRequestLog: boolean;
+      awsRequestId: string;
+      acceptLanguage: string;
+      requestId: string;
+      jwt: JwtDecoded & {
+        token: string;
+        type: string;
       };
     }
   }

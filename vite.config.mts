@@ -5,9 +5,10 @@ export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
     globals: true,
-    clearMocks: true,
     passWithNoTests: true,
     setupFiles: ['./src/config/dotenv'],
     environment: 'node',
+    clearMocks: true,
+    cache: false
   },
 });

@@ -166,6 +166,10 @@ describe('shared/cache/redis', () => {
     expect(clone).not.toStrictEqual(cacheClient);
   });
 
+  it('should return the logger instance', () => {
+    expect(cacheClient.getLogger()).toBeInstanceOf(Logger);
+  });
+
   for (let value of testValues) {
     const valueType = Object.prototype.toString.call(value);
 

@@ -20,6 +20,7 @@ after that just run the commands below.
   repository `git clone git@github.com:vagnercardosoweb/nodejs-structure-with-typescript.git -b main`
 - Access the folder `cd nodejs-structure-with-typescript`
 - Copy `.env.example` to `.env.local` and change the values according to your needs.
+- Create Db Volume `docker volume create --name=app-postgres`
 - Run server with docker `npm run dev:docker`
 
 The port `3000` is based on `env.DOCKER_PORT`, by default it is `3000`,

@@ -9,7 +9,7 @@ export const notFound = (
 ) => {
   const errorOptions = {
     path: request.originalUrl || request.url,
-    requestId: request.context.requestId,
+    requestId: request.requestId,
     method: request.method,
   };
   const originalMethod = request.originalMethod || request.method;

@@ -1,7 +1,7 @@
 version: '3'
 
 networks:
-  app.network:
+  app-network:
     driver: bridge
 
 services:
@@ -9,8 +9,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.local
-    container_name: app.server
-    working_dir: /home/node/app
+    container_name: app-server
     env_file: .env.local
     tty: true
     depends_on:
@@ -20,7 +19,7 @@ services:
       - .:/home/node/app
       - /home/node/app/node_modules
     networks:
-      - app.network
+      - app-network
     ports:
       - "${DOCKER_PORT:-3001}:${PORT:-3000}"
       - "${DEBUG_PORT:-9229}:9229"
@@ -29,13 +28,13 @@ services:
 
   postgres:
     image: bitnami/postgresql:15
-    container_name: app.postgres
+    container_name: app-postgres
     env_file: .env.local
     tty: true
     volumes:
-      - app.volume.postgres:/bitnami/postgresql
+      - app-postgres:/bitnami/postgresql
     networks:
-      - app.network
+      - app-network
     ports:
       - "${DB_PORT:-5432}:5432"
     environment:
@@ -45,13 +44,11 @@ services:
 
   redis:
     image: bitnami/redis:latest
-    container_name: app.redis
+    container_name: app-redis
     env_file: .env.local
     tty: true
-    volumes:
-      - app.volume.redis:/bitnami/redis/data
     networks:
-      - app.network
+      - app-network
     ports:
       - "${REDIS_PORT:-6379}:6379"
     environment:
@@ -59,5 +56,4 @@ services:
       - ALLOW_EMPTY_PASSWORD=no
 
 volumes:
-  app.volume.redis:
-  app.volume.postgres:
+  app-postgres:

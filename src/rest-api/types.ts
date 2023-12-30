@@ -1,17 +1,17 @@
-import { Request, RequestHandler, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 
-import { AbstractHandler } from '@/rest-api/handler';
 import { HttpMethod } from '@/shared/enums';
 
-export type Handler = RequestHandler;
+export type BeforeCloseFn = () => Promise<void>;
+
+export type Handler = (
+  request: Request,
+  response: Response,
+  next: NextFunction,
+) => any | Promise<any>;
 
 export type Route = {
-  path: string;
   method: HttpMethod;
-  middlewares?: Handler[];
-  handler:
-    | Handler
-    | { new (request: Request, response: Response): AbstractHandler };
+  handlers: Handler[];
+  path: string;
 };
-
-export type BeforeCloseFn = () => Promise<void>;

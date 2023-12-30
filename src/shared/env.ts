@@ -15,7 +15,7 @@ export class Env {
 
   public static set(key: string, value: any, override = true) {
     if (!override && process.env.hasOwnProperty(key)) return;
-    process.env[key] = Common.normalizeValue(value);
+    process.env[key] = value;
   }
 
   public static required(key: string, defaultValue?: any) {

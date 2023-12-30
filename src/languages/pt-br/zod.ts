@@ -1,6 +1,6 @@
 import { ZodIssueCode } from 'zod';
 
-export const schema = {
+export const zod = {
   default:
     'Não foi possível validar os dados recebidos, verifique se estão corretos e tente novamente.' +
     ` Se o problema persistir entre em contato com nosso suporte e informe o código "{{errorId}}"`,

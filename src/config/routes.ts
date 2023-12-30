@@ -1,17 +1,11 @@
-import { HealthyHandler, UserListAllHandler } from '@/rest-api/handlers';
-import { swaggerRoutes } from '@/rest-api/swagger';
-import { Route } from '@/rest-api/types';
+import { HealthyHandler } from '@/rest-api/handlers';
+import { RestApi } from '@/rest-api/rest-api';
 import { HttpMethod, HttpStatusCode } from '@/shared/enums';
 
-export const routes: Route[] = [
-  { path: '/', method: HttpMethod.GET, handler: HealthyHandler },
-  {
-    path: '/favicon.ico',
-    method: HttpMethod.GET,
-    handler: (_: any, r: any) => r.sendStatus(HttpStatusCode.NO_CONTENT),
-  },
+const faviconHandler = (_: any, r: any) =>
+  r.sendStatus(HttpStatusCode.NO_CONTENT);
 
-  ...swaggerRoutes,
-
-  { path: '/users', handler: UserListAllHandler, method: HttpMethod.GET },
-];
+export const setupRoutes = (restApi: RestApi) => {
+  restApi.addRoute(HttpMethod.GET, '/', HealthyHandler.handle);
+  restApi.addRoute(HttpMethod.GET, '/favicon.ico', faviconHandler);
+};

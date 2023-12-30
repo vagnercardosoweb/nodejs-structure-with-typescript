@@ -2,8 +2,9 @@ import { randomUUID } from 'node:crypto';
 
 import { NextFunction, Request, Response } from 'express';
 
-import { constants } from '@/config/constants';
+import { environments } from '@/config/environments';
 import { CacheInterface } from '@/shared/cache';
+import { Common } from '@/shared/common';
 import { ContainerName } from '@/shared/container';
 import { Logger } from '@/shared/logger';
 import { PgPoolInterface } from '@/shared/postgres';
@@ -11,8 +12,28 @@ import { TranslationInterface } from '@/shared/translation';
 
 const getAcceptLanguage = (request: Request) => {
   const language = request.acceptsLanguages().at(0) ?? '*';
-  if (language === '*') return constants.DEFAULT_LOCALE;
+  if (language === '*') return environments.DEFAULT_LOCALE;
   return language.trim().toLowerCase();
+};
+
+const getOrCreateRequestId = (request: Request) => {
+  let requestId = request.header(environments.HEADER_NAME_REQUEST_ID);
+  if (!requestId) requestId = randomUUID();
+  request.requestId = requestId;
+  request.container.set(ContainerName.REQUEST_ID, requestId);
+  return requestId;
+};
+
+const extractTokenFromRequest = (request: Request) => {
+  const { authorization = '' } = request.headers;
+  let [, token] = authorization.split(' ');
+  if (Common.isUndefined(token)) token = '';
+  request.authorizationToken = token.trim();
+};
+
+const extractAwsRequestId = (request: Request) => {
+  request.awsRequestId = request.header('x-amzn-requestid') || '';
+  request.awsTraceId = request.header('x-amzn-trace-id') || '';
 };
 
 export const app = (
@@ -20,9 +41,8 @@ export const app = (
   response: Response,
   next: NextFunction,
 ) => {
-  const requestId = randomUUID();
-  request.container.set(ContainerName.REQUEST_ID, requestId);
-  response.setHeader('X-Request-Id', requestId);
+  const requestId = getOrCreateRequestId(request);
+  response.setHeader('x-request-id', requestId);
 
   const requestLogger = new Logger(requestId);
   request.container.set(ContainerName.LOGGER, requestLogger);
@@ -30,6 +50,8 @@ export const app = (
   const translation = request.container
     .get<TranslationInterface>(ContainerName.TRANSLATION)
     .withLocale(getAcceptLanguage(request));
+
+  request.acceptLanguage = translation.getLocale();
   request.container.set(ContainerName.TRANSLATION, translation);
 
   request.container.set(
@@ -46,13 +68,8 @@ export const app = (
       .withLogger(requestLogger),
   );
 
-  request.context = {
-    jwt: {} as Request['context']['jwt'],
-    awsTraceId: request.header('x-amzn-trace-id'),
-    awsRequestId: request.header('x-amzn-requestid'),
-    language: translation.getLocale(),
-    requestId,
-  };
+  extractTokenFromRequest(request);
+  extractAwsRequestId(request);
 
   return next();
 };

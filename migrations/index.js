@@ -5,7 +5,7 @@ const { Migrator, PgPool } = require('@/shared/postgres');
 const { Logger } = require('@/shared/logger');
 
 (async () => {
-  const logger = Logger.withId('DB_MIGRATOR');
+  const logger = new Logger('DB_MIGRATOR');
   const pgPool = PgPool.fromEnvironment(logger);
   const migrator = new Migrator(pgPool, path.resolve('migrations'));
   const prefix = process.argv?.[2]?.trim();

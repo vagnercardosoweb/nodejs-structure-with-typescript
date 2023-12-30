@@ -25,7 +25,7 @@ const parseZodMessage = (issue: ZodIssue): string => {
   ) {
     let key = issue.inclusive ? 'inclusive' : 'not_inclusive';
     if (issue.exact) key = 'exact';
-    const translateKey = `schema.${issue.code}.${issue.type}.${key}`;
+    const translateKey = `zod.${issue.code}.${issue.type}.${key}`;
 
     if (issue.type === 'date') {
       const timestamp = ((issue as ZodTooBigIssue)?.maximum ??
@@ -42,12 +42,12 @@ const parseZodMessage = (issue: ZodIssue): string => {
   }
 
   if (issue.code === ZodIssueCode.invalid_string) {
-    let translateKey = `schema.${issue.code}.default`;
+    let translateKey = `zod.${issue.code}.default`;
 
     if (typeof issue.validation === 'object') {
       for (const key of Object.keys(issue.validation)) {
         if (issue.validation[key as keyof typeof issue.validation]) {
-          translateKey = `schema.${issue.code}.${key}`;
+          translateKey = `zod.${issue.code}.${key}`;
           break;
         }
       }
@@ -56,8 +56,8 @@ const parseZodMessage = (issue: ZodIssue): string => {
     return translateKey;
   }
 
-  if (issue.code === ZodIssueCode.custom) return 'schema.default';
-  return `schema.${issue.code}`;
+  if (issue.code === ZodIssueCode.custom) return 'zod.default';
+  return `zod.${issue.code}`;
 };
 
 export const zodError = (error: ZodError) => {
@@ -72,7 +72,7 @@ export const zodError = (error: ZodError) => {
 
   return new UnprocessableEntityError({
     message: parseZodMessage(issue),
-    code: `SCHEMA.${issue.code}`.toUpperCase(),
+    code: `VALIDATION.${issue.code}`.toUpperCase(),
     statusCode: HttpStatusCode.UNPROCESSABLE_ENTITY,
     description: isInvalidType ? JSON.stringify(issue) : undefined,
     replaceKeys: { ...issue, path: issue.path.join('.') },

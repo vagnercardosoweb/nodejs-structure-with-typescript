@@ -2,18 +2,18 @@ import path from 'node:path';
 
 import { Request } from 'express';
 
-import { constants } from '@/config/constants';
+import { environments } from '@/config/environments';
 import { setupEventManager } from '@/config/event-manager';
 import { setupTranslation } from '@/config/translation';
 import { RestApi } from '@/rest-api/rest-api';
-import { CacheInterface, RedisCache } from '@/shared/cache';
+import { type CacheInterface, RedisCache } from '@/shared/cache';
 import { ContainerName } from '@/shared/container';
-import { EventManagerInterface } from '@/shared/event-manager';
-import { Jwt, JwtInterface } from '@/shared/jwt';
-import { LoggerInterface } from '@/shared/logger';
+import type { EventManagerInterface } from '@/shared/event-manager';
+import { Jwt, type JwtInterface } from '@/shared/jwt';
+import type { LoggerInterface } from '@/shared/logger';
 import {
   PasswordHashBcrypt,
-  PasswordHashInterface,
+  type PasswordHashInterface,
 } from '@/shared/password-hash';
 import { Migrator, PgPool, PgPoolInterface } from '@/shared/postgres';
 import { TranslationInterface } from '@/shared/translation';
@@ -34,7 +34,7 @@ export const setupDependencies = async (
 
   restApi.set(
     ContainerName.PASSWORD_HASH,
-    new PasswordHashBcrypt(constants.BCRYPT_SALT_ROUNDS),
+    new PasswordHashBcrypt(environments.BCRYPT_SALT_ROUNDS),
   );
 
   restApi.set(ContainerName.TRANSLATION, setupTranslation(logger));
@@ -42,10 +42,10 @@ export const setupDependencies = async (
 
   restApi.set(
     ContainerName.JWT,
-    new Jwt(constants.JWT_PRIVATE_KEY, constants.JWT_PUBLIC_KEY),
+    new Jwt(environments.JWT_PRIVATE_KEY, environments.JWT_PUBLIC_KEY),
   );
 
-  if (constants.DB_MIGRATION_ON_STARTED) {
+  if (environments.DB_MIGRATION_ON_STARTED) {
     await new Migrator(
       pgPool.withLogger(logger),
       path.resolve('migrations'),

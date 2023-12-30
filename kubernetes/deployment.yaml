@@ -1,38 +1,37 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api
-  namespace: api
+  name: node-api
+  namespace: node-api
   labels:
-    app: api
+    app: node-api
 spec:
   selector:
     matchLabels:
-      app: api
+      app: node-api
   replicas: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: 1
       maxSurge: 1
+      maxUnavailable: 1
   template:
     metadata:
-      name: api
-      namespace: api
+      namespace: node-api
       labels:
-        app: api
+        app: node-api
     spec:
       containers:
-        - name: api
+        - name: node-api
           image: IMAGE_NAME
           imagePullPolicy: Always
           ports:
-            - name: api
+            - name: node-api
               containerPort: 3000
               protocol: TCP
           envFrom:
             - configMapRef:
-                name: api
+                name: node-api
             - secretRef:
                 name: api
           resources:

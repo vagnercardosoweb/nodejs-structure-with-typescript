@@ -1,8 +1,9 @@
 import '../config/module-alias';
 
-import { routes } from '@/config/routes';
-import { setupDependencies } from '@/rest-api/dependencies';
+import { setupDependencies } from '@/config/dependencies';
+import { setupRoutes } from '@/config/routes';
 import { RestApi } from '@/rest-api/rest-api';
+import { setupSwagger } from '@/rest-api/swagger';
 import { Env } from '@/shared/env';
 import { SlackAlert } from '@/shared/slack-alert';
 
@@ -49,7 +50,8 @@ const onShutdown = (error?: any) => {
 
   try {
     await setupDependencies(restApi, logger);
-    routes.forEach((route) => restApi.addRoute(route));
+    setupRoutes(restApi);
+    setupSwagger(restApi);
     await restApi.listen();
 
     const message = `server started on port "${restApi.getPort()}" with id "${serverId}"`;

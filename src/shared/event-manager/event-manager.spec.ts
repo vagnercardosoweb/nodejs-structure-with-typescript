@@ -69,7 +69,7 @@ describe('shared/event-manager', () => {
     const eventName = 'test';
 
     eventManager.register(eventName, handler);
-    eventManager.dispatch(eventName, { id: 'id' });
+    eventManager.dispatchAsync(eventName, { id: 'id' });
 
     expect(handler).toBeCalledTimes(1);
     expect(handler).toBeCalledWith({
@@ -77,6 +77,62 @@ describe('shared/event-manager', () => {
       createdAt: expect.any(Date),
       payload: { id: 'id' },
     });
+  });
+
+  it('should execute the "dispatchSync" method and return the handler result', async () => {
+    const eventName = 'test';
+
+    const fn1 = vi.fn();
+    fn1.mockReturnValue('id');
+
+    const fn2 = vi.fn();
+    fn2.mockResolvedValue([{ id: 'id' }]);
+
+    const fn3 = vi.fn();
+    fn3.mockReturnValue({ id: 'id' });
+
+    eventManager.register(eventName, fn1);
+    eventManager.register(eventName, fn2);
+    eventManager.register(eventName, fn3);
+
+    const payload = { id: 'id' };
+    const [res1, res2, res3] = await eventManager.dispatchSync(
+      eventName,
+      payload,
+    );
+
+    expect(fn1).toBeCalledTimes(1);
+    expect(fn2).toBeCalledTimes(1);
+    expect(fn3).toBeCalledTimes(1);
+
+    expect(fn1).toBeCalledWith({
+      name: eventName,
+      createdAt: expect.any(Date),
+      payload,
+    });
+
+    expect(fn2).toBeCalledWith({
+      name: eventName,
+      createdAt: expect.any(Date),
+      payload,
+    });
+
+    expect(fn2).toBeCalledWith({
+      name: eventName,
+      createdAt: expect.any(Date),
+      payload,
+    });
+
+    expect(res1).toBe(payload.id);
+    expect(res2).toStrictEqual([payload]);
+    expect(res3).toStrictEqual(payload);
+  });
+
+  it('deveria retornar um array vázio se o método "dispatchSync" for chamado com um evento que não existe', async () => {
+    const eventName = 'test';
+    const payload = { id: 'id' };
+    const result = await eventManager.dispatchSync(eventName, payload);
+    expect(result).toStrictEqual([]);
   });
 
   it('should trigger an event (sync) that throws an error and does not propagate to the caller and check if the log was performed', () => {
@@ -90,7 +146,9 @@ describe('shared/event-manager', () => {
     });
 
     eventManager.register(eventName, handler);
-    expect(() => eventManager.dispatch(eventName, { id: 'id' })).not.toThrow();
+    expect(() =>
+      eventManager.dispatchAsync(eventName, { id: 'id' }),
+    ).not.toThrow();
     expect(handler).toBeCalledTimes(1);
 
     expect(loggerSpy).toBeCalledTimes(1);
@@ -118,7 +176,9 @@ describe('shared/event-manager', () => {
     });
 
     eventManager.register(eventName, handler);
-    expect(() => eventManager.dispatch(eventName, { id: 'id' })).not.toThrow();
+    expect(() =>
+      eventManager.dispatchAsync(eventName, { id: 'id' }),
+    ).not.toThrow();
     expect(handler).toBeCalledTimes(1);
 
     await Common.sleep(0);
@@ -143,6 +203,8 @@ describe('shared/event-manager', () => {
   });
 
   it("should try to trigger an event that doesn't exist", () => {
-    expect(() => eventManager.dispatch('test', vi.fn())).not.toThrowError();
+    expect(() =>
+      eventManager.dispatchAsync('test', vi.fn()),
+    ).not.toThrowError();
   });
 });

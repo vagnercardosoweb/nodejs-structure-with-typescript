@@ -12,7 +12,8 @@ export type EventManagerHandler<T> = (
 
 export interface EventManagerInterface {
   register<T>(eventName: string, handler: EventManagerHandler<T>): void;
-  dispatch<T>(eventName: string, payload: T): void;
+  dispatchAsync<T>(eventName: string, payload: T): void;
+  dispatchSync<T, R>(eventName: string, payload: T): Promise<R[]>;
   remove<T>(eventName: string, handler: EventManagerHandler<T>): void;
   clear(): void;
 }
