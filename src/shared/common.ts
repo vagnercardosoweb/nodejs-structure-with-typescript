@@ -376,7 +376,7 @@ export class Common {
   public static createDateWithTimezone(date: Date, timeZone: string): Date {
     return new Date(
       new Intl.DateTimeFormat('en-US', {
-        timeZone,
+        timeZone: process.env.TZ === timeZone ? undefined : timeZone,
         fractionalSecondDigits: 3,
         year: 'numeric',
         hourCycle: 'h23',

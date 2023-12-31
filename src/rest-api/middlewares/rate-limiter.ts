@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 
-import { getCacheClientFromRequest } from '@/config/dependencies';
 import { environments } from '@/config/environments';
+import { getCacheClientFromRequest } from '@/rest-api/dependencies';
 import { HttpStatusCode } from '@/shared/enums';
 import { RateLimiterError } from '@/shared/errors';
 

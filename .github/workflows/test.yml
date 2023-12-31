@@ -6,8 +6,7 @@ concurrency:
 
 env:
   TZ: 'UTC'
-  APP_KEY: test_${{ github.sha }}
-  API_KEY_SECRET: test_${{ github.sha }}
+  APP_KEY: test_7d1043473d55bfa90e8530d35801d4e381bc69f0
   REDACTED_KEYS: 'password,testObject'
   REDIS_HOST: 'localhost'
   REDIS_PORT: '6379'

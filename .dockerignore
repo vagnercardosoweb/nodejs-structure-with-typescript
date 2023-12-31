@@ -6,4 +6,5 @@ tests/
 aws-infra/
 coverage/
 kubernetes/
+resources/
 .github/

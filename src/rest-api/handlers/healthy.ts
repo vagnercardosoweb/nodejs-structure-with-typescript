@@ -3,9 +3,9 @@ import type { Request, Response } from 'express';
 import { environments } from '@/config/environments';
 import { Common } from '@/shared/common';
 
-export class HealthyHandler {
-  public static handle(request: Request, _: Response) {
-    return {
+export class Healthy {
+  public static handle(request: Request, response: Response) {
+    return response.json({
       data: '🚀',
       path: `${request.method} ${request.originalUrl}`,
       ipAddress: request.ip,
@@ -17,6 +17,6 @@ export class HealthyHandler {
       userAgent: request.headers['user-agent'],
       brlDate: Common.createBrlDate(),
       utcDate: Common.createUtcDate(),
-    };
+    });
   }
 }

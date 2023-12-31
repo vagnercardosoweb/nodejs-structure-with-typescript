@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import morgan from 'morgan';
 
-import { getLoggerFromRequest } from '@/config/dependencies';
 import { environments } from '@/config/environments';
+import { getLoggerFromRequest } from '@/rest-api/dependencies';
 import { ContainerName } from '@/shared/container';
 
 const bypassPaths = ['/docs', '/favicon'];

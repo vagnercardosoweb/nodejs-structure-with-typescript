@@ -25,14 +25,14 @@ import {
 import { BeforeCloseFn, type Handler, type Route } from '@/rest-api/types';
 import {
   Container,
-  ContainerInterface,
+  type ContainerInterface,
   ContainerName,
   ContainerValue,
 } from '@/shared/container';
 import { DurationTime } from '@/shared/duration-time';
-import { HttpMethod, HttpStatusCode } from '@/shared/enums';
+import { HttpMethod } from '@/shared/enums';
 import { AppError } from '@/shared/errors';
-import { Logger, LoggerInterface } from '@/shared/logger';
+import { Logger, type LoggerInterface } from '@/shared/logger';
 
 export class RestApi {
   protected readonly app: Application;
@@ -189,23 +189,12 @@ export class RestApi {
     await Promise.all(this.beforeCloseFn.map((fn) => fn()));
   }
 
-  protected responseHandler(result: any, response: Response) {
-    if (response.headersSent) return;
-    if (!result) return response.status(HttpStatusCode.NO_CONTENT).end();
-    if (!result.hasOwnProperty('writeHead')) return response.json(result);
-    return response.end();
-  }
-
   protected asyncHandler(fn: Handler) {
     return (request: Request, response: Response, next: NextFunction) => {
       try {
         const result = fn(request, response, next);
-        if (result instanceof Promise) {
-          return result
-            .then((result) => this.responseHandler(result, response))
-            .catch(next);
-        }
-        return this.responseHandler(result, response);
+        if (result instanceof Promise) return result.catch(next);
+        return result;
       } catch (e) {
         return next(e);
       }

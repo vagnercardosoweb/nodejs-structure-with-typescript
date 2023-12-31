@@ -8,15 +8,15 @@ import { setupTranslation } from '@/config/translation';
 import { RestApi } from '@/rest-api/rest-api';
 import { type CacheInterface, RedisCache } from '@/shared/cache';
 import { ContainerName } from '@/shared/container';
-import type { EventManagerInterface } from '@/shared/event-manager';
+import { type EventManagerInterface } from '@/shared/event-manager';
 import { Jwt, type JwtInterface } from '@/shared/jwt';
-import type { LoggerInterface } from '@/shared/logger';
+import { type LoggerInterface } from '@/shared/logger';
 import {
   PasswordHashBcrypt,
   type PasswordHashInterface,
 } from '@/shared/password-hash';
-import { Migrator, PgPool, PgPoolInterface } from '@/shared/postgres';
-import { TranslationInterface } from '@/shared/translation';
+import { Migrator, PgPool, type PgPoolInterface } from '@/shared/postgres';
+import { type TranslationInterface } from '@/shared/translation';
 
 export const setupDependencies = async (
   restApi: RestApi,

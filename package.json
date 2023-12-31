@@ -56,7 +56,7 @@
     "@types/jsonwebtoken": "9.0.5",
     "@types/module-alias": "2.0.4",
     "@types/morgan": "1.9.9",
-    "@types/node": "20.10.6",
+    "@types/node": "20.10.5",
     "@types/pg": "8.10.9",
     "@types/response-time": "2.3.8",
     "@types/swagger-ui-express": "4.1.6",

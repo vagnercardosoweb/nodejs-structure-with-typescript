@@ -1,7 +1,7 @@
 import '../config/module-alias';
 
-import { setupDependencies } from '@/config/dependencies';
-import { setupRoutes } from '@/config/routes';
+import { setupDependencies } from '@/rest-api/dependencies';
+import { setupHandlers } from '@/rest-api/handlers';
 import { RestApi } from '@/rest-api/rest-api';
 import { setupSwagger } from '@/rest-api/swagger';
 import { Env } from '@/shared/env';
@@ -50,7 +50,7 @@ const onShutdown = (error?: any) => {
 
   try {
     await setupDependencies(restApi, logger);
-    setupRoutes(restApi);
+    setupHandlers(restApi);
     setupSwagger(restApi);
     await restApi.listen();
 
