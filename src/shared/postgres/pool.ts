@@ -116,7 +116,7 @@ export class PgPool implements PgPoolInterface {
       return {
         oid: result.oid,
         rows: result.rows,
-        rowCount: result.rowCount ?? 0,
+        rowCount: result.rowCount ?? result.rows.length,
         command: result.command,
         duration: metadata.duration,
         fields: result.fields,
