@@ -16,7 +16,7 @@ export const cors = (
   response.setHeader('Access-Control-Allow-Credentials', 'true');
   if (request.method.toUpperCase() === HttpMethod.OPTIONS) {
     response.setHeader('Content-Length', '0');
-    return response.sendStatus(HttpStatusCode.NO_CONTENT);
+    return response.writeHead(HttpStatusCode.NO_CONTENT).end();
   }
   return next();
 };

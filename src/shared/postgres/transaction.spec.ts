@@ -5,6 +5,9 @@ import {
 } from '@/shared/postgres';
 
 describe('shared/postgres/transaction', () => {
+  const duplicateErrorMessage = /^The transaction has already finished$/;
+  const notStartedErrorMessage = /^The transaction has not started$/;
+
   const mockPgPool = { query: vi.fn(), release: vi.fn() };
   let transaction: TransactionInterface;
 
@@ -12,7 +15,7 @@ describe('shared/postgres/transaction', () => {
     transaction = new Transaction(mockPgPool as unknown as PgPoolInterface);
   });
 
-  it('deveria testar o método "begin"', async () => {
+  it('should execute the "begin" method successfully and only once', async () => {
     expect((transaction as any).started).toBeFalsy();
     await transaction.begin();
     expect((transaction as any).started).toBeTruthy();
@@ -21,7 +24,7 @@ describe('shared/postgres/transaction', () => {
     expect(mockPgPool.query).toHaveBeenCalledWith('BEGIN');
   });
 
-  it('deveria testar o método "commit"', async () => {
+  it('should execute the "commit" method successfully', async () => {
     await transaction.begin();
     expect((transaction as any).started).toBeTruthy();
     await transaction.commit();
@@ -31,7 +34,7 @@ describe('shared/postgres/transaction', () => {
     expect(mockPgPool.release).toHaveBeenCalledOnce();
   });
 
-  it('deveria testar o método "rollback"', async () => {
+  it('should execute the "rollback" method successfully', async () => {
     await transaction.begin();
     expect((transaction as any).started).toBeTruthy();
     await transaction.rollback();
@@ -41,19 +44,33 @@ describe('shared/postgres/transaction', () => {
     expect(mockPgPool.release).toHaveBeenCalledOnce();
   });
 
-  it('deveria testar o método "commit" tentando executar 2 vezes', async () => {
+  it('should execute the "commit" method in duplicate and return an error', async () => {
     await transaction.begin();
     expect((transaction as any).started).toBeTruthy();
     await transaction.commit();
-    expect(transaction.commit()).rejects.toThrow();
+    expect(transaction.commit()).rejects.toThrow(duplicateErrorMessage);
   });
 
-  it('deveria testar o método "rollback" sem ter iniciado o "begin"', async () => {
+  it('should execute the "rollback" method in duplicate and return an error', async () => {
+    await transaction.begin();
+    expect((transaction as any).started).toBeTruthy();
+    await transaction.rollback();
+    expect(transaction.rollback()).rejects.toThrow(duplicateErrorMessage);
+  });
+
+  it('should execute the "rollback" method without having started the transaction', async () => {
     expect((transaction as any).started).toBeFalsy();
-    expect(transaction.rollback()).rejects.toThrow();
+    expect(transaction.rollback()).rejects.toThrowError(notStartedErrorMessage);
+    expect(mockPgPool.query).toHaveBeenCalledTimes(0);
   });
 
-  it('deveria testar o método "rollback" com o hook "afterRollback" e não dar ero', async () => {
+  it('should execute the "commit" method without having started the transaction', async () => {
+    expect((transaction as any).started).toBeFalsy();
+    expect(transaction.commit()).rejects.toThrowError(notStartedErrorMessage);
+    expect(mockPgPool.query).toHaveBeenCalledTimes(0);
+  });
+
+  it('should execute the "rollback" method with the "afterRollback" hook successfully', async () => {
     await transaction.begin();
     const fn = vi.fn().mockResolvedValueOnce('OK');
     transaction.afterRollback(fn);
@@ -62,7 +79,7 @@ describe('shared/postgres/transaction', () => {
     expect(fn).toHaveBeenCalledWith(mockPgPool);
   });
 
-  it('deveria testar o método "rollback" com o hook "afterRollback" e dar ero', async () => {
+  it('should execute the "rollback" method with the "afterRollback" hook and fail', async () => {
     await transaction.begin();
     const fn = vi.fn().mockRejectedValueOnce(new Error());
     transaction.afterRollback(fn);
@@ -70,7 +87,7 @@ describe('shared/postgres/transaction', () => {
     expect(mockPgPool.query).toHaveBeenCalledTimes(2);
   });
 
-  it('deveria testar o método "rollback" com o hook "afterCommit" e não dar ero', async () => {
+  it('should execute the "rollback" method with the "afterCommit" hook successfully', async () => {
     await transaction.begin();
     const fn = vi.fn().mockReturnValueOnce('OK');
     transaction.afterCommit(fn);
@@ -79,7 +96,7 @@ describe('shared/postgres/transaction', () => {
     expect(fn).toHaveBeenCalledWith(mockPgPool);
   });
 
-  it('deveria testar o método "rollback" com o hook "afterCommit" e dar ero', async () => {
+  it('should execute the "rollback" method with the "afterCommit" hook and fail', async () => {
     await transaction.begin();
     const fn = vi.fn().mockRejectedValueOnce(new Error());
     transaction.afterCommit(fn);

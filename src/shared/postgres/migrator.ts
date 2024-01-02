@@ -52,7 +52,7 @@ export class Migrator {
       .sort((a: string, b: string) => a.localeCompare(b));
   }
 
-  private async checkOrCreateMigrationTable() {
+  protected async checkOrCreateMigrationTable() {
     const result = await this.pgPool.query(
       `SELECT table_name
        FROM information_schema.tables
@@ -77,7 +77,7 @@ export class Migrator {
     }
   }
 
-  private async executeSql(fileName: string) {
+  protected async executeSql(fileName: string) {
     await this.pgPool.query(await this.getContentSql(fileName));
     await this.pgPool.query(
       this.prefix === Prefix.UP
@@ -87,14 +87,14 @@ export class Migrator {
     );
   }
 
-  private async getContentSql(fileName: string) {
+  protected async getContentSql(fileName: string) {
     fileName = `${fileName}.${this.prefix}.sql`;
     const filePath = path.resolve(this.path, fileName);
     const content = await fs.promises.readFile(filePath);
     return content.toString();
   }
 
-  private async getMigrationFromDb(): Promise<Record<string, boolean>> {
+  protected async getMigrationFromDb(): Promise<Record<string, boolean>> {
     const query = 'SELECT file_name FROM migrations;';
     const { rows } = await this.pgPool.query<{ file_name: string }>(query);
     return rows.reduce(

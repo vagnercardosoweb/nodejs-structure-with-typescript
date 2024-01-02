@@ -1,64 +1,86 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe } from 'vitest';
 
 import { Translation } from '@/shared/translation';
 
-const localePtbr: Record<string, any> = {
-  key: 'key_ptbr',
-  replace: 'Meu nome é [{{name}}] e tenho [{{age}}] anos',
-  nested: { key: 'nested.key' },
-  array: [{ key: 'key' }],
+const defaultLocale = 'pt-br';
+const locales = {
+  [defaultLocale]: {
+    key: 'pt-br chave',
+    replace: 'Meu nome é "{{name}}" e tenho "{{age}}" anos',
+  },
+  en: {
+    replace: 'My name is "{{name}}" and I am "{{age}}" years old',
+    key: 'en key',
+  },
 };
 
-const localeEn: Record<string, any> = {
-  key: 'key_en',
-  replace: 'My name is [{{name}}] and I am [{{age}}] years old',
-};
+describe('src/shared/translation', () => {
+  let sut: Translation;
 
-let sut: Translation;
-
-describe('Translation', () => {
   beforeEach(() => {
-    sut = new Translation();
-    sut.add('en', localeEn);
-    sut.add('pt-br', localePtbr);
+    sut = new Translation(defaultLocale);
+    sut.add('pt-br', locales['pt-br']);
+    sut.add('en', locales.en);
   });
 
-  it('should clear the translations and verify [pt-br]', () => {
-    sut = sut.withLocale('pt-br');
-    sut.clear();
-
-    expect(sut.get('key')).toEqual('key');
-    expect(sut.getLocale()).toEqual('pt-br');
+  it('should retrieve the translation with the default "pt-br" language', () => {
+    expect(sut.get('key')).toBe(locales[defaultLocale].key);
+    expect(
+      sut.get('replace', {
+        name: 'John',
+        age: 20,
+      }),
+    ).toBe('Meu nome é "John" e tenho "20" anos');
+    expect(sut.getLocale()).toBe(defaultLocale);
   });
 
-  it('should clear the translations and verify [en]', () => {
+  it('should retrieve the translation with the "en" language', () => {
     sut = sut.withLocale('en');
+    expect(sut.get('key')).toBe(locales.en.key);
+    expect(
+      sut.get('replace', {
+        name: 'John',
+        age: 20,
+      }),
+    ).toBe('My name is "John" and I am "20" years old');
+    expect(sut.getLocale()).toBe('en');
+  });
+
+  it('should check if the registered key exists', () => {
+    expect(sut.has('key')).toBe(true);
+    expect(sut.has('key2')).toBe(false);
+  });
+
+  it('should return the key when the translation does not exist', () => {
+    expect(sut.get('key2')).toBe('key2');
+  });
+
+  it('should execute the "withLocale" method with the same language already defined before', () => {
+    sut = sut.withLocale(defaultLocale);
+    expect(sut.getLocale()).toBe(defaultLocale);
+  });
+
+  it('should execute the "withLocal" method with the language and domain "en-US" and return the language "en"', () => {
+    sut = sut.withLocale('en-US');
+    expect(sut.getLocale()).toBe('en');
+  });
+
+  it(`you should try to set a language that doesn't exist and return the same already defined and the same class without modification`, () => {
+    const sut2 = sut.withLocale('not_exist');
+    expect(sut2.getLocale()).toBe(defaultLocale);
+    expect(sut2).toBe(sut);
+  });
+
+  it('should define a new language that exists and validate if the classes are different', () => {
+    const sut2 = sut.withLocale('en');
+    expect(sut2.getLocale()).toBe('en');
+    expect(sut2).not.toBe(sut);
+  });
+
+  it('should clean up the translations', () => {
     sut.clear();
-
-    expect(sut.get('key')).toEqual('key');
-    expect(sut.getLocale()).toEqual('en');
-  });
-
-  it('should check the translation using the default locale [pt-br]', () => {
-    sut = sut.withLocale('pt-br');
-    expect(sut.get('key')).toEqual('key_ptbr');
-    expect(sut.get('nested.key')).toEqual('nested.key');
-    expect(sut.get('array.0.key')).toEqual('array.0.key');
-    expect(sut.get('replace', { name: 'any', age: 28 })).toEqual(
-      'Meu nome é [any] e tenho [28] anos',
-    );
-    expect(sut.get('nokey')).toEqual('nokey');
-    expect(sut.getLocale()).toEqual('pt-br');
-  });
-
-  it('should check the translation using the locale [en]', () => {
-    sut = sut.withLocale('en');
-
-    expect(sut.get('key')).toEqual('key_en');
-    expect(sut.get('replace', { name: 'any', age: 28 })).toEqual(
-      'My name is [any] and I am [28] years old',
-    );
-
-    expect(sut.getLocale()).toEqual('en');
+    expect(sut.getLocale()).toBe(defaultLocale);
+    expect((sut as any).translations.size).toBe(0);
+    expect(sut.has('key')).toBeFalsy();
   });
 });

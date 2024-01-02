@@ -1,7 +1,7 @@
 import { DatabaseError, Pool, PoolClient, types } from 'pg';
-import { Mocked, describe, vi } from 'vitest';
+import { describe, Mocked, vi } from 'vitest';
 
-import { Logger, LoggerInterface } from '@/shared/logger';
+import { Logger, LoggerInterface, LogLevel } from '@/shared/logger';
 import { PgPool, PgPoolInterface, PgPoolOptions } from '@/shared/postgres';
 
 import { HttpStatusCode } from '../enums';
@@ -211,6 +211,8 @@ describe('shared/postgres/pool.ts', () => {
   it('should throw a conflict error and the error status should be 419', async () => {
     const expectedError = new Error() as DatabaseError;
     expectedError.code = '23505';
+
+    const spyLog = vi.spyOn(pgPool.logger, 'log');
     pgPool.pool.query.mockRejectedValueOnce(expectedError);
     let throwError: AppError | undefined;
 
@@ -229,6 +231,19 @@ describe('shared/postgres/pool.ts', () => {
       stack: expectedError.stack,
       code: expectedError.code,
     });
+
+    expect(spyLog).toHaveBeenCalledTimes(1);
+    expect(spyLog).toHaveBeenCalledWith(
+      LogLevel.ERROR,
+      'query',
+      expect.objectContaining({
+        name: pgOptions.appName,
+        type: 'POOL',
+        duration: expect.any(String),
+        query: 'SELECT 1 + 1;',
+        bind: [],
+      }),
+    );
   });
 
   it(`should test if the query's "rowCount" field returns "undefined" and the "length" of the "rows" is assigned`, async () => {
@@ -237,20 +252,35 @@ describe('shared/postgres/pool.ts', () => {
       { id: 2, name: 'name 2' },
     ];
 
+    const spyLog = vi.spyOn(pgPool.logger, 'log');
     pgPool.pool.query.mockResolvedValueOnce({
       ...mockQueryResult,
       rowCount: undefined,
       rows: mockRows,
     } as any);
 
+    const bind = [[1, 2]];
     const query = 'SELECT id, name FROM tb WHERE id = ANY($1)';
-    const result = await pgPool.query(query, [[1, 2]]);
+    const result = await pgPool.query(query, bind);
 
     expect(pgPool.pool.query).toHaveBeenCalledTimes(1);
-    expect(pgPool.pool.query).toHaveBeenCalledWith(query, [[1, 2]]);
+    expect(pgPool.pool.query).toHaveBeenCalledWith(query, bind);
 
     expect(result.rowCount).toBe(2);
     expect(result.rows).toEqual(mockRows);
+
+    expect(spyLog).toHaveBeenCalledTimes(1);
+    expect(spyLog).toHaveBeenCalledWith(
+      LogLevel.INFO,
+      'query',
+      expect.objectContaining({
+        name: pgOptions.appName,
+        type: 'POOL',
+        duration: expect.any(String),
+        query,
+        bind,
+      }),
+    );
   });
 
   it('should call the "release" method without having the "client" configured', () => {
@@ -259,7 +289,7 @@ describe('shared/postgres/pool.ts', () => {
     expect(spyLog).not.toBeCalled();
   });
 
-  it('deveria criar um "pgPool" com o método "fromEnvironment"', () => {
+  it('should create a "pgPool" with the "fromEnvironment" method', () => {
     vi.clearAllMocks();
     vi.stubEnv('DB_APP_NAME', 'app_with_env');
     vi.stubEnv('DB_NAME', 'db_with_env');

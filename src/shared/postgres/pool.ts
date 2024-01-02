@@ -84,13 +84,13 @@ export class PgPool implements PgPoolInterface {
 
   public async close(): Promise<void> {
     if (this.closed) return;
-    this.log(LogLevel.INFO, 'pg closing');
+    this.log(LogLevel.INFO, 'closing');
     await this.pool.end();
     this.closed = true;
   }
 
   public async connect(): Promise<PgPoolInterface> {
-    this.log(LogLevel.INFO, 'pg connecting');
+    this.log(LogLevel.INFO, 'connecting');
     await this.query('SELECT 1 + 1;');
     return this;
   }
@@ -109,10 +109,10 @@ export class PgPool implements PgPoolInterface {
       bind,
     };
     const duration = new DurationTime();
-    let hasError = false;
     try {
       const result = await client.query<T>(query, bind);
       metadata.duration = duration.format();
+      this.log(LogLevel.INFO, 'query', metadata);
       return {
         oid: result.oid,
         rows: result.rows,
@@ -124,8 +124,8 @@ export class PgPool implements PgPoolInterface {
         bind,
       };
     } catch (e: any) {
-      hasError = true;
       metadata.duration = duration.format();
+      this.log(LogLevel.ERROR, 'query', metadata);
       throw new AppError({
         code: e.code,
         statusCode:
@@ -135,9 +135,6 @@ export class PgPool implements PgPoolInterface {
         originalError: e,
         metadata,
       });
-    } finally {
-      const logLevel = hasError ? LogLevel.ERROR : LogLevel.INFO;
-      this.log(logLevel, 'pg query', metadata);
     }
   }
 
@@ -162,7 +159,7 @@ export class PgPool implements PgPoolInterface {
 
   public release() {
     if (this.client === null) return;
-    this.log(LogLevel.INFO, 'pg release');
+    this.log(LogLevel.INFO, 'release');
     this.client.release();
     this.client = null;
   }

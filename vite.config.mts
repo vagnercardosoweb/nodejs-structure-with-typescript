@@ -6,8 +6,10 @@ export default defineConfig({
   test: {
     globals: true,
     passWithNoTests: true,
+    allowOnly: true,
     setupFiles: ['./src/config/dotenv'],
     environment: 'node',
+    bail: process.env.CI === 'true' ? 1 : undefined,
     clearMocks: true,
     cache: false
   },

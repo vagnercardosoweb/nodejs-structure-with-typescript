@@ -1,70 +1,38 @@
-import { Request } from 'express';
-import { describe, expect, it, vi } from 'vitest';
+import express from 'express';
+import supertest from 'supertest';
+import { describe, it } from 'vitest';
 
 import { cors as configCors } from '@/config/cors';
 import { cors } from '@/rest-api/middlewares';
-import { HttpMethod, HttpStatusCode } from '@/shared/enums';
 
 describe('rest-api/middlewares/cors', () => {
-  it('should validate the headers that were defined for cors', () => {
-    const mockNext = vi.fn();
+  let app: express.Application;
 
-    const mockRequest = {
-      method: HttpMethod.GET,
-    } as Request;
-
-    const mockResponse = {
-      setHeader: vi.fn().mockReturnValueOnce(null) as any,
-    } as any;
-
-    cors(mockRequest, mockResponse, mockNext);
-    expect(mockResponse.setHeader).toHaveBeenCalledTimes(4);
-
-    expect(mockResponse.setHeader).toHaveBeenCalledWith(
-      'Access-Control-Allow-Origin',
-      configCors.origin,
-    );
-
-    expect(mockResponse.setHeader).toHaveBeenCalledWith(
-      'Access-Control-Allow-Methods',
-      configCors.methods.join(','),
-    );
-
-    expect(mockResponse.setHeader).toHaveBeenCalledWith(
-      'Access-Control-Allow-Headers',
-      configCors.headers.join(','),
-    );
-
-    expect(mockResponse.setHeader).toHaveBeenCalledWith(
-      'Access-Control-Allow-Credentials',
-      'true',
-    );
-
-    expect(mockNext).toHaveBeenCalledTimes(1);
+  beforeEach(() => {
+    app = express();
+    app.use(cors);
   });
 
-  it('should validate the header when the method is "OPTIONS"', () => {
-    const mockNext = vi.fn();
+  it('should validate the headers that were defined for cors', async () => {
+    app.get('/', (_, res) => res.end());
+    await supertest(app)
+      .get('/')
+      .expect('Access-Control-Allow-Origin', configCors.origin)
+      .expect('Access-Control-Allow-Methods', configCors.methods.join(','))
+      .expect('Access-Control-Allow-Headers', configCors.headers.join(','))
+      .expect('Access-Control-Allow-Credentials', 'true')
+      .expect(200);
+  });
 
-    const mockRequest = {
-      method: HttpMethod.OPTIONS,
-    } as Request;
-
-    const mockResponse = {
-      setHeader: vi.fn().mockReturnValueOnce(null) as any,
-      sendStatus: vi.fn().mockReturnValueOnce(null) as any,
-    } as any;
-
-    cors(mockRequest, mockResponse, mockNext);
-
-    expect(mockResponse.setHeader).toHaveBeenCalledTimes(5);
-    expect(mockResponse.setHeader).toHaveBeenCalledWith('Content-Length', '0');
-
-    expect(mockResponse.sendStatus).toHaveBeenCalledTimes(1);
-    expect(mockResponse.sendStatus).toHaveBeenCalledWith(
-      HttpStatusCode.NO_CONTENT,
-    );
-
-    expect(mockNext).toHaveBeenCalledTimes(0);
+  it('should validate the header when the method is "OPTIONS"', async () => {
+    app.get('/', (_, res) => res.end());
+    await supertest(app)
+      .options('/')
+      .expect('Access-Control-Allow-Origin', configCors.origin)
+      .expect('Access-Control-Allow-Methods', configCors.methods.join(','))
+      .expect('Access-Control-Allow-Headers', configCors.headers.join(','))
+      .expect('Access-Control-Allow-Credentials', 'true')
+      .expect('Content-Length', '0')
+      .expect(204);
   });
 });
