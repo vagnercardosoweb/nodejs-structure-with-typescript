@@ -1,6 +1,5 @@
 import process from 'node:process';
 
-process.env.TZ = 'UTC';
 process.env.APP_KEY = 'test_7d1043473d55bfa90e8530d35801d4e381bc69f0';
 process.env.REDACTED_KEYS = 'password,password_confirm,testObject';
 process.env.REDIS_KEY_PREFIX = 'test';

@@ -96,7 +96,7 @@ describe('src/shared/date-utils.spec.ts', () => {
 
   it('getNowInSeconds() should return the current time in seconds', () => {
     vi.useFakeTimers({ now: new Date(2024, 0, 1, 0, 0, 0, 0) });
-    expect(getNowInSeconds()).toEqual(1704078000);
+    expect(getNowInSeconds()).toEqual(1704067200);
     vi.useRealTimers();
   });
 
@@ -111,7 +111,7 @@ describe('src/shared/date-utils.spec.ts', () => {
 
   it('createNewBrlDate() should return the current date in Brazil', () => {
     vi.useFakeTimers({ now: new Date('2024-01-01T03:00:00Z') });
-    expect(createNewBrlDate()).toEqual(new Date('2024-01-01T03:00:00Z'));
+    expect(createNewBrlDate()).toEqual(new Date('2024-01-01T00:00:00Z'));
     vi.useRealTimers();
   });
 
@@ -133,7 +133,7 @@ describe('src/shared/date-utils.spec.ts', () => {
         new Date('2024-01-01T03:00:00Z'),
         'America/Sao_Paulo',
       ),
-    ).toEqual(new Date('2024-01-01T03:00:00Z'));
+    ).toEqual(new Date('2024-01-01T00:00:00Z'));
   });
 
   it('parseDateFromStringWithoutTimeToUtc("2024-01-01T03:00:00Z") should throw an error when invalid format', () => {
