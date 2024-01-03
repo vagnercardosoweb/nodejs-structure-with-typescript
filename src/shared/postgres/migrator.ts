@@ -53,12 +53,16 @@ export class Migrator {
   }
 
   protected async checkOrCreateMigrationTable() {
+    const schema = (this.pgPool as any).options.schema;
+    if (schema !== 'public') {
+      await this.pgPool.query(`CREATE SCHEMA IF NOT EXISTS "${schema}";`);
+    }
     const result = await this.pgPool.query(
       `SELECT table_name
        FROM information_schema.tables
        WHERE table_schema = $1
          AND table_name = $2;`,
-      [(this.pgPool as any).options.schema, 'migrations'],
+      [schema, 'migrations'],
     );
     if (result.rows.length === 0) {
       await this.pgPool.query(`

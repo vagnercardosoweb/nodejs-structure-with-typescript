@@ -27,9 +27,9 @@
     "test:e2e:watch": "vitest -c ./vitest.config.e2e.mts --dir src/",
     "test:e2e:coverage": "vitest -c ./vitest.config.e2e.mts run --coverage",
     "test:e2e:related": "vitest -c ./vitest.config.e2e.mts related --run",
-    "migrator:up": "npm run build && node --env-file=.env.$(echo $NODE_ENV) ./migrations/index.js up && npm run clean",
-    "migrator:down:last": "npm run build && node --env-file=.env.$(echo $NODE_ENV) ./migrations/index.js down 1 && npm run clean",
-    "migrator:down:all": "npm run build && node --env-file=.env.$(echo $NODE_ENV) ./migrations/index.js down -1 && npm run clean",
+    "migrator:up": "node --env-file=.env.$(echo $NODE_ENV) ./migrations/index.js up",
+    "migrator:down:last": "node --env-file=.env.$(echo $NODE_ENV) ./migrations/index.js down 1",
+    "migrator:down:all": "node --env-file=.env.$(echo $NODE_ENV) ./migrations/index.js down -1",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
     "generate-tag": "git tag -a --force v$(node -e \"console.log(require('./package.json').version)\") HEAD",
     "prepare": "husky install"

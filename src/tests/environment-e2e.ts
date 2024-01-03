@@ -1,23 +1,28 @@
 import './default-env';
 
-import { Environment } from 'vitest';
+import path from 'node:path';
 
+import { Logger } from '@/shared/logger';
+import { Migrator, PgPool } from '@/shared/postgres';
 import { setupPostgres, setupRedis } from '@/tests/containers';
 
-export default <Environment>{
-  name: 'e2e',
-  transformMode: 'ssr',
-  setup: async () => {
-    const postgres = await setupPostgres();
-    const redis = await setupRedis();
+export default async function globalVitestSetup() {
+  const postgres = await setupPostgres();
+  const redis = await setupRedis();
 
-    return {
-      teardown: async () => {
-        process.nextTick(async () => {
-          await postgres.stop();
-          await redis.stop();
-        });
-      },
-    };
-  },
-};
+  const pgPool = PgPool.fromEnvironment(new Logger('MIGRATOR_TEST'));
+  const migrator = new Migrator(
+    pgPool,
+    path.resolve(process.cwd(), 'migrations'),
+  );
+
+  await migrator.up();
+
+  return async () => {
+    await migrator.down(-1);
+    await pgPool.close();
+
+    await postgres.stop();
+    await redis.stop();
+  };
+}

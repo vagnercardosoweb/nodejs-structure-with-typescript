@@ -78,7 +78,7 @@ const expectPoolConstructor = {
   idleTimeoutMillis: 1000,
   max: 10,
   min: 0,
-  options: '-c search_path=public',
+  options: '-c search_path="public"',
   password: 'postgres',
   port: 5432,
   query_timeout: 1000,

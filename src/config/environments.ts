@@ -3,14 +3,21 @@ import process from 'node:process';
 
 import { z } from 'zod';
 
+import { Common } from '@/shared/common';
 import { NodeEnv } from '@/shared/enums';
 
-const envAsEntries = Object.entries(process.env);
-for (const [key, value] of envAsEntries) {
-  if (value?.startsWith('${') && value.endsWith('}')) {
-    process.env[key] = process.env[value.slice(2, -1)];
+const copyEnv = { ...process.env };
+const envAsEntries = Object.entries(copyEnv);
+
+const isParentValue = (v?: string) => v?.startsWith('${') && v.endsWith('}');
+const normalizeEnv = () => {
+  for (let [key, value] of envAsEntries) {
+    if (isParentValue(value)) value = copyEnv[value!.slice(2, -1)];
+    copyEnv[key] = Common.normalizeValue(value);
   }
-}
+};
+
+normalizeEnv();
 
 const envFromSchema = z
   .object({
@@ -22,11 +29,11 @@ const envFromSchema = z
     HEADER_NAME_REQUEST_ID: z.string().toLowerCase().default('x-request-id'),
     DEFAULT_LOCALE: z.string().default('pt-br'),
     BCRYPT_SALT_ROUNDS: z.coerce.number().default(12),
-    SHOW_BODY_HTTP_REQUEST_LOGGER: z.coerce.boolean().default(false),
-    SLACK_ALERT_ON_STARTED_OR_CLOSE_SERVER: z.coerce.boolean().default(true),
+    SHOW_BODY_HTTP_REQUEST_LOGGER: z.boolean().default(false),
+    SLACK_ALERT_ON_STARTED_OR_CLOSE_SERVER: z.boolean().default(true),
     ALERT_ERROR_SLACK_CACHE_MS: z.coerce.number().default(36e5),
     ALERT_ERROR_SLACK_CACHE_MAX: z.coerce.number().default(1000),
-    RATE_LIMITER_SKIP_SUCCESS: z.coerce.boolean().default(true),
+    RATE_LIMITER_SKIP_SUCCESS: z.boolean().default(true),
     RATE_LIMITER_EXPIRES_SECONDS: z.coerce.number().default(60),
     RATE_LIMITER_LIMIT: z.coerce.number().default(50),
     DB_HOST: z.string().min(4).default('localhost'),
@@ -35,11 +42,11 @@ const envFromSchema = z
     DB_USERNAME: z.string().min(4).default('root'),
     DB_PASSWORD: z.string().min(4).default('root'),
     DB_TIMEZONE: z.string().default('UTC'),
-    DB_LOGGING: z.coerce.boolean().default(false),
+    DB_LOGGING: z.boolean().default(false),
     DB_CHARSET: z.string().default('utf8'),
-    DB_ENABLED_SSL: z.coerce.boolean().default(false),
+    DB_ENABLED_SSL: z.boolean().default(false),
     DB_APP_NAME: z.string().default('app'),
-    DB_MIGRATION_ON_STARTED: z.coerce.boolean().default(true),
+    DB_MIGRATION_ON_STARTED: z.boolean().default(false),
     DB_POOL_IDLE: z.coerce.number().default(10000),
     DB_POOL_ACQUIRE: z.coerce.number().default(5000),
     DB_POOL_QUERY: z.coerce.number().default(3000),
@@ -51,7 +58,7 @@ const envFromSchema = z
     REDIS_KEY_PREFIX: z.string().default('app:'),
     REDIS_DATABASE: z.coerce.number().default(0),
     SLACK_TOKEN: z.string().default(''),
-    SLACK_ENABLED: z.coerce.boolean().default(false),
+    SLACK_ENABLED: z.boolean().default(false),
     SLACK_USERNAME: z.string().default('app'),
     SLACK_MEMBERS_ID: z.string().default(''),
     SLACK_CHANNEL: z.string().default('logs'),
@@ -65,7 +72,7 @@ const envFromSchema = z
     TZ_UTC: z.string().default('UTC'),
     TZ: z.string().default('UTC'),
   })
-  .parse(process.env);
+  .parse(copyEnv);
 
 export const environments = Object.freeze({
   PID: process.pid,
