@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { Common } from '@/shared/common';
+import { createNewBrlDate, createNewUtcDate } from '@/shared/date-utils';
 
 export const timestamp = (
   request: Request,
@@ -9,9 +9,9 @@ export const timestamp = (
 ) => {
   if (request.path === '/timestamp') {
     return response.json({
-      utc: Common.createUtcDate().getTime(),
+      utc: createNewUtcDate().getTime(),
       duration: request.durationTime.format(),
-      brl: Common.createBrlDate().getTime(),
+      brl: createNewBrlDate().getTime(),
     });
   }
   return next();

@@ -1,6 +1,6 @@
 import { PgPoolInterface } from '@/shared/postgres';
 
-export const truncateTable = async (
+export const truncateTables = async (
   pgPool: PgPoolInterface,
   tableNames: string[],
 ) => {

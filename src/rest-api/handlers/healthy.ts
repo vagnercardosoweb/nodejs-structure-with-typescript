@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 
 import { environments } from '@/config/environments';
-import { Common } from '@/shared/common';
+import { createNewBrlDate, createNewUtcDate } from '@/shared/date-utils';
 
 export class Healthy {
   public static handle(request: Request, response: Response) {
@@ -15,8 +15,8 @@ export class Healthy {
       hostname: environments.HOSTNAME,
       requestId: request.requestId,
       userAgent: request.headers['user-agent'],
-      brlDate: Common.createBrlDate(),
-      utcDate: Common.createUtcDate(),
+      brlDate: createNewBrlDate(),
+      utcDate: createNewUtcDate(),
     });
   }
 }

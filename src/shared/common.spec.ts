@@ -3,8 +3,6 @@ import { randomInt } from 'node:crypto';
 import { describe, expect, vi } from 'vitest';
 
 import { Common } from '@/shared/common';
-import { Env } from '@/shared/env';
-import { BadRequestError } from '@/shared/errors';
 import { Cnpj, Cpf } from '@/shared/values-object';
 
 vi.mock('node:crypto', async () => {
@@ -22,21 +20,6 @@ describe('shared/common.ts', () => {
     expect(uuid).toHaveLength(36);
   });
 
-  test('calculateAge', () => {
-    let birthDate = new Date();
-    birthDate.setFullYear(birthDate.getFullYear() - 38);
-    expect(Common.calculateAge(birthDate)).toStrictEqual(38);
-
-    birthDate = new Date('1994-12-15');
-    expect(Common.calculateAge(birthDate)).toStrictEqual(29);
-
-    birthDate = new Date('1992-11-05');
-    expect(Common.calculateAge(birthDate)).toStrictEqual(31);
-
-    birthDate = new Date('2018-06-16');
-    expect(Common.calculateAge(birthDate)).toStrictEqual(5);
-  });
-
   test('normalizeValue', () => {
     [
       ['1823.92', 1823.92],
@@ -49,14 +32,6 @@ describe('shared/common.ts', () => {
     ].forEach(([test, value]) =>
       expect(Common.normalizeValue(test)).toBe(value),
     );
-  });
-
-  test('dateNowToSeconds', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date(Date.UTC(2023, 5, 13, 0, 0, 0, 0)));
-    const seconds = Common.getNowInSeconds();
-    expect(seconds).toStrictEqual(1686614400);
-    vi.useRealTimers();
   });
 
   test('ucFirst', () => {
@@ -133,74 +108,6 @@ describe('shared/common.ts', () => {
                                 FROM users
                                 WHERE 1 = 1`),
     ).toStrictEqual('SELECT * FROM users WHERE 1 = 1');
-  });
-
-  test('formatDateYYYYMMDD (UTC+0)', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2023-07-31T21:00:00.000Z'));
-
-    const timezone = Env.getTimezoneUtc();
-    expect(timezone).toStrictEqual('UTC');
-
-    const expected = Common.formatDateYYYYMMDD(new Date(), timezone);
-    expect(expected).toStrictEqual('2023-07-31');
-
-    vi.useRealTimers();
-  });
-
-  test('formatDateYYYYMMDD (America/Los_Angeles)', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2023-07-31T07:00:00.000Z'));
-
-    const expected = Common.formatDateYYYYMMDD(
-      new Date(),
-      'America/Los_Angeles',
-    );
-
-    expect(expected).toStrictEqual('2023-07-31');
-
-    vi.useRealTimers();
-  });
-
-  test('formatDateYYYYMMDD (America/Sao_Paulo)', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2023-08-01T02:59:59Z'));
-
-    const timezone = Env.getTimezoneBrl();
-    expect(timezone).toStrictEqual('America/Sao_Paulo');
-
-    const expected = Common.formatDateYYYYMMDD(new Date(), timezone);
-    expect(expected).toStrictEqual('2023-07-31');
-
-    vi.useRealTimers();
-  });
-
-  test('parseDateFromStringWithoutTime: success', () => {
-    const expected = Common.parseDateFromStringWithoutTime('2023-06-15');
-    expect(expected).toStrictEqual(new Date(2023, 5, 15, 3, 0, 0, 0));
-  });
-
-  test('parseDateFromStringWithoutTime: invalid format', () => {
-    const dateAsString = '2023-08-03T00:00:00Z';
-    expect(() =>
-      Common.parseDateFromStringWithoutTime(dateAsString),
-    ).toThrowError(
-      new BadRequestError({
-        message: `Invalid date "${dateAsString}", only format "DD/MM/YYYY", "DD-MM-YYYY" and "YYYY-MM-DD" are allowed.`,
-      }),
-    );
-  });
-
-  test('parseDateFromStringWithoutTime: invalid day', () => {
-    const dateAsString = '2023-02-31';
-    expect(() =>
-      Common.parseDateFromStringWithoutTime(dateAsString),
-    ).toThrowError(
-      new BadRequestError({
-        message: 'The date "{{dateAsString}}" entered is not valid.',
-        replaceKeys: { dateAsString },
-      }),
-    );
   });
 
   test('parseNameToParts', () => {
@@ -368,26 +275,6 @@ describe('shared/common.ts', () => {
     for (let i = 0; i < 50; i += 1) {
       const cnpj = Cnpj.generate();
       expect(Common.onlyNumber(cnpj.format())).toEqual(cnpj.toString());
-    }
-  });
-
-  test('parseDate', () => {
-    const validDates: Record<string, Date> = {
-      '01/01/2023': new Date(2023, 0, 1, 3, 0, 0, 0),
-      '07-02-2023': new Date(2023, 1, 7, 3, 0, 0, 0),
-      '2023-07-02': new Date(2023, 6, 2, 3, 0, 0, 0),
-      '2023-02-28': new Date(2023, 1, 28, 3, 0, 0, 0),
-      '2016-02-29': new Date(2016, 1, 29, 3, 0, 0, 0),
-    };
-
-    for (const key in validDates) {
-      const value = Common.parseDateFromStringWithoutTime(key);
-      expect(value).toStrictEqual(validDates[key]);
-    }
-
-    const invalidDates = ['invalid', '2023-02-29'];
-    for (const date of invalidDates) {
-      expect(() => Common.parseDateFromStringWithoutTime(date)).toThrowError();
     }
   });
 });

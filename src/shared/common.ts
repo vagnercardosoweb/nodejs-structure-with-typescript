@@ -4,8 +4,6 @@ import { randomBytes, randomInt, randomUUID } from 'node:crypto';
 import { promisify } from 'node:util';
 
 import { HttpStatusCode } from '@/shared/enums';
-import { Env } from '@/shared/env';
-import { UnprocessableEntityError } from '@/shared/errors';
 
 export class Common {
   public static DAY_IN_SECONDS = 86400;
@@ -150,52 +148,6 @@ export class Common {
     return result;
   }
 
-  public static formatDateYYYYMMDD(date: Date, timeZone?: string): string {
-    return Intl.DateTimeFormat('fr-CA', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      timeZone,
-    }).format(date);
-  }
-
-  public static parseDateFromStringWithoutTime(dateAsString: string): Date {
-    dateAsString = dateAsString as string; // type casting
-
-    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateAsString)) {
-      dateAsString = dateAsString.split('/').reverse().join('-');
-    } else if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(dateAsString)) {
-      dateAsString = dateAsString.split('-').reverse().join('-');
-    }
-
-    let date: Date | undefined;
-    const match = dateAsString.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-    const [y, m, d] = match?.slice(1, 4).map((n) => Number(n)) ?? [0, 0, 0];
-    if (match !== null) date = new Date(y, m - 1, d, 3, 0, 0, 0);
-
-    if (!date || !this.isValidDate(date)) {
-      throw new UnprocessableEntityError({
-        message:
-          `Invalid date "${dateAsString}", only format` +
-          ' "DD/MM/YYYY", "DD-MM-YYYY" and "YYYY-MM-DD" are allowed.',
-        sendToSlack: true,
-      });
-    }
-
-    if (date.getDate() !== d) {
-      throw new UnprocessableEntityError({
-        message: `The date "${dateAsString}" entered is not valid.`,
-        metadata: { date: date.toISOString() },
-      });
-    }
-
-    return date;
-  }
-
-  public static isValidDate(date: DateParam): boolean {
-    return date instanceof Date && !isNaN(date.getTime());
-  }
-
   public static isValidCompleteName(value: string): boolean {
     return /[A-Za-zÀ-ÖØ-öø-ÿ]\s[A-Za-zÀ-ÖØ-öø-ÿ]+$/.test(value);
   }
@@ -203,16 +155,6 @@ export class Common {
   public static isValidPhone(value: string): boolean {
     const phone = Common.onlyNumber(value);
     return phone.length === 11;
-  }
-
-  public static calculateAge(birthday: Date): number {
-    const today = new Date();
-    const age = today.getFullYear() - birthday.getFullYear();
-    const month = today.getMonth() - birthday.getMonth();
-    if (month < 0 || (month === 0 && today.getDate() < birthday.getDate())) {
-      return age - 1;
-    }
-    return age;
   }
 
   public static parseBytes(bytes: number, decimals = 2) {
@@ -373,56 +315,7 @@ export class Common {
     return message;
   }
 
-  public static createDateWithTimezone(date: Date, timeZone: string): Date {
-    return new Date(
-      new Intl.DateTimeFormat('en-US', {
-        timeZone: process.env.TZ === timeZone ? undefined : timeZone,
-        fractionalSecondDigits: 3,
-        year: 'numeric',
-        hourCycle: 'h23',
-        month: 'numeric',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: 'numeric',
-        second: 'numeric',
-      }).format(date),
-    );
-  }
-
-  public static createBrlDate(date?: Date): Date {
-    return Common.createDateWithTimezone(
-      date ?? new Date(),
-      Env.getTimezoneBrl(),
-    );
-  }
-
-  public static createUtcDate(date?: Date): Date {
-    return Common.createDateWithTimezone(
-      date ?? new Date(),
-      Env.getTimezoneUtc(),
-    );
-  }
-
-  public static getNowInSeconds(): number {
-    return Math.floor(Date.now() / 1000);
-  }
-
-  public static getDiffDays(start: Date, end: Date): number {
-    const diffInMs = Math.abs(end.getTime() - start.getTime());
-    return Math.ceil(diffInMs / (Common.DAY_IN_SECONDS * 1000));
-  }
-
-  public static generateSlug(value: string): string {
-    return Common.removeAccents(value)
-      .toLowerCase()
-      .replace(/[^a-zA-Z0-9]/g, '-')
-      .replace(/-{2,}/g, '-')
-      .replace(/^-|-$/g, '');
-  }
-
   public static scapeSql(text: string) {
     return Common.removeAccents(text).replace(/'/g, "''").toLocaleLowerCase();
   }
 }
-
-type DateParam = number | string | Date;

@@ -6,7 +6,7 @@ import { environments } from '@/config/environments';
 import { setupEventManager } from '@/config/event-manager';
 import { setupTranslation } from '@/config/translation';
 import { RestApi } from '@/rest-api/rest-api';
-import { type CacheInterface, RedisCache } from '@/shared/cache';
+import { RedisCache, type CacheInterface } from '@/shared/cache';
 import { ContainerName } from '@/shared/container';
 import { type EventManagerInterface } from '@/shared/event-manager';
 import { Jwt, type JwtInterface } from '@/shared/jwt';

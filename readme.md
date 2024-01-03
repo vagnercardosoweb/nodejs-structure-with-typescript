@@ -45,8 +45,14 @@ If the variables are already configured for the environment, just run the
 To rollback migrations, simply run the command `npm run migrator:down:last` to
 undo the last operation, or `npm run migrator:down:all` to undo all operations.
 
-## Run tests
+## Run unit tests
 
 - `npm run test:unit:all` to run all tests once
 - `npm run test:unit:coverage` to run all tests and generate test coverage report
 - `npm run test:unit:watch` to run all tests and watch for changes to files
+
+## Run integration tests
+
+- `npm run test:e2e:all` to run all tests once
+- `npm run test:e2e:coverage` to run all tests and generate test coverage report
+- `npm run test:e2e:watch` to run all tests and watch for changes to files
