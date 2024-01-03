@@ -47,6 +47,6 @@ undo the last operation, or `npm run migrator:down:all` to undo all operations.
 
 ## Run tests
 
-- `npm run test:all` to run all tests once
-- `npm run test:coverage` to run all tests and generate test coverage report
-- `npm run test:watch` to run all tests and watch for changes to files
+- `npm run test:unit:all` to run all tests once
+- `npm run test:unit:coverage` to run all tests and generate test coverage report
+- `npm run test:unit:watch` to run all tests and watch for changes to files

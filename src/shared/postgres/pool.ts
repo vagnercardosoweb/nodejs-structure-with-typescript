@@ -113,10 +113,18 @@ export class PgPool implements PgPoolInterface {
       const result = await client.query<T>(query, bind);
       metadata.duration = duration.format();
       this.log(LogLevel.INFO, 'query', metadata);
+
+      let rowCount = 0;
+      if (result.rowCount !== undefined) {
+        rowCount = result.rowCount!;
+      } else if (!Array.isArray(result)) {
+        rowCount = result.rows.length;
+      }
+
       return {
         oid: result.oid,
         rows: result.rows,
-        rowCount: result.rowCount ?? result.rows.length,
+        rowCount,
         command: result.command,
         duration: metadata.duration,
         fields: result.fields,

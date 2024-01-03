@@ -49,7 +49,7 @@ const onShutdown = (error?: any) => {
   logger.info(`using environment ${Env.required('NODE_ENV')}`);
 
   try {
-    await setupDependencies(restApi, logger);
+    await setupDependencies(restApi);
     setupHandlers(restApi);
     setupSwagger(restApi);
     await restApi.listen();

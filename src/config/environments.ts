@@ -45,7 +45,7 @@ const envFromSchema = z
     DB_POOL_QUERY: z.coerce.number().default(3000),
     DB_POOL_MIN: z.coerce.number().default(0),
     DB_POOL_MAX: z.coerce.number().default(35),
-    REDIS_HOST: z.string().min(4),
+    REDIS_HOST: z.string().default('localhost'),
     REDIS_PORT: z.coerce.number().default(6379),
     REDIS_PASSWORD: z.string().default(''),
     REDIS_KEY_PREFIX: z.string().default('app:'),

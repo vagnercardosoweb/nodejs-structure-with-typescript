@@ -3,12 +3,12 @@ import { randomUUID } from 'node:crypto';
 import { NextFunction, Request, Response } from 'express';
 
 import { environments } from '@/config/environments';
-import { CacheInterface } from '@/shared/cache';
+import { type CacheInterface } from '@/shared/cache';
 import { Common } from '@/shared/common';
 import { ContainerName } from '@/shared/container';
 import { Logger } from '@/shared/logger';
-import { PgPoolInterface } from '@/shared/postgres';
-import { TranslationInterface } from '@/shared/translation';
+import { type PgPoolInterface } from '@/shared/postgres';
+import { type TranslationInterface } from '@/shared/translation';
 
 const getAcceptLanguage = (request: Request) => {
   const language = request.acceptsLanguages().at(0) ?? '*';

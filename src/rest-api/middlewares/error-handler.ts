@@ -9,7 +9,7 @@ import {
 } from '@/rest-api/dependencies';
 import { ContainerName } from '@/shared/container';
 import { AppError, parseErrorToObject } from '@/shared/errors';
-import { LoggerInterface } from '@/shared/logger';
+import { type LoggerInterface } from '@/shared/logger';
 import { SlackAlert } from '@/shared/slack-alert';
 
 const cacheAlertError = new Map<string, number>();

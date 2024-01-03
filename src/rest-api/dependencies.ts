@@ -18,16 +18,15 @@ import {
 import { Migrator, PgPool, type PgPoolInterface } from '@/shared/postgres';
 import { type TranslationInterface } from '@/shared/translation';
 
-export const setupDependencies = async (
-  restApi: RestApi,
-  logger: LoggerInterface,
-) => {
-  restApi.set(ContainerName.LOGGER, logger);
+export const setupDependencies = async (restApi: RestApi) => {
+  restApi.set(ContainerName.LOGGER, restApi.getLogger());
 
-  const pgPool = await PgPool.fromEnvironment(logger).connect();
+  const pgPool = await PgPool.fromEnvironment(restApi.getLogger()).connect();
   restApi.set(ContainerName.PG_POOL, pgPool).beforeClose(() => pgPool.close());
 
-  const cacheClient = await RedisCache.fromEnvironment(logger).connect();
+  const cacheClient = await RedisCache.fromEnvironment(
+    restApi.getLogger(),
+  ).connect();
   restApi
     .set(ContainerName.CACHE_CLIENT, cacheClient)
     .beforeClose(() => cacheClient.close());
@@ -37,8 +36,11 @@ export const setupDependencies = async (
     new PasswordHashBcrypt(environments.BCRYPT_SALT_ROUNDS),
   );
 
-  restApi.set(ContainerName.TRANSLATION, setupTranslation(logger));
-  restApi.set(ContainerName.EVENT_MANAGER, setupEventManager(logger));
+  restApi.set(ContainerName.TRANSLATION, setupTranslation(restApi.getLogger()));
+  restApi.set(
+    ContainerName.EVENT_MANAGER,
+    setupEventManager(restApi.getLogger()),
+  );
 
   restApi.set(
     ContainerName.JWT,
@@ -47,7 +49,7 @@ export const setupDependencies = async (
 
   if (environments.DB_MIGRATION_ON_STARTED) {
     await new Migrator(
-      pgPool.withLogger(logger),
+      pgPool.withLogger(restApi.getLogger()),
       path.resolve('migrations'),
     ).up();
   }

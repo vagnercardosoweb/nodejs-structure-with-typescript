@@ -1,5 +1,5 @@
 import tsconfigPaths from 'vite-tsconfig-paths';
-import {defineConfig} from 'vitest/config';
+import {configDefaults, defineConfig} from 'vitest/config';
 
 export default defineConfig({
   plugins: [tsconfigPaths()],
@@ -7,10 +7,10 @@ export default defineConfig({
     globals: true,
     passWithNoTests: true,
     allowOnly: true,
-    setupFiles: ['./src/config/dotenv'],
-    environment: 'node',
+    environment: './src/tests/environment-e2e.ts',
+    include: ['**/*.test.ts'],
+    exclude: [...configDefaults.exclude, '**/tests/**'],
     bail: process.env.CI === 'true' ? 1 : undefined,
     clearMocks: true,
-    cache: false
   },
 });

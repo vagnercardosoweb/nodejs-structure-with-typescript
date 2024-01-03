@@ -2,7 +2,7 @@ dist/
 node_modules/
 .husky/
 .idea/
-tests/
+src/tests/
 aws-infra/
 coverage/
 kubernetes/

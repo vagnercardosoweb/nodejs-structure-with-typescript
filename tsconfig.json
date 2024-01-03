@@ -17,12 +17,9 @@
     "forceConsistentCasingInFileNames": true,
     "strictPropertyInitialization": false,
     "resolveJsonModule": true,
-    "typeRoots": ["node_modules/@types"],
     "baseUrl": ".",
     "outDir": "./dist",
-    "rootDirs": ["src", "test"],
     "paths": {
-      "@/tests/*": ["./tests/*"],
       "@/*": ["./src/*"]
     }
   },

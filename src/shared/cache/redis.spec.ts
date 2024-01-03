@@ -71,6 +71,8 @@ describe('shared/cache/redis', () => {
   });
 
   it('should create an instance based on environment variables', () => {
+    process.env.REDIS_HOST = 'localhost';
+    process.env.REDIS_PORT = '6379';
     expect(() => RedisCache.fromEnvironment(logger)).not.toThrow();
   });
 

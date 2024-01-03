@@ -1,6 +1,7 @@
-import { Healthy } from '@/rest-api/handlers/healthy';
 import { RestApi } from '@/rest-api/rest-api';
 import { HttpMethod, HttpStatusCode } from '@/shared/enums';
+
+import { Healthy } from './healthy';
 
 const faviconHandler = (_: any, r: any) =>
   r.sendStatus(HttpStatusCode.NO_CONTENT);
