@@ -1,12 +1,12 @@
-import { Common } from '@/shared/common';
 import { NodeEnv } from '@/shared/enums';
 import { InternalServerError } from '@/shared/errors';
+import { isUndefined, normalizeValue } from '@/shared/utils';
 
 export class Env {
   public static get(key: string, defaultValue?: any) {
     const value = process.env[key];
     if (!value?.trim()) return defaultValue;
-    return Common.normalizeValue(value);
+    return normalizeValue(value);
   }
 
   public static has(key: string): boolean {
@@ -20,7 +20,7 @@ export class Env {
 
   public static required(key: string, defaultValue?: any) {
     const value = this.get(key, defaultValue);
-    if (Common.isUndefined(value)) {
+    if (isUndefined(value)) {
       throw InternalServerError.fromMessage(
         `The environment variable "${key}" is required.`,
       );

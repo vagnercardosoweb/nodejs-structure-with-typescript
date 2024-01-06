@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { Common } from '@/shared/common';
 import { Encryption } from '@/shared/encryption';
 
 const encryption = new Encryption('any_key');
@@ -21,7 +20,7 @@ describe('shared/encryption', () => {
 
   it('should create an encryption and validate the payload', async () => {
     const encrypted = await encryption.encrypt('any_value');
-    const payload = Common.parseStringToJson(Common.base64ToValue(encrypted));
+    const payload = JSON.parse(Buffer.from(encrypted, 'base64').toString());
     expect(payload.iv).toBeDefined();
     expect(payload.salt).toBeDefined();
     expect(payload.encrypted).toBeDefined();

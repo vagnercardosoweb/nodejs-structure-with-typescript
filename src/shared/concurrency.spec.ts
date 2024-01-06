@@ -1,6 +1,7 @@
+import { setTimeout } from 'node:timers/promises';
+
 import { describe, expect, test } from 'vitest';
 
-import { Common } from '@/shared/common';
 import { concurrency, go } from '@/shared/concurrency';
 import { Env } from '@/shared/env';
 
@@ -53,7 +54,7 @@ describe.skipIf(Env.get('CI'))('shared/concurrency.ts', () => {
         const limit1 = concurrency(1);
         const res: number[] = [];
         const create = (value: number) => async () => {
-          await Common.sleep(Math.round(Math.random() * 10) + 1);
+          await setTimeout(Math.round(Math.random() * 10) + 1);
           res.push(value);
         };
         await Promise.all([
@@ -84,7 +85,7 @@ describe.skipIf(Env.get('CI'))('shared/concurrency.ts', () => {
               return async () => {
                 running[index] = true;
                 await assert();
-                await Common.sleep(Math.round(Math.random() * 10) + 1);
+                await setTimeout(Math.round(Math.random() * 10) + 1);
                 await assert();
                 running[index] = false;
               };
@@ -111,7 +112,7 @@ describe.skipIf(Env.get('CI'))('shared/concurrency.ts', () => {
               return async () => {
                 if (index !== expectedIndex) throw new Error('Wrong order');
                 expectedIndex++;
-                await Common.sleep(Math.round(Math.random() * 10) + 1);
+                await setTimeout(Math.round(Math.random() * 10) + 1);
               };
             };
             const promises: Promise<any>[] = [];

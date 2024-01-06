@@ -3,8 +3,8 @@ import process from 'node:process';
 
 import { z } from 'zod';
 
-import { Common } from '@/shared/common';
 import { NodeEnv } from '@/shared/enums';
+import { normalizeValue } from '@/shared/utils';
 
 const copyEnv = { ...process.env };
 const envAsEntries = Object.entries(copyEnv);
@@ -13,7 +13,7 @@ const isParentValue = (v?: string) => v?.startsWith('${') && v.endsWith('}');
 const normalizeEnv = () => {
   for (let [key, value] of envAsEntries) {
     if (isParentValue(value)) value = copyEnv[value!.slice(2, -1)];
-    copyEnv[key] = Common.normalizeValue(value);
+    copyEnv[key] = normalizeValue(value);
   }
 };
 

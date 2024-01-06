@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 
 import { environments } from '@/config/environments';
-import { createNewBrlDate, createNewUtcDate } from '@/shared/date-utils';
+import { createNewBrlDate, createNewUtcDate } from '@/shared/date';
 
 export class Healthy {
   public static handle(request: Request, response: Response) {

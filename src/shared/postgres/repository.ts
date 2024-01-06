@@ -1,7 +1,7 @@
 import { QueryResultRow } from 'pg';
 
-import { Common } from '@/shared/common';
 import { InternalServerError, NotFoundError } from '@/shared/errors';
+import { removeUndefined } from '@/shared/utils';
 
 import { PgPoolInterface } from './types';
 
@@ -105,7 +105,7 @@ export class BaseRepository<TRow extends QueryResultRow> {
   }
 
   protected async create(data: Omit<TRow, 'id'>): Promise<TRow> {
-    data = Common.removeUndefined(data);
+    data = removeUndefined(data);
     if (this.createdAt && !data.hasOwnProperty(this.createdAt)) {
       (data as any)[this.createdAt] = 'NOW()';
     }
@@ -125,7 +125,7 @@ export class BaseRepository<TRow extends QueryResultRow> {
     where,
     binding,
   }: UpdateParams<T>): Promise<T> {
-    data = Common.removeUndefined(data);
+    data = removeUndefined(data);
 
     if (this.updatedAt && !data.hasOwnProperty(this.updatedAt)) {
       (data as any)[this.updatedAt] = 'NOW()';

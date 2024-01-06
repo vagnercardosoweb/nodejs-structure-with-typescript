@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { createNewBrlDate, createNewUtcDate } from '@/shared/date-utils';
+import { createNewBrlDate, createNewUtcDate } from '@/shared/date';
 
 export const timestamp = (
   request: Request,

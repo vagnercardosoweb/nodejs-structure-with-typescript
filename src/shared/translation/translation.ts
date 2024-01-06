@@ -1,7 +1,9 @@
 import dottie from 'dottie';
 
-import { Common } from '@/shared/common';
+import { cloneObject } from '@/shared/object';
+import { replaceMustache } from '@/shared/string';
 import { TranslationData, TranslationInterface } from '@/shared/translation';
+import { normalizeValue } from '@/shared/utils';
 
 export class Translation implements TranslationInterface {
   private translations = new Map<string, TranslationData>();
@@ -20,8 +22,8 @@ export class Translation implements TranslationInterface {
   public get(path: string, replaces: TranslationData = {}): string {
     let result = this.translations.get(this.locale)?.[path] ?? path;
     if (Object.keys(replaces).length === 0) return result;
-    result = Common.replaceKeysInString(result, replaces);
-    return Common.normalizeValue(result);
+    result = replaceMustache(result, replaces);
+    return normalizeValue(result);
   }
 
   public getLocale(): string {
@@ -33,7 +35,7 @@ export class Translation implements TranslationInterface {
     if (locale === this.locale) return this;
     if (!this.translations.has(locale)) [locale] = locale.split('-');
     if (!this.translations.has(locale)) return this;
-    const clone = Common.cloneObject(this);
+    const clone = cloneObject(this);
     clone.locale = locale;
     return clone;
   }

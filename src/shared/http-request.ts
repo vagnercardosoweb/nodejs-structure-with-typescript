@@ -1,7 +1,6 @@
 import http, { IncomingHttpHeaders } from 'node:http';
 import https, { RequestOptions } from 'node:https';
 
-import { Common } from '@/shared/common';
 import { HttpMethod, HttpStatusCode } from '@/shared/enums';
 import {
   AppError,
@@ -9,6 +8,7 @@ import {
   InternalServerError,
 } from '@/shared/errors';
 import { LoggerInterface } from '@/shared/logger';
+import { jsonParseOrDefault } from '@/shared/utils';
 
 export interface HttpRequest extends RequestOptions {
   body?: string;
@@ -56,7 +56,7 @@ export const httpRequest = async <T = any>(
         const data = Buffer.concat(chunks).toString().trim();
         const { statusCode = HttpStatusCode.OK, headers } = res;
         resolve({
-          body: Common.parseStringToJson(data),
+          body: jsonParseOrDefault(data),
           statusCode: Number(statusCode),
           headers,
         });

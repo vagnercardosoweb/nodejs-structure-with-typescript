@@ -8,9 +8,9 @@ import {
   getNowInSeconds,
   isValidDate,
   parseDateFromStringWithoutTimeToUtc,
-} from './date-utils';
+} from '@/shared/date';
 
-describe('src/shared/date-utils.spec.ts', () => {
+describe('src/shared/utils/date', () => {
   it.each([
     [new Date('2024-01-01'), true],
     [new Date('2024-102-03'), false],
@@ -27,6 +27,9 @@ describe('src/shared/date-utils.spec.ts', () => {
     [new Date('2018-06-16'), 5],
     [new Date('1994-12-15'), 29],
     [new Date('1992-11-05'), 31],
+    [new Date('1992-11-05'), 31],
+    [new Date('1982-01-01'), 42],
+    [new Date('1982-01-02'), 41],
   ])('calculateAge("%s") should return "%s"', (date, expected) => {
     vi.useFakeTimers({ now: new Date('2024-01-01') });
     expect(calculateAge(date)).toEqual(expected);

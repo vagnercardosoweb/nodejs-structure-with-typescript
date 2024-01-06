@@ -1,11 +1,11 @@
 import { Pool, PoolClient, types } from 'pg';
 
-import { Common } from '@/shared/common';
 import { DurationTime } from '@/shared/duration-time';
 import { HttpStatusCode } from '@/shared/enums';
 import { Env } from '@/shared/env';
 import { AppError } from '@/shared/errors';
 import { LoggerInterface, LoggerMetadata, LogLevel } from '@/shared/logger';
+import { cloneObject } from '@/shared/object';
 import {
   FnTransaction,
   PgPoolInterface,
@@ -15,6 +15,7 @@ import {
   Transaction,
   TransactionInterface,
 } from '@/shared/postgres';
+import { removeLinesAndSpaces } from '@/shared/string';
 
 export class PgPool implements PgPoolInterface {
   protected client: PoolClient | null = null;
@@ -100,7 +101,7 @@ export class PgPool implements PgPoolInterface {
     bind: any[] = [],
   ): Promise<QueryResult<T>> {
     const client = this.client ?? this.pool;
-    query = Common.normalizeSqlQuery(query);
+    query = removeLinesAndSpaces(query);
     const metadata = {
       name: this.options.appName,
       type: this.client !== null ? 'TX' : 'POOL',
@@ -179,7 +180,7 @@ export class PgPool implements PgPoolInterface {
 
   protected clone(): PgPool {
     if (this.hasCloned) return this;
-    const cloned = Common.cloneObject(this);
+    const cloned = cloneObject(this);
     cloned.hasCloned = true;
     return cloned;
   }

@@ -1,4 +1,5 @@
-import { Common } from '@/shared/common';
+import { setTimeout } from 'node:timers/promises';
+
 import { InternalServerError } from '@/shared/errors';
 import { EventManager } from '@/shared/event-manager';
 import { Logger } from '@/shared/logger';
@@ -181,7 +182,7 @@ describe('shared/event-manager', () => {
     ).not.toThrow();
     expect(handler).toBeCalledTimes(1);
 
-    await Common.sleep(0);
+    await setTimeout(0);
 
     expect(loggerSpy).toBeCalledTimes(1);
     expect(loggerSpy).toBeCalledWith('DISPATCH_ERROR', {

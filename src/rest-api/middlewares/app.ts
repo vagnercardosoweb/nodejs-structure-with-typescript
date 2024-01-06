@@ -4,11 +4,11 @@ import { NextFunction, Request, Response } from 'express';
 
 import { environments } from '@/config/environments';
 import { type CacheInterface } from '@/shared/cache';
-import { Common } from '@/shared/common';
 import { ContainerName } from '@/shared/container';
 import { Logger } from '@/shared/logger';
 import { type PgPoolInterface } from '@/shared/postgres';
 import { type TranslationInterface } from '@/shared/translation';
+import { isUndefined } from '@/shared/utils';
 
 const getAcceptLanguage = (request: Request) => {
   const language = request.acceptsLanguages().at(0) ?? '*';
@@ -27,7 +27,7 @@ const getOrCreateRequestId = (request: Request) => {
 const extractTokenFromRequest = (request: Request) => {
   const { authorization = '' } = request.headers;
   let [, token] = authorization.split(' ');
-  if (Common.isUndefined(token)) token = '';
+  if (isUndefined(token)) token = '';
   request.authorizationToken = token.trim();
 };
 

@@ -2,9 +2,9 @@ import { randomInt } from 'node:crypto';
 
 import dottie from 'dottie';
 
-import { Common } from '@/shared/common';
 import { HttpStatusCode } from '@/shared/enums';
 import { INTERNAL_SERVER_ERROR_MESSAGE } from '@/shared/errors';
+import { replaceMustache } from '@/shared/string';
 
 export class AppError extends Error {
   public code = 'DEFAULT';
@@ -68,7 +68,7 @@ export class AppError extends Error {
 
   protected replaceKeysInString(message: string) {
     if (!this.shouldReplaceKeys) return message;
-    return Common.replaceKeysInString(message, this.replaceKeys);
+    return replaceMustache(message, this.replaceKeys);
   }
 
   protected setProperty(key: string, value: any) {
