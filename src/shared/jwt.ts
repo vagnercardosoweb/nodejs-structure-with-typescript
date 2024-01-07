@@ -2,12 +2,13 @@ import { Secret, sign, TokenExpiredError, verify } from 'jsonwebtoken';
 
 import { UnauthorizedError } from '@/shared/errors';
 
+// Token expiration time in seconds, default 24 hours
 export const JWT_EXPIRES_IN = Number(
   process.env.JWT_EXPIRES_IN || 60 * 60 * 24,
 );
 
 export class Jwt implements JwtInterface {
-  protected expiresIn = JWT_EXPIRES_IN; // 7 days
+  protected expiresIn = JWT_EXPIRES_IN;
 
   public constructor(
     protected readonly privateKey: Secret,
