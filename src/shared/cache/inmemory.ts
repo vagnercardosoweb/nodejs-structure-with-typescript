@@ -69,6 +69,6 @@ export class InMemoryCache implements CacheInterface {
 }
 
 type Cached = {
-  value: any;
   expires: number;
+  value: any;
 };

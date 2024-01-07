@@ -85,13 +85,13 @@ export class PgPool implements PgPoolInterface {
 
   public async close(): Promise<void> {
     if (this.closed) return;
-    this.log(LogLevel.INFO, 'closing');
+    this.log(LogLevel.INFO, 'postgres closing');
     await this.pool.end();
     this.closed = true;
   }
 
   public async connect(): Promise<PgPoolInterface> {
-    this.log(LogLevel.INFO, 'connecting');
+    this.log(LogLevel.INFO, 'postgres connecting');
     await this.query('SELECT 1 + 1;');
     return this;
   }
@@ -100,20 +100,19 @@ export class PgPool implements PgPoolInterface {
     query: string,
     bind: any[] = [],
   ): Promise<QueryResult<T>> {
+    const duration = new DurationTime();
     const client = this.client ?? this.pool;
-    query = removeLinesAndSpaces(query);
     const metadata = {
       name: this.options.appName,
       type: this.client !== null ? 'TX' : 'POOL',
       duration: '0ms',
-      query,
+      query: removeLinesAndSpaces(query),
       bind,
     };
-    const duration = new DurationTime();
     try {
       const result = await client.query<T>(query, bind);
       metadata.duration = duration.format();
-      this.log(LogLevel.INFO, 'query', metadata);
+      this.log(LogLevel.INFO, 'postgres query', metadata);
 
       let rowCount = 0;
       if (result.rowCount !== undefined) {
@@ -134,7 +133,7 @@ export class PgPool implements PgPoolInterface {
       };
     } catch (e: any) {
       metadata.duration = duration.format();
-      this.log(LogLevel.ERROR, 'query', metadata);
+      this.log(LogLevel.ERROR, 'postgres query', metadata);
       throw new AppError({
         code: e.code,
         statusCode:
@@ -168,7 +167,7 @@ export class PgPool implements PgPoolInterface {
 
   public release() {
     if (this.client === null) return;
-    this.log(LogLevel.INFO, 'release');
+    this.log(LogLevel.INFO, 'postgres release');
     this.client.release();
     this.client = null;
   }

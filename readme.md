@@ -36,14 +36,14 @@ a `production` build.
 
 If the environment variable `DB_MIGRATION_ON_STARTED` is set to `true` as
 migrations will be automatically executed when starting the server, otherwise you can
-run manually with the command `NODE_ENV={value} npm run migrator:up`.
+run manually with the command `NODE_ENV={value} npm run db:migration:up`.
 
 The value of `{value}` must be the name of the `env` file configured based on `.env.{value}`,
 If the variables are already configured for the environment, just run the
-`npm run migrator:up` command.
+`npm run db:migration:up` command.
 
-To rollback migrations, simply run the command `npm run migrator:down:last` to
-undo the last operation, or `npm run migrator:down:all` to undo all operations.
+To rollback migrations, simply run the command `npm run db:migration:down:last` to
+undo the last operation, or `npm run db:migration:down:all` to undo all operations.
 
 ## Run unit tests
 

@@ -235,7 +235,7 @@ describe('shared/postgres/pool.ts', () => {
     expect(spyLog).toHaveBeenCalledTimes(1);
     expect(spyLog).toHaveBeenCalledWith(
       LogLevel.ERROR,
-      'query',
+      'postgres query',
       expect.objectContaining({
         name: pgOptions.appName,
         type: 'POOL',
@@ -272,7 +272,7 @@ describe('shared/postgres/pool.ts', () => {
     expect(spyLog).toHaveBeenCalledTimes(1);
     expect(spyLog).toHaveBeenCalledWith(
       LogLevel.INFO,
-      'query',
+      'postgres query',
       expect.objectContaining({
         name: pgOptions.appName,
         type: 'POOL',
