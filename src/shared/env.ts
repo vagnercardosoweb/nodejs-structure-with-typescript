@@ -1,39 +1,39 @@
+import process from 'node:process';
+
 import { NodeEnv } from '@/shared/enums';
 import { InternalServerError } from '@/shared/errors';
-import { isUndefined, normalizeValue } from '@/shared/utils';
+import { isEmptyValue, normalizeValue } from '@/shared/utils';
 
 export class Env {
   public static get(key: string, defaultValue?: any) {
-    const value = process.env[key];
-    if (!value?.trim()) return defaultValue;
+    let value = process.env[key];
+    if (!value) return defaultValue;
+
+    if (value.startsWith('${') && value.endsWith('}')) {
+      const extendedValue = process.env[value.slice(2, -1)];
+      if (!isEmptyValue(extendedValue)) value = extendedValue;
+    }
+
     return normalizeValue(value);
   }
 
   public static has(key: string): boolean {
-    return !!process.env[key];
+    return isEmptyValue(process.env[key]) === false;
   }
 
   public static set(key: string, value: any, override = true) {
     if (!override && process.env.hasOwnProperty(key)) return;
-    process.env[key] = value;
+    process.env[key] = normalizeValue(value);
   }
 
   public static required(key: string, defaultValue?: any) {
     const value = this.get(key, defaultValue);
-    if (isUndefined(value)) {
+    if (isEmptyValue(value)) {
       throw InternalServerError.fromMessage(
         `The environment variable "${key}" is required.`,
       );
     }
     return value;
-  }
-
-  public static getTimezoneUtc(): string {
-    return 'UTC';
-  }
-
-  public static getTimezoneBrl(): string {
-    return 'America/Sao_Paulo';
   }
 
   public static isLocal(): boolean {

@@ -1,6 +1,7 @@
 import { describe } from 'vitest';
 
 import {
+  isEmptyValue,
   isUndefined,
   jsonParseOrDefault,
   normalizeValue,
@@ -27,7 +28,7 @@ describe('src/shared/utils/utils', () => {
     expect(normalizeValue('1')).toBe(1);
     expect(normalizeValue('1.1')).toBe(1.1);
     expect(normalizeValue('1.1.1')).toBe('1.1.1');
-    expect(normalizeValue('0')).toBe('0');
+    expect(normalizeValue('01')).toBe('01');
     expect(normalizeValue('true')).toBe(true);
     expect(normalizeValue('false')).toBe(false);
     expect(normalizeValue('undefined')).toBe(undefined);
@@ -62,5 +63,13 @@ describe('src/shared/utils/utils', () => {
     };
     await until(condition);
     expect(count).toBe(3);
+  });
+
+  it('isEmptyValue should return true', () => {
+    expect(isEmptyValue(undefined)).toBe(true);
+    expect(isEmptyValue(null)).toBe(true);
+    expect(isEmptyValue('')).toBe(true);
+    expect(isEmptyValue([])).toBe(true);
+    expect(isEmptyValue({})).toBe(true);
   });
 });

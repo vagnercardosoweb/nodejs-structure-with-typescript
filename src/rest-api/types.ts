@@ -4,14 +4,14 @@ import { HttpMethod } from '@/shared/enums';
 
 export type BeforeCloseFn = () => Promise<void>;
 
-export type Handler = (
+export type HandlerFn = (
   request: Request,
   response: Response,
   next: NextFunction,
 ) => any | Promise<any>;
 
-export type Route = {
+export type Handler = {
   method: HttpMethod;
-  handlers: Handler[];
+  handlers: HandlerFn[];
   path: string;
 };

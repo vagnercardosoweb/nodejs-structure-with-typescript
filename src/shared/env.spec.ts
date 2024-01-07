@@ -13,6 +13,23 @@ describe('shared/env', () => {
     expect(Env.get('TEST')).toEqual('TEST');
   });
 
+  it('should extend the value of environment variables when the extended one has value', () => {
+    vi.stubEnv('NAME', 'any name');
+    // eslint-disable-next-line no-template-curly-in-string
+    vi.stubEnv('EXTENDED', '${NAME}');
+    expect(Env.get('EXTENDED')).toEqual('any name');
+    vi.unstubAllEnvs();
+  });
+
+  it('should not extend the variable when the extended one has no value', () => {
+    vi.stubEnv('NAME', '');
+    // eslint-disable-next-line no-template-curly-in-string
+    vi.stubEnv('EXTENDED', '${NAME}');
+    // eslint-disable-next-line no-template-curly-in-string
+    expect(Env.get('EXTENDED')).toEqual('${NAME}');
+    vi.unstubAllEnvs();
+  });
+
   it('should retrieve an env with default value', () => {
     const defaultValue = 'default value';
     expect(Env.get('NO_EXIST', defaultValue)).toEqual(defaultValue);
@@ -44,14 +61,6 @@ describe('shared/env', () => {
     expect(() => Env.required('NO_EXIST')).toThrow(
       'The environment variable "NO_EXIST" is required.',
     );
-  });
-
-  it('should return the UTC timezone', () => {
-    expect(Env.getTimezoneUtc()).toEqual('UTC');
-  });
-
-  it('should return the BRL timezone', () => {
-    expect(Env.getTimezoneBrl()).toEqual('America/Sao_Paulo');
   });
 
   it('should check the NODE_ENV if it is local', () => {

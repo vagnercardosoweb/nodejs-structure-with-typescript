@@ -1,69 +1,69 @@
-import {
-  Algorithm,
-  JwtPayload as JwtPayloadOriginal,
-  Secret,
-  sign,
-  SignOptions,
-  verify,
-  VerifyOptions,
-} from 'jsonwebtoken';
+import { Secret, sign, TokenExpiredError, verify } from 'jsonwebtoken';
 
-import { InternalServerError } from '@/shared/errors';
+import { UnauthorizedError } from '@/shared/errors';
+
+export const JWT_EXPIRES_IN = Number(
+  process.env.JWT_EXPIRES_IN || 60 * 60 * 24,
+);
 
 export class Jwt implements JwtInterface {
-  protected static ALGORITHM: Algorithm = 'RS256';
-  protected static EXPIRES_IN = 604800; // 7 days
+  protected expiresIn = JWT_EXPIRES_IN; // 7 days
 
   public constructor(
     protected readonly privateKey: Secret,
     protected readonly publicKey: Secret,
   ) {}
 
-  public encode(
-    input: JwtPayload,
-    options?: Omit<SignOptions, 'algorithm'>,
-  ): string {
-    if (!input.sub) {
-      throw new InternalServerError({
-        message: 'When creating a token, the "sub" is mandatory.',
-        metadata: { input, options },
-      });
-    }
-    const expiresIn = options?.expiresIn ?? Jwt.EXPIRES_IN;
-    return sign(input, this.privateKey, {
-      expiresIn,
-      allowInsecureKeySizes: true,
-      ...options,
-      algorithm: Jwt.ALGORITHM,
-    });
+  public withExpiresIn(expiresIn: number): this {
+    this.expiresIn = expiresIn;
+    return this;
   }
 
-  public decode(
-    token: string,
-    options?: Omit<VerifyOptions, 'algorithms'>,
-  ): JwtDecoded {
-    const decoded = verify(token, this.publicKey, {
-      ...options,
-      algorithms: [Jwt.ALGORITHM],
-    }) as JwtDecoded;
-    if (!decoded.sub) {
-      throw new InternalServerError({
-        message: 'When decoding a token, the "sub" is mandatory.',
-        metadata: { decoded, options },
+  public create(sub: string, metadata: Metadata = {}): string {
+    if (sub.trim().length === 0) throw new Error('sub must be a valid string');
+
+    const expiresIn = this.expiresIn;
+    this.expiresIn = JWT_EXPIRES_IN;
+
+    try {
+      return sign(metadata, this.privateKey, {
+        expiresIn,
+        allowInsecureKeySizes: true,
+        algorithm: 'RS256',
+        subject: sub,
+      });
+    } catch (e: any) {
+      throw new UnauthorizedError({
+        originalError: e,
+        code: 'JwtCreate',
       });
     }
-    return decoded;
+  }
+
+  public verify(token: string): JwtVerifyOutput {
+    try {
+      const decoded = verify(token, this.publicKey, {
+        algorithms: ['RS256'],
+      }) as JwtVerifyOutput;
+      return { ...decoded, token };
+    } catch (e: any) {
+      throw new UnauthorizedError({
+        originalError: e,
+        code: e instanceof TokenExpiredError ? 'JwtExpired' : 'JwtVerify',
+      });
+    }
   }
 }
 
-export type JwtPayload = JwtPayloadOriginal & { sub: any };
-export type JwtDecoded = JwtPayloadOriginal & {
+type Metadata = Record<string, any>;
+export type JwtVerifyOutput = Metadata & {
   iat: number;
   exp: number;
+  token: string;
   sub: any;
 };
 
 export interface JwtInterface {
-  encode(payload: JwtPayload, options?: SignOptions): string;
-  decode(token: string, options?: VerifyOptions): JwtDecoded;
+  create(sub: string, metadata?: Metadata): string;
+  verify(token: string): JwtVerifyOutput;
 }

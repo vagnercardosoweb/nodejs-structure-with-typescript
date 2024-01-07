@@ -1,13 +1,13 @@
 import '../config/module-alias';
 
+import { environments } from '@/config/environments';
 import { setupDependencies } from '@/rest-api/dependencies';
 import { setupHandlers } from '@/rest-api/handlers';
 import { RestApi } from '@/rest-api/rest-api';
 import { setupSwagger } from '@/rest-api/swagger';
-import { Env } from '@/shared/env';
 import { SlackAlert } from '@/shared/slack-alert';
 
-const restApi = new RestApi(Env.required('PORT'), Env.required('APP_KEY'));
+const restApi = new RestApi(environments.PORT, environments.APP_KEY);
 const serverId = restApi.getServerId();
 const logger = restApi.getLogger();
 
@@ -18,7 +18,7 @@ const parseError = (error: any) => ({
 });
 
 const sendSlackAlert = async (color: string, message: string) => {
-  if (!Env.get('SLACK_ALERT_ON_STARTED_OR_CLOSE_SERVER', true)) return;
+  if (!environments.SLACK_ALERT_ON_STARTED_OR_CLOSE_SERVER) return;
   try {
     await SlackAlert.send({ color, sections: { message } });
   } catch (e: any) {
@@ -45,8 +45,8 @@ const onShutdown = (error?: any) => {
 };
 
 (async (): Promise<void> => {
-  process.env.TZ = Env.getTimezoneUtc();
-  logger.info(`using environment ${Env.required('NODE_ENV')}`);
+  process.env.TZ = 'UTC';
+  logger.info(`using environment ${environments.NODE_ENV}`);
 
   try {
     await setupDependencies(restApi);

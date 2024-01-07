@@ -1,9 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { ContainerName } from '@/shared/container';
+import { getJwtFromRequest } from '@/rest-api/dependencies';
 import { Env } from '@/shared/env';
 import { UnauthorizedError } from '@/shared/errors';
-import { JwtInterface } from '@/shared/jwt';
 
 export const withToken = async (
   request: Request,
@@ -11,20 +10,16 @@ export const withToken = async (
   next: NextFunction,
 ) => {
   const { token } = request.jwt;
-  if (!token?.trim()) throw new UnauthorizedError({ code: 'JwtTokenIsEmpty' });
   if (token === Env.get('API_KEY')) return next();
+
   if (token.split('.').length !== 3) {
-    throw new UnauthorizedError({ code: 'JwtTokenInvalidFormat' });
-  }
-  try {
-    request.jwt = request.container
-      .get<JwtInterface>(ContainerName.JWT)
-      .decode(token) as any;
-  } catch (e: any) {
     throw new UnauthorizedError({
-      originalError: e,
-      code: 'JwtTokenValidationFailed',
+      originalError: { message: 'The token does not have a valid format.' },
+      code: 'JwtInvalidFormat',
     });
   }
+
+  request.jwt = getJwtFromRequest(request).verify(token);
+
   return next();
 };

@@ -22,12 +22,12 @@ import {
   requestLog,
   timestamp,
 } from '@/rest-api/middlewares';
-import { BeforeCloseFn, type Handler, type Route } from '@/rest-api/types';
+import { BeforeCloseFn, type Handler, type HandlerFn } from '@/rest-api/types';
 import {
   Container,
-  type ContainerInterface,
   ContainerName,
   ContainerValue,
+  type ContainerInterface,
 } from '@/shared/container';
 import { DurationTime } from '@/shared/duration-time';
 import { HttpMethod } from '@/shared/enums';
@@ -36,7 +36,7 @@ import { Logger, type LoggerInterface } from '@/shared/logger';
 
 export class RestApi {
   protected readonly app: Application;
-  protected readonly routes = new Map<string, Route>();
+  protected readonly handlers = new Map<string, Handler>();
   protected readonly serverId = randomUUID();
   protected readonly container: ContainerInterface;
   protected readonly logger: LoggerInterface;
@@ -73,22 +73,22 @@ export class RestApi {
     return this;
   }
 
-  public addRoute(
+  public addHandler(
     method: HttpMethod,
     path: string,
-    ...handlers: Handler[]
+    ...handlers: HandlerFn[]
   ): void {
     method = method.toUpperCase() as HttpMethod;
     const key = `${method} ${path}`;
 
-    if (this.routes.has(key)) {
+    if (this.handlers.has(key)) {
       throw new AppError({
         message: `Route "${key}" already exists registered`,
         code: 'ROUTE_ALREADY_EXISTS',
       });
     }
 
-    this.routes.set(key, {
+    this.handlers.set(key, {
       method,
       handlers: handlers.map(this.asyncHandler.bind(this)),
       path,
@@ -115,8 +115,8 @@ export class RestApi {
     return this.logger;
   }
 
-  public getRoutes(): Route[] {
-    return Array.from(this.routes.values());
+  public getHandlers(): Handler[] {
+    return Array.from(this.handlers.values());
   }
 
   public getPort(): number {
@@ -177,7 +177,7 @@ export class RestApi {
     this.app.use(requestLog);
     this.app.use(methodOverride);
 
-    this.makeRoutes();
+    this.makeHandlers();
 
     this.app.use(notFound);
     this.app.use(errorHandler);
@@ -189,7 +189,7 @@ export class RestApi {
     await Promise.all(this.beforeCloseFn.map((fn) => fn()));
   }
 
-  protected asyncHandler(fn: Handler) {
+  protected asyncHandler(fn: HandlerFn) {
     return (request: Request, response: Response, next: NextFunction) => {
       try {
         const result = fn(request, response, next);
@@ -201,8 +201,8 @@ export class RestApi {
     };
   }
 
-  protected makeRoutes() {
-    for (const route of this.getRoutes()) {
+  protected makeHandlers() {
+    for (const route of this.getHandlers()) {
       const middlewares =
         route.handlers.length > 1 ? route.handlers.slice(0, 1) : [];
       const handle = route.handlers[route.handlers.length - 1];

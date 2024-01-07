@@ -14,7 +14,7 @@ import { SlackAlert } from '@/shared/slack-alert';
 
 const cacheAlertError = new Map<string, number>();
 const isCachedErrorMessage = (errorMessage: string) => {
-  if (cacheAlertError.size > environments.ALERT_ERROR_SLACK_CACHE_MAX) {
+  if (cacheAlertError.size > environments.SLACK_ALERT_ERROR_CACHE_MAX) {
     cacheAlertError.clear();
   }
   const cachedMessage = crypto
@@ -25,7 +25,7 @@ const isCachedErrorMessage = (errorMessage: string) => {
   if (cachedTimestamp && cachedTimestamp > Date.now()) return true;
   cacheAlertError.set(
     cachedMessage,
-    Date.now() + environments.ALERT_ERROR_SLACK_CACHE_MS,
+    Date.now() + environments.SLACK_ALERT_ERROR_CACHE_MS,
   );
   return false;
 };

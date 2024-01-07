@@ -21,23 +21,13 @@ export const removeUndefined = <T>(value: T): T => {
 };
 
 export const normalizeValue = (value: any) => {
-  if (isDecimal(value)) {
-    return parseFloat(value);
-  }
-  if (String(value)[0] !== '0' && isNumber(value)) {
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  if (value === 'undefined') return undefined;
+  if (value === 'null') return null;
+  if (isDecimal(value)) return parseFloat(value);
+  if (typeof value === 'string' && value.at(0) !== '0' && isNumber(value)) {
     return Number(value);
-  }
-  if (value === 'true') {
-    return true;
-  }
-  if (value === 'false') {
-    return false;
-  }
-  if (value === 'null') {
-    return null;
-  }
-  if (value?.toString() === 'undefined') {
-    return undefined;
   }
   return value;
 };
@@ -58,4 +48,13 @@ export const jsonParseOrDefault = <T = any>(
     if (isUndefined(defaultValue)) throw e;
     return defaultValue;
   }
+};
+
+export const isEmptyValue = (value: any): boolean => {
+  if (value === null) return true;
+  if (value === undefined) return true;
+  if (value === '') return true;
+  if (Array.isArray(value) && value.length === 0) return true;
+  if (typeof value === 'object' && Object.keys(value).length === 0) return true;
+  return false;
 };
