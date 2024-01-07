@@ -1,5 +1,5 @@
 import tsconfigPaths from 'vite-tsconfig-paths';
-import {defineConfig} from 'vitest/config';
+import { defineConfig } from 'vitest/config';
 
 process.env.TZ = 'UTC';
 
@@ -14,9 +14,7 @@ export default defineConfig({
     clearMocks: true,
     allowOnly: true,
     coverage: {
-      include: [
-        'src/rest-api/handlers/**/*.ts',
-      ]
+      include: ['src/rest-api/handlers/**/*.ts'],
     },
   },
 });
