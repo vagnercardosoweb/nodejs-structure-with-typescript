@@ -5,6 +5,7 @@ import {
   generateCharacters,
   generateRandomString,
   hashFromString,
+  hasSpecialCharacter,
   isBase64,
   isBase64Image,
   isCompleteName,
@@ -197,5 +198,21 @@ describe('src/shared/utils/string', () => {
     expect(hashFromString('any value')).toBe(1571657560);
     expect(hashFromString('lorem ipsum dolor sit amet')).toBe(2019624743);
     expect(hashFromString('typescript')).toBe(3633045330);
+  });
+
+  it.each(
+    `-_{}[]+=)(*&¨%$#@!\`´^~;:/?.>,<|"`.split('').map((value) => [value, true]),
+  )('hasSpecialCharacter("%s") should return "true"', (value, expected) => {
+    expect(hasSpecialCharacter(value)).toBe(expected);
+  });
+
+  it('hasSpecialCharacter should return false if value has no special character', () => {
+    expect(hasSpecialCharacter('any value')).toBe(false);
+    expect(hasSpecialCharacter('any value with spaces')).toBe(false);
+    expect(
+      hasSpecialCharacter(
+        '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+      ),
+    ).toBe(false);
   });
 });

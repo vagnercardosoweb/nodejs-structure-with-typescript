@@ -57,7 +57,7 @@ export class Migrator {
     if (schema !== 'public') {
       await this.pgPool.query(`CREATE SCHEMA IF NOT EXISTS "${schema}";`);
     }
-    const result = await this.pgPool.query(
+    const result = await this.pgPool.query<{ table_name: string }>(
       `SELECT table_name
        FROM information_schema.tables
        WHERE table_schema = $1

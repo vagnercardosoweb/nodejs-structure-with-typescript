@@ -9,6 +9,7 @@ export class NotFoundError extends AppError {
       code: 'NOT_FOUND',
       statusCode: HttpStatusCode.NOT_FOUND,
       message: 'errors.not_found',
+      sendToSlack: false,
       ...input,
     });
   }

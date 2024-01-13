@@ -108,6 +108,9 @@ export const parseNameToParts = (name: string) => {
   return result;
 };
 
+export const hasSpecialCharacter = (value: string): boolean =>
+  /[^A-Za-zÀ-ÖØ-öø-ÿ0-9\\'\s]/g.test(value.trim());
+
 export const isCompleteName = (value: string): boolean => {
   return /[A-Za-zÀ-ÖØ-öø-ÿ]\s[A-Za-zÀ-ÖØ-öø-ÿ]+$/.test(value.trim());
 };

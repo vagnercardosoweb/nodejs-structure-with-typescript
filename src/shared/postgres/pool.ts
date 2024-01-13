@@ -1,4 +1,4 @@
-import { Pool, PoolClient, types } from 'pg';
+import { Pool, PoolClient, QueryResult as PgQueryResult, types } from 'pg';
 
 import { DurationTime } from '@/shared/duration-time';
 import { HttpStatusCode } from '@/shared/enums';
@@ -10,6 +10,9 @@ import {
   FnTransaction,
   PgPoolInterface,
   PgPoolOptions,
+  QueryArrayInput,
+  QueryInput,
+  QueryMetadata,
   QueryResult,
   QueryResultRow,
   Transaction,
@@ -96,44 +99,65 @@ export class PgPool implements PgPoolInterface {
     return this;
   }
 
-  public async query<T extends QueryResultRow = any>(
+  query<T extends QueryResultRow = any>(
+    input: QueryInput,
+  ): Promise<QueryResult<T>>;
+
+  query<T extends QueryResultRow = any>(
     query: string,
-    bind: any[] = [],
-  ): Promise<QueryResult<T>> {
+    values?: any[],
+  ): Promise<QueryResult<T>>;
+
+  query<T extends any[] = any[]>(
+    input: QueryArrayInput,
+  ): Promise<QueryResult<T[number]>[]>;
+
+  public async query<T extends QueryResultRow = any>(
+    input: QueryInput | string,
+    values: any[] = [],
+  ): Promise<T extends any[] ? QueryResult<T[number]>[] : QueryResult<T>> {
     const duration = new DurationTime();
     const client = this.client ?? this.pool;
-    const metadata = {
+
+    let query;
+    let $logId: string | undefined;
+
+    if (typeof input === 'string') {
+      query = input;
+    } else {
+      $logId = input?.logId;
+      values = input?.values ?? [];
+      query = input.query;
+    }
+
+    const metadata: QueryMetadata = {
       name: this.options.appName,
       type: this.client !== null ? 'TX' : 'POOL',
       duration: '0ms',
       query: removeLinesAndSpaces(query),
-      bind,
+      values,
     };
-    try {
-      const result = await client.query<T>(query, bind);
-      metadata.duration = duration.format();
-      this.log(LogLevel.INFO, 'postgres query', metadata);
 
-      let rowCount = 0;
-      if (result.rowCount !== undefined) {
-        rowCount = result.rowCount!;
-      } else if (!Array.isArray(result)) {
-        rowCount = result.rows.length;
+    try {
+      const result = await client.query<T>(query.trim(), values);
+      metadata.duration = duration.format();
+      this.log(LogLevel.INFO, 'postgres query', { $logId, ...metadata });
+
+      if (Array.isArray(result)) {
+        const queries = metadata.query.split(';');
+        return result.map((row) => {
+          return this.parseQueryResult(row, {
+            ...metadata,
+            query: queries.shift()!.trim(),
+          });
+        }) as any;
       }
 
-      return {
-        oid: result.oid,
-        rows: result.rows,
-        rowCount,
-        command: result.command,
-        duration: metadata.duration,
-        fields: result.fields,
-        query,
-        bind,
-      };
+      return this.parseQueryResult(result, metadata) as any;
     } catch (e: any) {
       metadata.duration = duration.format();
-      this.log(LogLevel.ERROR, 'postgres query', metadata);
+      this.log(LogLevel.ERROR, 'postgres query', { $logId, ...metadata });
+
       throw new AppError({
         code: e.code,
         statusCode:
@@ -170,6 +194,29 @@ export class PgPool implements PgPoolInterface {
     this.log(LogLevel.INFO, 'postgres release');
     this.client.release();
     this.client = null;
+  }
+
+  protected parseQueryResult<T extends QueryResultRow = any>(
+    result: PgQueryResult<any>,
+    metadata: QueryMetadata,
+  ): QueryResult<T> {
+    let rowCount = 0;
+    if (result.rowCount !== undefined) {
+      rowCount = result.rowCount!;
+    } else if (!Array.isArray(result)) {
+      rowCount = result.rows.length;
+    }
+
+    return {
+      oid: result.oid,
+      rows: result.rows,
+      rowCount,
+      command: result.command,
+      duration: metadata.duration,
+      fields: result.fields,
+      query: metadata.query,
+      values: metadata.values,
+    };
   }
 
   protected log(level: LogLevel, message: string, metadata?: LoggerMetadata) {

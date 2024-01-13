@@ -9,6 +9,7 @@ export class NotAcceptableError extends AppError {
       code: 'NOT_ACCEPTABLE',
       statusCode: HttpStatusCode.NOT_ACCEPTABLE,
       message: 'errors.not_acceptable',
+      sendToSlack: false,
       ...input,
     });
   }

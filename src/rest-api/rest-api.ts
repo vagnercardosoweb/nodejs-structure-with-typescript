@@ -25,9 +25,9 @@ import {
 import { BeforeCloseFn, type Handler, type HandlerFn } from '@/rest-api/types';
 import {
   Container,
+  type ContainerInterface,
   ContainerName,
   ContainerValue,
-  type ContainerInterface,
 } from '@/shared/container';
 import { DurationTime } from '@/shared/duration-time';
 import { HttpMethod } from '@/shared/enums';
@@ -142,14 +142,15 @@ export class RestApi {
     });
   }
 
-  public async close(): Promise<void> {
-    await this.runBeforeClose();
-    if (!this.server.listening) return;
+  public async close() {
     await new Promise<void>((resolve, reject) => {
+      if (!this.server.listening) return resolve();
       this.server.close((error) => {
         if (error) reject(error);
         resolve();
       });
+    }).finally(async () => {
+      await this.runBeforeClose();
     });
   }
 

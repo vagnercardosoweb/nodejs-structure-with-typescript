@@ -14,7 +14,7 @@ export function* generateChunks<T>(
 
 export const sortByAsc = <T extends Record<string, any>>(
   array: T[],
-  column: string,
+  column: keyof T,
 ): T[] => {
   return array.sort((a, b) => {
     if (a[column] > b[column]) return 1;
@@ -24,7 +24,7 @@ export const sortByAsc = <T extends Record<string, any>>(
 
 export const sortByDesc = <T extends Record<string, any>>(
   array: T[],
-  column: string,
+  column: keyof T,
 ): T[] => {
   return array.sort((a, b) => {
     if (a[column] < b[column]) return 1;

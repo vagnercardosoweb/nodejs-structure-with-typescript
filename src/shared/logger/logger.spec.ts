@@ -43,6 +43,7 @@ describe('src/shared/logger', () => {
       `${JSON.stringify({
         id: 'test',
         level: LogLevel.INFO,
+        pid: process.pid,
         hostname,
         timestamp: now,
         message: 'info message',
@@ -61,6 +62,7 @@ describe('src/shared/logger', () => {
       `${JSON.stringify({
         id: 'test',
         level: LogLevel.ERROR,
+        pid: process.pid,
         hostname,
         timestamp: now,
         message: 'error message',
@@ -79,6 +81,7 @@ describe('src/shared/logger', () => {
       `${JSON.stringify({
         id: 'test',
         level: LogLevel.CRITICAL,
+        pid: process.pid,
         hostname,
         timestamp: now,
         message: 'critical message',
@@ -97,6 +100,7 @@ describe('src/shared/logger', () => {
       `${JSON.stringify({
         id: 'test',
         level: LogLevel.WARN,
+        pid: process.pid,
         hostname,
         timestamp: now,
         message: 'warn message',
@@ -115,6 +119,7 @@ describe('src/shared/logger', () => {
       `${JSON.stringify({
         id: 'test',
         level: LogLevel.INFO,
+        pid: process.pid,
         hostname,
         timestamp: now,
         message: 'info message',
@@ -134,6 +139,7 @@ describe('src/shared/logger', () => {
       `${JSON.stringify({
         id: 'test',
         level: LogLevel.INFO,
+        pid: process.pid,
         hostname,
         timestamp: now,
         message: 'info message',
@@ -159,6 +165,7 @@ describe('src/shared/logger', () => {
       `${JSON.stringify({
         id: 'test',
         level: LogLevel.INFO,
+        pid: process.pid,
         hostname,
         timestamp: now,
         message: 'info message',
@@ -187,6 +194,7 @@ describe('src/shared/logger', () => {
       `${JSON.stringify({
         id: newLogId,
         level: LogLevel.INFO,
+        pid: process.pid,
         hostname,
         timestamp: now,
         message: 'info message',

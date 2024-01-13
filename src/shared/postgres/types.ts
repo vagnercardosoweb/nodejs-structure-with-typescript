@@ -1,7 +1,4 @@
-import {
-  QueryResult as PgQueryResult,
-  QueryResultRow as PgQueryResultRow,
-} from 'pg';
+import { QueryResultBase } from 'pg';
 
 import { LoggerInterface } from '@/shared/logger';
 
@@ -17,9 +14,15 @@ export interface TransactionInterface {
 
 export interface PgPoolInterface {
   query<T extends QueryResultRow = any>(
-    query: string,
-    bind?: any[],
+    input: QueryInput,
   ): Promise<QueryResult<T>>;
+  query<T extends QueryResultRow = any>(
+    query: string,
+    values?: any[],
+  ): Promise<QueryResult<T>>;
+  query<T extends any[] = any[]>(
+    input: QueryArrayInput,
+  ): Promise<QueryResult<T[number]>[]>;
   createTransaction(): Promise<TransactionInterface>;
   createTransactionManaged<T>(fn: FnTransaction<T>): Promise<T>;
   withLogger(logger: LoggerInterface): PgPoolInterface;
@@ -61,10 +64,30 @@ export type PgPoolOptions = {
   };
 };
 
-export type QueryResultRow = PgQueryResultRow;
-export type QueryResult<T extends QueryResultRow> = PgQueryResult<T> & {
-  bind: any[];
+export type QueryResultRow = Record<string, any>;
+
+export type QueryInput = {
+  query: string;
+  values?: any[];
+  logId?: string;
+};
+
+export type QueryArrayInput = QueryInput & {
+  multiple: true;
+};
+
+export type QueryMetadata = {
+  name: string;
+  type: 'TX' | 'POOL';
+  duration: string;
+  values: any[];
+  query: string;
+};
+
+export type QueryResult<T extends QueryResultRow = any> = QueryResultBase & {
+  values: any[];
   rowCount: number;
   duration: string;
   query: string;
+  rows: T[];
 };

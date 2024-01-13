@@ -1,6 +1,10 @@
+import os from 'node:os';
+import process from 'node:process';
+
 import { DatabaseError, Pool, PoolClient, types } from 'pg';
 import { describe, Mocked, vi } from 'vitest';
 
+import { DurationTime } from '@/shared/duration-time';
 import { Logger, LoggerInterface, LogLevel } from '@/shared/logger';
 import { PgPool, PgPoolInterface, PgPoolOptions } from '@/shared/postgres';
 
@@ -8,12 +12,28 @@ import { HttpStatusCode } from '../enums';
 import { AppError, INTERNAL_SERVER_ERROR_MESSAGE } from '../errors';
 
 const mockQueryResult = {
-  oid: 0,
   command: 'SELECT',
-  rowCount: 0,
-  rows: [],
-  fields: [],
-  bind: [],
+  duration: '0ms',
+  fields: [
+    {
+      columnID: 0,
+      dataTypeID: 23,
+      dataTypeModifier: -1,
+      dataTypeSize: 4,
+      format: 'text',
+      name: '?column?',
+      tableID: 0,
+    },
+  ],
+  oid: null,
+  query: 'SELECT 1 + 1;',
+  rowCount: 1,
+  rows: [
+    {
+      '?column?': 2,
+    },
+  ],
+  values: [],
 };
 
 vi.mock('pg', async () => {
@@ -86,11 +106,15 @@ const expectPoolConstructor = {
   user: 'postgres',
 };
 
-describe('shared/postgres/pool.ts', () => {
+describe('shared/postgres/pool', () => {
   let pgPool: PgPoolMockInterface;
 
   beforeEach(() => {
     pgPool = newPgPoolWithOptions(pgOptions);
+  });
+
+  afterEach(async () => {
+    await pgPool.close();
   });
 
   it('should create an instance with all properties defined without ssl', () => {
@@ -241,7 +265,7 @@ describe('shared/postgres/pool.ts', () => {
         type: 'POOL',
         duration: expect.any(String),
         query: 'SELECT 1 + 1;',
-        bind: [],
+        values: [],
       }),
     );
   });
@@ -259,12 +283,15 @@ describe('shared/postgres/pool.ts', () => {
       rows: mockRows,
     } as any);
 
-    const bind = [[1, 2]];
+    const values = [[1, 2]];
     const query = 'SELECT id, name FROM tb WHERE id = ANY($1)';
-    const result = await pgPool.query(query, bind);
+    const result = await pgPool.query<{ id: string; name: string }>(
+      query,
+      values,
+    );
 
     expect(pgPool.pool.query).toHaveBeenCalledTimes(1);
-    expect(pgPool.pool.query).toHaveBeenCalledWith(query, bind);
+    expect(pgPool.pool.query).toHaveBeenCalledWith(query, values);
 
     expect(result.rowCount).toBe(2);
     expect(result.rows).toEqual(mockRows);
@@ -277,8 +304,8 @@ describe('shared/postgres/pool.ts', () => {
         name: pgOptions.appName,
         type: 'POOL',
         duration: expect.any(String),
+        values,
         query,
-        bind,
       }),
     );
   });
@@ -296,7 +323,8 @@ describe('shared/postgres/pool.ts', () => {
     vi.stubEnv('DB_HOST', pgOptions.host);
     vi.stubEnv('DB_PASSWORD', pgOptions.password);
     vi.stubEnv('DB_USERNAME', pgOptions.username);
-    PgPool.fromEnvironment(new Logger('ID')) as PgPool;
+    const newPgPool = PgPool.fromEnvironment(new Logger('ID'));
+    expect(newPgPool).toBeInstanceOf(PgPool);
     expect(Pool).toHaveBeenCalledWith({
       ...expectPoolConstructor,
       application_name: 'app_with_env',
@@ -316,6 +344,67 @@ describe('shared/postgres/pool.ts', () => {
     expect(spyLog).not.toBeCalled();
   });
 
+  it('should execute a query with multiple statements and return an array with the correct data', async () => {
+    pgPool.pool.query.mockResolvedValue([
+      { ...mockQueryResult, command: 'SHOW' },
+      { ...mockQueryResult, command: 'SHOW' },
+    ] as any);
+
+    const results = await pgPool.query({
+      query: 'SHOW max_connections; SHOW superuser_reserved_connections;',
+      multiple: true,
+    });
+
+    expect(results).toHaveLength(2);
+    expect(results[0]).toMatchObject({
+      ...mockQueryResult,
+      duration: expect.any(String),
+      query: 'SHOW max_connections',
+      command: 'SHOW',
+    });
+
+    expect(results[1]).toMatchObject({
+      ...mockQueryResult,
+      duration: expect.any(String),
+      query: 'SHOW superuser_reserved_connections',
+      command: 'SHOW',
+    });
+  });
+
+  it('should execute the query and log with an id different from the default', async () => {
+    vi.stubEnv('NODE_ENV', 'local');
+    vi.useFakeTimers({ now: new Date(0) });
+
+    vi.spyOn(DurationTime.prototype, 'format').mockReturnValueOnce('0ms');
+
+    const spyStdoutWrite = vi.spyOn(process.stdout, 'write');
+    spyStdoutWrite.mockImplementationOnce(() => true);
+
+    await pgPool.query({ query: 'SELECT 1 + 1;', logId: 'any_id' });
+
+    expect(spyStdoutWrite).toHaveBeenCalledTimes(1);
+    expect(spyStdoutWrite).toHaveBeenCalledWith(
+      `${JSON.stringify({
+        id: 'any_id',
+        level: LogLevel.INFO,
+        pid: process.pid,
+        hostname: os.hostname(),
+        timestamp: '1970-01-01T00:00:00.000Z',
+        message: 'postgres query',
+        metadata: {
+          name: 'test',
+          type: 'POOL',
+          duration: '0ms',
+          query: 'SELECT 1 + 1;',
+          values: [],
+        },
+      })}\n`,
+    );
+
+    vi.unstubAllEnvs();
+    vi.useRealTimers();
+  });
+
   it('should execute the "createTransactionManaged" method with a function that returns a value of type "object" performing the "commit"', async () => {
     const mockUser = { id: 1, name: 'name 1' };
     const fn = vi.fn().mockResolvedValueOnce(mockUser);
@@ -328,6 +417,7 @@ describe('shared/postgres/pool.ts', () => {
   it('should execute the "createTransactionManaged" method with a function that throws an error and performing the "rollback"', async () => {
     const mockError = new Error('any_message');
     const fn = vi.fn().mockRejectedValueOnce(mockError);
-    expect(pgPool.createTransactionManaged(fn)).rejects.toThrow();
+    await expect(pgPool.createTransactionManaged(fn)).rejects.toThrow();
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 });

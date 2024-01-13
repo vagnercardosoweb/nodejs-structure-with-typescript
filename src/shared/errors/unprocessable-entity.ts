@@ -9,6 +9,7 @@ export class UnprocessableEntityError extends AppError {
       code: 'UNPROCESSABLE_ENTITY',
       statusCode: HttpStatusCode.UNPROCESSABLE_ENTITY,
       message: 'errors.unprocessable_entity',
+      sendToSlack: false,
       ...input,
     });
   }

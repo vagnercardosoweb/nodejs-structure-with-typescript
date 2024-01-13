@@ -27,7 +27,7 @@ services:
       - NODE_ENV=${NODE_ENV:-local}
 
   postgres:
-    image: bitnami/postgresql:15
+    image: bitnami/postgresql:16
     container_name: app-postgres
     env_file: .env.local
     tty: true

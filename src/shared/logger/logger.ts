@@ -35,7 +35,7 @@ export class Logger implements LoggerInterface {
       `${JSON.stringify({
         id: logId,
         level,
-        pid: process.env.pid,
+        pid: process.pid,
         hostname: os.hostname(),
         timestamp,
         message,

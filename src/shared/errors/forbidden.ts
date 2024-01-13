@@ -9,6 +9,7 @@ export class ForbiddenError extends AppError {
       code: 'FORBIDDEN',
       statusCode: HttpStatusCode.FORBIDDEN,
       message: 'errors.forbidden',
+      sendToSlack: false,
       ...input,
     });
   }

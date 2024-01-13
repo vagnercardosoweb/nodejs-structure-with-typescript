@@ -16,6 +16,7 @@ export default defineConfig({
     coverage: {
       include: [
         'src/rest-api/handlers/**/*.ts',
+        'src/shared/postgres/repository.ts',
         '!src/**/index.ts',
       ],
     },
