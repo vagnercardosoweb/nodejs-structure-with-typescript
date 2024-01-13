@@ -159,8 +159,11 @@ export class BaseRepository<
       groupBy = [],
     } = params || {};
 
+    const columnSize = columns.length;
+    if (columnSize === 0) columns.push('*');
+
     const columnsWithTable = (columns as string[]).map((column) => {
-      if (column.indexOf('*') !== -1) {
+      if (columnSize > 0 && column.indexOf('*') !== -1) {
         throw new InternalServerError({
           message: `The column "${column}" is not allowed`,
           metadata: { repositoryName: this.constructor.name, params },
@@ -171,10 +174,6 @@ export class BaseRepository<
       if (tableAlias) return `${tableAlias}.${column}`;
       return column;
     });
-
-    if (columnsWithTable.length === 0) {
-      columnsWithTable.push(`${this.tableName}.*`);
-    }
 
     let query = `SELECT ${this.join(columnsWithTable)} `;
     query += `FROM ${this.tableName} `;
