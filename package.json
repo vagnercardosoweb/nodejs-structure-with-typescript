@@ -19,6 +19,7 @@
     "prettier:write": "npx prettier --write ./src",
     "clean": "rm -rf ./dist",
     "build": "npm run clean && npx tsc -p ./tsconfig.build.json",
+    "test:all": "npm run test:unit:all && npm run test:e2e:all",
     "test:unit:all": "vitest run --dir src/",
     "test:unit:watch": "vitest --dir src/",
     "test:unit:coverage": "vitest run --coverage",
