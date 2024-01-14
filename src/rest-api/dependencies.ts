@@ -6,7 +6,7 @@ import { environments } from '@/config/environments';
 import { setupEventManager } from '@/config/event-manager';
 import { setupTranslation } from '@/config/translation';
 import { RestApi } from '@/rest-api/rest-api';
-import { RedisCache, type CacheInterface } from '@/shared/cache';
+import { type CacheInterface, RedisCache } from '@/shared/cache';
 import { ContainerName } from '@/shared/container';
 import { type EventManagerInterface } from '@/shared/event-manager';
 import { Jwt, type JwtInterface } from '@/shared/jwt';
@@ -19,14 +19,15 @@ import { Migrator, PgPool, type PgPoolInterface } from '@/shared/postgres';
 import { type TranslationInterface } from '@/shared/translation';
 
 export const setupDependencies = async (restApi: RestApi) => {
-  restApi.set(ContainerName.LOGGER, restApi.getLogger());
+  const logger = restApi.getLogger();
 
-  const pgPool = await PgPool.fromEnvironment(restApi.getLogger()).connect();
+  logger.info('setup dependencies');
+  restApi.set(ContainerName.LOGGER, logger);
+
+  const pgPool = await PgPool.fromEnvironment(logger).connect();
   restApi.set(ContainerName.PG_POOL, pgPool).beforeClose(() => pgPool.close());
 
-  const cacheClient = await RedisCache.fromEnvironment(
-    restApi.getLogger(),
-  ).connect();
+  const cacheClient = await RedisCache.fromEnvironment(logger).connect();
   restApi
     .set(ContainerName.CACHE_CLIENT, cacheClient)
     .beforeClose(() => cacheClient.close());
@@ -36,11 +37,8 @@ export const setupDependencies = async (restApi: RestApi) => {
     new PasswordHashBcrypt(environments.BCRYPT_SALT_ROUNDS),
   );
 
-  restApi.set(ContainerName.TRANSLATION, setupTranslation(restApi.getLogger()));
-  restApi.set(
-    ContainerName.EVENT_MANAGER,
-    setupEventManager(restApi.getLogger()),
-  );
+  restApi.set(ContainerName.TRANSLATION, setupTranslation(logger));
+  restApi.set(ContainerName.EVENT_MANAGER, setupEventManager(logger));
 
   restApi.set(
     ContainerName.JWT,
@@ -49,7 +47,7 @@ export const setupDependencies = async (restApi: RestApi) => {
 
   if (environments.DB_MIGRATION_ON_STARTED) {
     await new Migrator(
-      pgPool.withLogger(restApi.getLogger()),
+      pgPool.withLogger(logger),
       path.resolve('migrations'),
     ).up();
   }

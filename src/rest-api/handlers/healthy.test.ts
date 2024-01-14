@@ -8,6 +8,7 @@ import { createRestApi } from '@/tests/rest-api';
 
 describe('rest-api/handlers/healthy', () => {
   let restApi: RestApi;
+  const path = '/healthy';
 
   beforeEach(async () => {
     restApi = await createRestApi();
@@ -17,13 +18,13 @@ describe('rest-api/handlers/healthy', () => {
     await restApi.close();
   });
 
-  it('should return 200 and correct body', async () => {
-    const response = await supertest(restApi.getExpress()).get('/');
+  it(`should return "200" in the request for "${path}"`, async () => {
+    const response = await supertest(restApi.getExpress()).get(path);
 
     expect(response.status).toBe(HttpStatusCode.OK);
     expect(response.body).toEqual({
       data: '🚀',
-      path: 'GET /',
+      path: `GET ${path}`,
       duration: expect.any(String),
       hostname: environments.HOSTNAME,
       environment: NodeEnv.TEST,

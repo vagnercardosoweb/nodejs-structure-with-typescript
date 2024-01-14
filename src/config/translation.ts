@@ -3,7 +3,7 @@ import { LoggerInterface } from '@/shared/logger';
 import { Translation } from '@/shared/translation';
 
 export const setupTranslation = (logger: LoggerInterface) => {
-  logger.info('setting up translation');
+  logger.info('setup translation');
   const translation = new Translation();
   translation.add('pt-br', ptBR);
   return translation;

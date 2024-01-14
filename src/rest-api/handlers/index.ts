@@ -7,6 +7,6 @@ const faviconHandler = (_: any, r: any) =>
   r.sendStatus(HttpStatusCode.NO_CONTENT);
 
 export const setupHandlers = (restApi: RestApi) => {
-  restApi.addHandler(HttpMethod.GET, '/', Healthy.handle);
+  restApi.addHandler(HttpMethod.GET, '/healthy', Healthy.handle);
   restApi.addHandler(HttpMethod.GET, '/favicon.ico', faviconHandler);
 };

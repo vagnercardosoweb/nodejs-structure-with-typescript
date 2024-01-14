@@ -4,7 +4,7 @@ import { describe, vi } from 'vitest';
 import { DurationTime } from '@/shared/duration-time';
 import { AppError } from '@/shared/errors';
 import { Logger, LoggerInterface, LogLevel } from '@/shared/logger';
-import { PgPoolInterface, BaseRepository, PgPool } from '@/shared/postgres';
+import { PgPool, BaseRepository, PgPoolInterface } from '@/shared/postgres';
 import { isValidUuid } from '@/shared/string';
 
 interface PgPoolWithPublicProperty extends PgPoolInterface {

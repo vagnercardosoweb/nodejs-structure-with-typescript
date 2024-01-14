@@ -4,17 +4,22 @@ import { MethodNotAllowedError, PageNotFoundError } from '@/shared/errors';
 
 export const notFound = (
   request: Request,
-  _response: Response,
+  response: Response,
   next: NextFunction,
 ) => {
+  const path = request.originalUrl || request.url;
+  if (path === '/') return response.status(404).end();
+
   const errorOptions = {
-    path: request.originalUrl || request.url,
+    path,
     requestId: request.requestId,
     method: request.method,
   };
+
   const originalMethod = request.originalMethod || request.method;
   if (originalMethod.toUpperCase() !== request.method.toUpperCase()) {
     return next(new MethodNotAllowedError(errorOptions));
   }
+
   return next(new PageNotFoundError(errorOptions));
 };

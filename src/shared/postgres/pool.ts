@@ -4,7 +4,7 @@ import { DurationTime } from '@/shared/duration-time';
 import { HttpStatusCode } from '@/shared/enums';
 import { Env } from '@/shared/env';
 import { AppError } from '@/shared/errors';
-import { LoggerInterface, LoggerMetadata, LogLevel } from '@/shared/logger';
+import { LoggerInterface, LogLevel } from '@/shared/logger';
 import { cloneObject } from '@/shared/object';
 import {
   FnTransaction,
@@ -18,7 +18,6 @@ import {
   Transaction,
   TransactionInterface,
 } from '@/shared/postgres';
-import { removeLinesAndSpaces } from '@/shared/string';
 
 export class PgPool implements PgPoolInterface {
   protected client: PoolClient | null = null;
@@ -88,14 +87,14 @@ export class PgPool implements PgPoolInterface {
 
   public async close(): Promise<void> {
     if (this.closed) return;
-    this.log(LogLevel.INFO, 'postgres closing');
+    this.logger.info('postgres closing');
     await this.pool.end();
     this.closed = true;
   }
 
   public async connect(): Promise<PgPoolInterface> {
-    this.log(LogLevel.INFO, 'postgres connecting');
-    await this.query('SELECT 1 + 1;');
+    this.logger.info('postgres connecting');
+    await this.query({ query: 'SELECT 1 + 1;', logging: false });
     return this;
   }
 
@@ -119,29 +118,28 @@ export class PgPool implements PgPoolInterface {
     const duration = new DurationTime();
     const client = this.client ?? this.pool;
 
-    let query;
-    let $logId: string | undefined;
-
-    if (typeof input === 'string') {
-      query = input;
-    } else {
-      $logId = input?.logId;
-      values = input?.values ?? [];
-      query = input.query;
-    }
-
     const metadata: QueryMetadata = {
       name: this.options.appName,
       type: this.client !== null ? 'TX' : 'POOL',
       duration: '0ms',
-      query: removeLinesAndSpaces(query),
+      logging: this.options.logging,
+      query: '',
       values,
     };
 
+    if (typeof input === 'string') {
+      metadata.query = input.trim();
+    } else {
+      if (input?.logId) metadata.logId = input.logId;
+      if (input?.logging !== undefined) metadata.logging = input.logging;
+      metadata.values = input?.values ?? [];
+      metadata.query = input.query.trim();
+    }
+
     try {
-      const result = await client.query<T>(query.trim(), values);
+      const result = await client.query<T>(metadata.query, metadata.values);
       metadata.duration = duration.format();
-      this.log(LogLevel.INFO, 'postgres query', { $logId, ...metadata });
+      this.logQuery(LogLevel.INFO, metadata);
 
       if (Array.isArray(result)) {
         const queries = metadata.query.split(';');
@@ -156,7 +154,7 @@ export class PgPool implements PgPoolInterface {
       return this.parseQueryResult(result, metadata) as any;
     } catch (e: any) {
       metadata.duration = duration.format();
-      this.log(LogLevel.ERROR, 'postgres query', { $logId, ...metadata });
+      this.logQuery(LogLevel.ERROR, metadata);
 
       throw new AppError({
         code: e.code,
@@ -191,7 +189,7 @@ export class PgPool implements PgPoolInterface {
 
   public release() {
     if (this.client === null) return;
-    this.log(LogLevel.INFO, 'postgres release');
+    this.logger.info('postgres release');
     this.client.release();
     this.client = null;
   }
@@ -219,9 +217,15 @@ export class PgPool implements PgPoolInterface {
     };
   }
 
-  protected log(level: LogLevel, message: string, metadata?: LoggerMetadata) {
-    if (!this.options.logging) return;
-    this.logger.log(level, message, metadata);
+  protected logQuery(level: LogLevel, metadata: QueryMetadata) {
+    if (!metadata.logging) return;
+    Reflect.deleteProperty(metadata, 'logging');
+    const $logId = metadata.logId;
+    Reflect.deleteProperty(metadata, 'logId');
+    this.logger.log(level, 'postgres query', {
+      ...metadata,
+      $logId,
+    });
   }
 
   protected clone(): PgPool {

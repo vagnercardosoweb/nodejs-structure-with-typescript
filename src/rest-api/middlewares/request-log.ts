@@ -5,7 +5,7 @@ import { environments } from '@/config/environments';
 import { getLoggerFromRequest } from '@/rest-api/dependencies';
 import { ContainerName } from '@/shared/container';
 
-const bypassPaths = ['/docs', '/favicon'];
+const notLogPaths = ['/healthy', '/docs', '/favicon'];
 
 export const requestLog = (
   request: Request,
@@ -14,9 +14,8 @@ export const requestLog = (
 ) => {
   const requestUrl = request.path;
   if (
-    requestUrl === '/' ||
     environments.IS_TESTING ||
-    bypassPaths.some((path) => requestUrl.startsWith(path))
+    notLogPaths.some((path) => requestUrl.startsWith(path))
   ) {
     request.skipRequestLog = true;
     return next();

@@ -1,7 +1,5 @@
 import '../config/module-alias';
 
-import process from 'node:process';
-
 import { environments } from '@/config/environments';
 import { setupDependencies } from '@/rest-api/dependencies';
 import { setupHandlers } from '@/rest-api/handlers';
@@ -11,7 +9,6 @@ import { parseErrorToObject } from '@/shared/errors';
 import { SlackAlert } from '@/shared/slack-alert';
 
 const restApi = new RestApi(environments.PORT, environments.APP_KEY);
-const serverId = restApi.getServerId();
 const logger = restApi.getLogger();
 
 const sendSlackAlert = async (color: string, message: string) => {
@@ -26,7 +23,7 @@ const sendSlackAlert = async (color: string, message: string) => {
 const onShutdown = (error?: any) => {
   return async (code = 'SIGTERM') => {
     try {
-      let message = `server exited with code "${code}" with id "${serverId}"`;
+      let message = `server exited with code "${code}"`;
 
       if (error) error = parseErrorToObject(error);
       logger.error(message, error);
@@ -43,7 +40,7 @@ const onShutdown = (error?: any) => {
 
 (async (): Promise<void> => {
   process.env.TZ = 'UTC';
-  logger.info(`using environment ${environments.NODE_ENV}`);
+  logger.info(`using environment "${environments.NODE_ENV}"`);
 
   try {
     await setupDependencies(restApi);
@@ -51,7 +48,7 @@ const onShutdown = (error?: any) => {
     setupSwagger(restApi);
     await restApi.listen();
 
-    const message = `server started on port "${restApi.getPort()}" with id "${serverId}"`;
+    const message = `server started on port "${restApi.getPort()}"`;
     await sendSlackAlert('success', message);
     logger.info(message);
   } catch (error: any) {
@@ -59,19 +56,19 @@ const onShutdown = (error?: any) => {
   }
 })();
 
-process.once('unhandledRejection', async (reason, promise) => {
-  const message = `server exiting due to an "unhandledRejection" with id "${serverId}": ${reason}`;
+process.on('unhandledRejection', async (reason, promise) => {
+  const message = `server exiting due to an "unhandledRejection": ${reason}`;
   logger.error(message, { reason, promise });
   await sendSlackAlert('error', message);
   process.exit(1);
 });
 
-process.once('uncaughtException', async (error: any) => {
-  const message = `server received "uncaughtException" with id "${serverId}": ${error.message}`;
+process.on('uncaughtException', async (error: any) => {
+  const message = `server received "uncaughtException": ${error.message}`;
   logger.error(message, parseErrorToObject(error));
   await sendSlackAlert('error', message);
   process.exit(1);
 });
 
-process.once('SIGTERM', onShutdown());
-process.once('SIGINT', onShutdown());
+process.on('SIGTERM', onShutdown());
+process.on('SIGINT', onShutdown());

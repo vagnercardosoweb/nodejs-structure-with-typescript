@@ -69,6 +69,7 @@ export type QueryResultRow = Record<string, any>;
 export type QueryInput = {
   query: string;
   values?: any[];
+  logging?: boolean;
   logId?: string;
 };
 
@@ -78,10 +79,12 @@ export type QueryArrayInput = QueryInput & {
 
 export type QueryMetadata = {
   name: string;
-  type: 'TX' | 'POOL';
   duration: string;
   values: any[];
+  logging: boolean;
   query: string;
+  logId?: string;
+  type: 'TX' | 'POOL';
 };
 
 export type QueryResult<T extends QueryResultRow = any> = QueryResultBase & {
